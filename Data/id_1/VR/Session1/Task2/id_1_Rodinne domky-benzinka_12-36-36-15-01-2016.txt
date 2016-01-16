@@ -1,0 +1,43 @@
+*****
+Patient: *id_1*
+Time: *12-36-36-15-01-2016*
+-----
+***Quest policy***
+Waypoint arrow: *True*
+World path: *False*
+Minimap: *True*
+Minimap_camera_ortographic_size: *150.0000*
+Minimap path: *False*
+Minimap behaviour: *FOLLOW_ROTATE_ARROW*
+Minimap type: *STATIC*
+---Quest policy---
+***Quest step data***
+Level;ID;Name;Type;Transform;null
+0;0;;experiment.questsjg.steps.TaskGroup;NO transform;
+1;1;Teleport Player [0];experiment.questsjg.steps.TeleportPlayer;NO transform;
+1;2;Go To Waypoint [1];experiment.questsjg.steps.GoToWaypoint;(-92.4, 100.2, 125.2);
+1;3;Go To Waypoint [2];experiment.questsjg.steps.GoToWaypoint;(-210.2, 100.2, 183.3);
+1;4;Go To Waypoint [3];experiment.questsjg.steps.GoToWaypoint;(-215.2, 100.2, 114.2);
+1;5;Go To Waypoint [4];experiment.questsjg.steps.GoToWaypoint;(2.2, 100.2, 32.7);
+1;6;Go To Waypoint [6];experiment.questsjg.steps.GoToWaypoint;(79.4, 100.2, 10.5);
+1;7;Go To Waypoint [5];experiment.questsjg.steps.GoToWaypoint;(72.2, 100.2, -21.8);
+---Quest step data---
+TimeFromStart;Action;StepID;StepType;null
+55.9599;Quest started;;;
+55.9690;StepActivated;0;Step Group;
+55.9860;StepActivated;1;Teleport Player;
+58.2860;StepFinished;1;Teleport Player;
+58.2890;StepActivated;2;Go To Waypoint;
+65.7982;StepFinished;2;Go To Waypoint;
+65.7999;StepActivated;3;Go To Waypoint;
+78.9391;StepFinished;3;Go To Waypoint;
+78.9408;StepActivated;4;Go To Waypoint;
+85.3602;StepFinished;4;Go To Waypoint;
+85.3619;StepActivated;5;Go To Waypoint;
+102.9277;StepFinished;5;Go To Waypoint;
+102.9294;StepActivated;6;Go To Waypoint;
+109.1533;StepFinished;6;Go To Waypoint;
+109.1550;StepActivated;7;Go To Waypoint;
+111.8829;StepFinished;7;Go To Waypoint;
+111.8851;StepFinished;0;Step Group;
+111.8873;Quest finished;;;

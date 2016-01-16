@@ -1,0 +1,31 @@
+*****
+Patient: *id_1*
+Time: *12-29-27-15-01-2016*
+-----
+***Quest policy***
+Waypoint arrow: *False*
+World path: *False*
+Minimap: *False*
+Minimap_camera_ortographic_size: *150.0000*
+Minimap path: *False*
+Minimap behaviour: *FOLLOW_ROTATE_ARROW*
+Minimap type: *STATIC*
+---Quest policy---
+***Quest step data***
+Level;ID;Name;Type;Transform;null
+0;0;;experiment.questsjg.steps.TaskGroup;NO transform;
+1;1;Teleport Player [0];experiment.questsjg.steps.TeleportPlayer;NO transform;
+1;2;Point in Direction [1];experiment.questsjg.steps.PointInDirection;NO transform;
+1;3;Go To Waypoint [2];experiment.questsjg.steps.GoToWaypoint;(-108.8, 100.2, -708.0);
+---Quest step data---
+TimeFromStart;Action;StepID;StepType;null
+950.9924;Quest started;;;
+950.9959;StepActivated;0;Step Group;
+950.9976;StepActivated;1;Teleport Player;
+952.9408;StepFinished;1;Teleport Player;
+952.9486;StepActivated;2;Point in Direction;
+960.6937;StepActivated;3;Go To Waypoint;
+960.6938;StepFinished;2;Point in Direction;
+1063.2770;StepFinished;3;Go To Waypoint;
+1063.2790;StepFinished;0;Step Group;
+1063.2800;Quest finished;;;
