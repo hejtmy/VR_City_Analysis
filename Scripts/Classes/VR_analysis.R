@@ -1,174 +1,116 @@
-source("preprocess_functions.R")
-source("analysis_functions.R")
+library('R6')
+source(paste(getwd(),"HelperFunctions/preprocess_functions.R",sep="/"))
+source(paste(getwd(),"HelperFunctions/analysis_functions.R",sep="/"))
 
-VR_analysis <- setClass(
-     #sets the name
-     "VR_analysis",
+VR_analysis <- R6Class("VR_analysis",
      
-     #define variables
-     representation = list(
-          #basic definitions
-          dir = "character",
-          code = "character",
-          session ="character",
-          task="character",
-          session_task_dir = "character",
-          
-          #loaded tables and lists
-          exp_log = "list",
-          pos_table = "data.frame",
-          scenario_log = "list",
-          quests_log = "list"
-     ),
+    #define variables
+    public = list(
+        #basic definitions
+        dir = NULL,
+        code = NULL,
+        session = NULL,
+        task= NULL,
+        session_task_dir = NULL,
+        
+        #loaded tables and lists
+        exp_log = NULL,
+        pos_table = NULL,
+        scenario_log = NULL,
+        quests_log = NULL,
+        
+    initialize = function(dir="", code="", session=NULL, task=NULL){
+     self$dir = dir
+     self$SetParticipant(code)
+     self$SetSession(session)
+     self$SetTask(task)
      
-     #default values
-     prototype = list(
-          dir = paste(getwd()),
-          session = "Session1",
-          task = "Task1",
-          session_task_dir = NULL,
-          exp_log = NULL,
-          pos_table = NULL,
-          scenario_log = NULL,
-          quests_log = NULL
-          
-     ),
-     #define what is valid in the current context
-     validity = function(object){
-          #example
-          #if((object@d < 0) || (object@y < 0)) {
-          #     return("A negative number for one of the coordinates was given.")
-          #}
-          #return(TRUE)
-          if (is.null(exp_log)) return(FALSE)
-          if (is.null(pos_table)) return(FALSE)
-          
+     #TODO - check the data
+     if(nargs() >= 4) {
+        self$read_data_private()
      }
-)
-
-setMethod(f = "initialize",
-          signature = "VR_analysis", 
-          function(.Object, dir="", code="", session="",task=""){
-               if(nargs() > 1) {
-                    #if(length(x) != length(y))
-                    #     stop("specified x and y of different lengths")
-                    .Object@code <- code
-                    .Object@dir <- paste(dir,code,sep="/",collapse=NULL)
-               }
-               if(nargs() >= 4) {
-                    #session/task folder
-                    .Object@session_task_dir = paste(.Object@dir,code,session,task,sep="/");
-                    
-                    #open_player_log is a function in preprocess_functions.R
-                    #takes four arguments: directory whre the logs are located, 
-                    #patients code and session and task of the experiment
-                    .Object@pos_table <- OpenPlayerLog(.Object@session_task_dir)
-                    
-                    #open_experiment_log is a function in preprocess_functions.R
-                    #takes three arguments: directory whre the logs are located, 
-                    #patients code and session and task of the experiment
-                    .Object@exp_log <- OpenExperimentLog(.Object@session_task_dir)
-                    
-                    
-                    .Object@scenario_log <- OpenQuestLog(.Object@session_task_dir,.Object@code,.Object@exp_log$scenario$Name,.Object@exp_log$scenario$Timestamp)
-                    #if we opened scenario log, we open all appropriate quest logs from the scenario
-                    if(!is.null(.Object@scenario_log)){
-                         ls = list()
-                         #list of activated logs from the scenario process
-                         table_steps_activated <- .Object@scenario_log$data[.Object@scenario_log$data$Action=="StepActivated",]
-                         for(i in 1:nrow(table_steps_activated)){
-                              ##MIGHT HAVE TO CHANGE IT A BIT BECAUSE OF TASK GROUPS
-                              step = table_steps_activated[i,]
-                              timestamp = step$Timestamp
-                              #name of the step that activated the quest
-                              activatingStepName = .Object@scenario_log$steps[.Object@scenario_log$steps$ID == step$StepID,"Name"]
-                              #get the name of the quest activated from the name of the atctivation step
-                              quest_name <- GetActivatedQuestName(activatingStepName)
-                              ls[[quest_name]]<-OpenQuestLog(.Object@dir,.Object@code,quest_name,timestamp)
-                         }
-                         .Object@quests_log <- ls
-                    }
-               }
-               .Object
-          }
-)
-
-setGeneric("SetSession", function(object,number,...) standardGeneric("SetSession"))
-setMethod(f = "SetSession",
-          signature(object = "VR_analysis",number="numeric"),
-          function(object, number,..){
-               object@session = paste("Session",number,sep="")
-               return(object)
-          }
-)
-
-setGeneric("SetTask", function(object,number,...) standardGeneric("SetTask"))
-setMethod(f = "SetTask",
-          signature(object = "VR_analysis",number="numeric"),
-          function(object, number,..){
-               object@task = paste("Task",number,sep="")
-               return(object)
-          }
-)
-
-
-setGeneric("SetExperiment", function(object,timestamp,...) standardGeneric("SetExperiment"))
-
-setMethod(f = "SetExperiment",
-          signature(object = "VR_analysis",timestamp ="character"),
-          function(object, timestamp,..){
-               object@timestamp = timestamp
-               return(object)
-          }
-)
-
-setGeneric("SetParticipant",function(object,code,...) standardGeneric("SetParticipant"))
-
-setMethod("SetParticipant",
-          signature(object = "VR_analysis",code ="character"),
-          function(object,code,...){
-               object@code = code
-               return(object)
-          }
-)    
-
-setGeneric("GetParticipant",function(object) standardGeneric("GetParticipant"))
-
-setMethod("GetParticipant",
-          signature(object = "VR_analysis"),
-          function(object){
-               return(object@code)
-          }
-)  
-
-setGeneric ("MakePathImage",function(object,...) standardGeneric("MakePathImage"))
-#custom made for now
-setMethod("MakePathImage",
-          signature = "VR_analysis",
-          function(object,path = "",...){
-               if (nargs() > 1){
-                    make_path_image(img_location = path,position_table = object@pos_table)
-                    
-               } else {
-                    make_path_image(img_location = object@exp_log$terrain$Map_image_path,position_table = object@pos_table)
-                    
-               }
-                    
-          }
-)
-
-setGeneric ("SumTime",function(object,...) standardGeneric("SumTime"))
-
-setMethod("SumTime",
-          signature = "VR_analysis",
-          function(object,...){
-               calculate_cululative_time()
-          }
+    },
+    
+    #define what is valid in the current context
+    SetSession = function(number=1){
+     self$session = paste("Session",number,sep="")
+    },
+    SetTask = function(number=1){
+     self$task = paste("Task",number,sep="")
+    },
+    SetParticipant = function(id=""){
+     self$code = id
+    },
+    SetDataDir=function(dir=""){
+     self$dir = dir
+    },
+    ReadData = function(){
+      private$read_data_private()
+    },
+    
+    MakePathImage = function(path = ""){
+      if (nargs() >= 1){
+           make_path_image(img_location = path, position_table = self$pos_table)
+           
+      } else {
+           make_path_image(img_location = self$exp_log$terrain$Map_image_path, position_table = self$pos_table)
+      }
+    }
+    ),
+    
+    private = list(
+      is_valid = function(){
+        #example
+        #if((object@d < 0) || (object@y < 0)) {
+        #     return("A negative number for one of the coordinates was given.")
+        #}
+        #return(TRUE)
+        if (is.null(self$exp_log)) return(FALSE)
+        if (is.null(self$pos_table)) return(FALSE)
+      },
+      set_session_task_directory = function(){
+        self$session_task_dir <- paste(self$dir,self$code,"VR",self$session,self$task,sep="/")
+      },
+      read_data_private = function(){
+        #session/task folder
+        private$set_session_task_directory()
+        
+        #open_player_log is a function in preprocess_functions.R
+        #takes four arguments: directory whre the logs are located, 
+        #patients code and session and task of the experiment
+        self$pos_table <- OpenPlayerLog(self$session_task_dir)
+        
+        #open_experiment_log is a function in preprocess_functions.R
+        #takes three arguments: directory whre the logs are located, 
+        #patients code and session and task of the experiment
+        self$exp_log <- OpenExperimentLog(self$session_task_dir)
+        
+        #self$scenario_log <- OpenQuestLog(.Object@session_task_dir,.Object@code,.Object@exp_log$scenario$Name,.Object@exp_log$scenario$Timestamp)
+        #if we opened scenario log, we open all appropriate quest logs from the scenario
+        if(!is.null(self$scenario_log)){
+         ls = list()
+         #list of activated logs from the scenario process
+         table_steps_activated <- self$scenario_log$data[self$scenario_log$data$Action=="StepActivated",]
+         for(i in 1:nrow(table_steps_activated)){
+           ##MIGHT HAVE TO CHANGE IT A BIT BECAUSE OF TASK GROUPS
+           step = table_steps_activated[i,]
+           timestamp = step$Timestamp
+           #name of the step that activated the quest
+           activatingStepName = self$scenario_log$steps[self$scenario_log$steps$ID == step$StepID,"Name"]
+           #get the name of the quest activated from the name of the atctivation step
+           quest_name <- GetActivatedQuestName(activatingStepName)
+           ls[[quest_name]]<-OpenQuestLog(self$scenario_task_dir,self$code,quest_name,timestamp)
+         }
+         self$quests_log <- ls
+        }
+        private$is_valid()
+        }
+    )
 )
 
 OpenPlayerLog <- function(dir = ""){
 
-     logs = list.files(dir, "_player_" = ptr ,full.names = T)
+     logs = list.files(dir, pattern = "_player_" ,full.names = T)
      if (length(logs)>1){
           print("There is more player logs in the same folder. HAve you named and stored everything appropriately?")
           return(NULL)
@@ -197,15 +139,14 @@ OpenPlayerLog <- function(dir = ""){
      
      pos_tab <- vector3_to_columns(pos_tab,"Position")
      return(pos_tab)
-     
 }
 
-OpenExperimentLog <- function(dir = "", patient_code ="", date_time = ""){
+OpenExperimentLog <- function(dir = ""){
      
      ls = list()
 
      #needs to check if we got only one file out
-     logs = list.files(dir, "_experiment_" = ptr,full.names = T)
+     logs = list.files(dir, pattern = "_experiment_",full.names = T)
      if (length(logs)>1){
           print("There is more player logs in the same folder. HAve you named and stored everything appropriately?")
           return(NULL)
