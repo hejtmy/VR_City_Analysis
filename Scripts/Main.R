@@ -2,9 +2,9 @@ setwd("C:/Users/hejtmy/Documents/NUDZ/AnalysisR")
 #NUDZ settings
 #setwd("D:/VR/VRcity/SVN/AnalysisR")
 
-source("VR_analysis.R")
+source("Classes/VR_analysis.R")
 
-source("VUZIX_analysis.R")
+source("Classes/VUZIX_analysis.R")
 
 #sets the working dirrectory where the logs are
 project_dir <- "C:/Users/hejtmy/Documents/NUDZ/Project/Unity/sw-main-u5/Assets/logs"
