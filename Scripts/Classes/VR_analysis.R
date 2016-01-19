@@ -19,7 +19,7 @@ VR_analysis <- R6Class("VR_analysis",
         scenario_log = NULL,
         quests_log = NULL,
         
-    initialize = function(dir="", id="", session=NULL, task=NULL){
+    initialize = function(dir=getwd(), id="", session=NULL, task=NULL){
        self$dir = dir
        self$SetParticipant(id)
        self$SetSession(session)
@@ -69,7 +69,7 @@ VR_analysis <- R6Class("VR_analysis",
         if (is.null(self$pos_table)) return(FALSE)
       },
       set_session_task_directory = function(){
-        self$session_task_dir <- paste(self$dir,self$id,"VR",self$session,self$task,sep="/")
+        self$session_task_dir <- paste(self$dir,"Data",self$id,"VR",self$session,self$task,sep="/")
       },
       read_data_private = function(){
         #session/task folder
