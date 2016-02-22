@@ -1,51 +1,42 @@
-source("preprocess_functions.R")
-source("analysis_functions.R")
+require('R6')
+source(paste(getwd(),"Scripts","HelperFunctions/preprocess_functions.R",sep="/"))
+source(paste(getwd(),"scripts","HelperFunctions/analysis_functions.R",sep="/"))
 
-VUZIX_analysis <- setClass(
-     "VUZIX_analysis",
+VUZIX_analysis <- R6Class(     "VUZIX_analysis",
      #define variables
-     representation = list(
-          #basic definitions
-          dir = "character",
-          log_file = "character",
-          log_name = "character",
-          
-          #loaded tables and lists
-          #GPS is a list of Status changes and data information of lattitude/longitude
-          GPS = "list",
-          accelometer = "data.frame",
-          gyroscope = "data.frame",
-          compass = "data.frame"
-          
-     ),
-     
-     #default values
-     prototype = list(
-          dir = paste(getwd(),"GPS_logs",sep="/")
-     ),
-     
-     #define what is valid in the current context
-     validity = function(object){
-          #example
-          #if (GPS == NULL) return(FALSE)
-     }
-)
+      public = list(
+        #basic definitions
+        id = NULL,
+        #data directory
+        dir = NULL,
+        log_file = NULL,
+        log_name = NULL,
+        #loaded tables and lists
+        #GPS is a list of Status changes and data information of lattitude/longitude
+        GPS = NULL, #list
+        accelometer = NULL, #data.frame
+        gyroscope = NULL, #data.frame
+        compass = NULL, #data.frame
 
-setMethod(f = "initialize",
-          signature = "VUZIX_analysis", 
-          function(.Object, dir="", log_name=""){
-               if(nargs() > 1) {
-                    #if(length(x) != length(y))
-                    #     stop("specified x and y of different lengths")
-                    .Object@log_name <- log_name
-                    .Object@log_file <- paste(dir,log_name,sep="/",collapse=NULL)
-               }
-               if(nargs() >= 2) {
-                    data_list <- open_VUZIX_log(.Object@log_file)
-                    .Object@GPS <- data_list$GPS
-               }
-               .Object
+        initialize = function(dir = getwd(), id="", log_name=""){
+          if(nargs() > 1) {
+            self$dir = paste(dir,"Data",id,'VUZIX',sep="/")
+            self$log_name <- log_name
+            self$log_file <- paste(self$dir,log_name,sep="/",collapse=NULL)
           }
+          if(nargs() >= 2) {
+            data_list <- open_VUZIX_log(self$log_file)
+            self$GPS <- data_list$GPS
+          }
+        }
+     ),
+     
+     private = list(
+       
+       is_valid = function(){
+         
+       }
+     )
 )
 
 open_VUZIX_log <- function(log){

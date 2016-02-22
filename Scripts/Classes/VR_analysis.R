@@ -8,7 +8,7 @@ VR_analysis <- R6Class("VR_analysis",
     public = list(
         #basic definitions
         dir = NULL,
-        code = NULL,
+        id = NULL,
         session = NULL,
         task= NULL,
         session_task_dir = NULL,
@@ -19,16 +19,16 @@ VR_analysis <- R6Class("VR_analysis",
         scenario_log = NULL,
         quests_log = NULL,
         
-    initialize = function(dir="", code="", session=NULL, task=NULL){
-     self$dir = dir
-     self$SetParticipant(code)
-     self$SetSession(session)
-     self$SetTask(task)
-     
-     #TODO - check the data
-     if(nargs() >= 4) {
-        self$read_data_private()
-     }
+    initialize = function(dir=getwd(), id="", session=NULL, task=NULL){
+       self$dir = dir
+       self$SetParticipant(id)
+       self$SetSession(session)
+       self$SetTask(task)
+       
+       #TODO - check the data
+       if(nargs() >= 4) {
+          self$read_data_private()
+       }
     },
     
     #define what is valid in the current context
@@ -39,7 +39,7 @@ VR_analysis <- R6Class("VR_analysis",
      self$task = paste("Task",number,sep="")
     },
     SetParticipant = function(id=""){
-     self$code = id
+     self$id = id
     },
     SetDataDir=function(dir=""){
      self$dir = dir
@@ -69,7 +69,7 @@ VR_analysis <- R6Class("VR_analysis",
         if (is.null(self$pos_table)) return(FALSE)
       },
       set_session_task_directory = function(){
-        self$session_task_dir <- paste(self$dir,self$code,"VR",self$session,self$task,sep="/")
+      self$session_task_dir <- paste(self$dir,"Data",self$id,"VR",self$session,self$task,sep="/")
       },
       read_data_private = function(){
         #session/task folder
@@ -77,15 +77,16 @@ VR_analysis <- R6Class("VR_analysis",
         
         #open_player_log is a function in preprocess_functions.R
         #takes four arguments: directory whre the logs are located, 
-        #patients code and session and task of the experiment
+        #patients id and session and task of the experiment
         self$pos_table <- OpenPlayerLog(self$session_task_dir)
         
         #open_experiment_log is a function in preprocess_functions.R
         #takes three arguments: directory whre the logs are located, 
-        #patients code and session and task of the experiment
+
+        #patients id and session and task of the experiment
         self$exp_log <- OpenExperimentLog(self$session_task_dir)
         
-        #self$scenario_log <- OpenQuestLog(.Object@session_task_dir,.Object@code,.Object@exp_log$scenario$Name,.Object@exp_log$scenario$Timestamp)
+        #self$scenario_log <- OpenQuestLog(self$session_task_dir,self$code,self$exp_log$scenario$Name,self$exp_log$scenario$Timestamp)
         #if we opened scenario log, we open all appropriate quest logs from the scenario
         if(!is.null(self$scenario_log)){
          ls = list()
