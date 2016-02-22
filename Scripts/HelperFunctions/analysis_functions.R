@@ -18,5 +18,4 @@ make_path_image <- function (positions,locatioin,img_location,position_table){
 }
 
 calculate_cululative_time <- function(){
-     #
 }
