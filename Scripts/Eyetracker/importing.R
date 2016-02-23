@@ -1,3 +1,4 @@
+require(data.table)
 source("Scripts/Eyetracker/HelperEyetrackerFunctions.R")
 
 #what is n.calibrations, limit, n.event?
@@ -8,82 +9,26 @@ parse.asc.file <- function(filepath, n.event = 3000, limit_lines = NULL,
   #opens it for writing
   temporary_file <- file(temporary_file_path, "w")
   
-  lines <- readLines(filepath)
-  if (is.null(limit_lines)) {
-    nlines_read <- length(lines)
-  } else {
-    nlines_read <- limit_lines
-  }
-  
+  text <- readLines(filepath)
+
   eye <- GetEye(filepath);
   
   #finds indexes that start with MSG
-  MSG_indexes <- grep('^MSG\\t+.*',lines)
-  CAL_indexes <- grep('\\!CAL+.*',lines)
+  MSG_indexes <- grep('^MSG\\t+.*',text)
+  CAL_indexes <- grep('\\!CAL+.*',text)
   #removing calibration indexes from the MSG
   MSG_indexes <- MSG_indexes[!(MSG_indexes %in% CAL_indexes)]
   
-  events = ReadEvents(lines[MSG_indexes],length(MSG_indexes))
-  calibrations = ReadCalibrations(lines[CAL_indexes],length(CAL_indexes))
-  n.records <- nlines_read
-  # setup return variables
-  nr <- 0; 
+  events = ReadEvents(text[MSG_indexes],length(MSG_indexes))
+  # calibrations = ReadCalibrations(lines[CAL_indexes],length(CAL_indexes))
+
+  DATA_indexes <- grep("^[0-9]+.*$", text)
+  pseudo_file <- paste(text[DATA_indexes],collapse="\n")
+  dat <- fread(pseudo_file, header=F, col.names = c("Frame", "X", "Y", "Pupil", "NoIdea", "SomeDots"))
+  dat[, X:= as.double(X)]
+  dat[, Y:= as.double(Y)]
+  return(dat)
   
-  cat("\nlines_read read: ", nlines_read, "\n")
-  pb <- txtProgressBar(min = 1, max = nlines_read, style = 3)
-  current.trial <- 0
-  
-  DATA_indexes <- grep("^[0-9]+$", lines)
-  for (i in DATA_indexes) {
-    setTxtProgressBar(pb, i)
-    line <- lines[i]
-    msg <- unlist(strsplit(line, "[\t ]"))
-    #adds : to SYNC
-    line <- gsub("SYNC", "SYNC:", line)
-    #removes tabs
-    line <- gsub("[\t ]+", " ", line)
-    
-    # is it for 1 or 2 eyes?
-    ##cat("\nLen=",length(msg))
-    if (length(msg) %in% c(7, 8)) {# both eyes (time+3+3+dot) 
-      cat(current.trial, msg[1], "left", msg[2], msg[3], msg[4],
-          file = temporary_file, sep = "\t")
-      cat("\n", file = temporary_file, sep = "")
-      cat(current.trial, msg[1], "right", msg[5], msg[6], msg[7],
-          file = temporary_file, sep = "\t")
-      cat("\n", file = temporary_file, sep = "")        
-    } 
-    if (length(msg) %in% c(4, 5)) {
-      cat(current.trial, msg[1], eye, msg[2], msg[3], msg[4],
-          file = temporary_file, sep = "\t")
-      cat("\n", file = temporary_file, sep = "")        
-    }
-    if (!(length(msg) %in% c(4, 5, 7, 8))) {
-      cat("\n>", line)
-      print(line)
-      stop("Length not between 4 and 8.")
-    }
-    nr <- nr + 1
-  }
-  
-  cat("\nFile parsed, now importing gaze records.")
-  close(temporary_file)
-  records <- read.table(rec.file, na.strings=".")
-  if (ncol(records) == 6) {
-    records <- data.frame(records[, 1:6])
-  } else {
-    stop("Recording both eyes?")
-  }
-  names(records) <- c("trial", "etime", "eye", "x", "y", "pupil")
-  #  records$mtime <- records$mtime/1000
-  events <- events[1:ne, ]
-  result <- list(events = events, 
-                 valid = T,
-                 records = records,
-                 calibrations = calibrations[1:ncal, ])
-  cat("\nDone.")
-  unlink(rec.file) 
-  return(result)
 }
 
 clean.paf <- function(paf) {
