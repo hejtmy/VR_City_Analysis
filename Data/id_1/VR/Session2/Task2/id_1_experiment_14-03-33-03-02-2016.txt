@@ -1,0 +1,26 @@
+*****
+Patient: *id_1*
+Time: *14-03-33-03-02-2016*
+-----
+***Experiment information***
+Platform: *WINDOWS*
+---Experiment information---
+***Subject information***
+Subject_age: *21*
+Subject_gender: *WOMAN*
+---Subject information---
+***Minimap information***
+Minimap_camera_ortographic_size: *150.0000*
+---Minimap information---
+***Camera information***
+Camera_FOV_size: *60.0000*
+Camera_far_clipping: *750.0000*
+---Camera information---
+***Terrain information***
+Size: *(3000.0000, 600.0000, 2500.0000)*
+Pivot: *(-1378.0000, -84.0000, -1367.0000)*
+---Terrain information---
+***Scenario information***
+Name: *Scenario-GoTo10-noMap*
+Timestamp: *14-03-33-03-02-2016*
+---Scenario information---

@@ -1,7 +1,6 @@
 library('R6')
-source(paste(getwd(),"HelperFunctions/preprocess_functions.R",sep="/"))
-source(paste(getwd(),"HelperFunctions/analysis_functions.R",sep="/"))
-
+source(paste(getwd(),"Scripts/HelperFunctions/preprocess_functions.R",sep="/"))
+source(paste(getwd(),"Scripts/HelperFunctions/analysis_functions.R",sep="/"))
 VR_analysis <- R6Class("VR_analysis",
      
     #define variables
@@ -69,7 +68,7 @@ VR_analysis <- R6Class("VR_analysis",
         if (is.null(self$pos_table)) return(FALSE)
       },
       set_session_task_directory = function(){
-      self$session_task_dir <- paste(self$dir,"Data",self$id,"VR",self$session,self$task,sep="/")
+        self$session_task_dir <- paste(self$dir,"Data",self$id,"VR",self$session,self$task,sep="/")
       },
       read_data_private = function(){
         #session/task folder

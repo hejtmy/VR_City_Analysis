@@ -4,15 +4,9 @@ source("Scripts/Eyetracker/HelperEyetrackerFunctions.R")
 #what is n.calibrations, limit, n.event?
 parse.asc.file <- function(filepath, n.event = 3000, limit_lines = NULL, 
                            n.calibrations = 500) {
-  #creates temporary file for WHAT?
-  temporary_file_path <- tempfile(pattern = "records_", tmpdir=".", fileext=".csv")
-  #opens it for writing
-  temporary_file <- file(temporary_file_path, "w")
-  
-  text <- readLines(filepath)
 
+  text <- readLines(filepath)
   eye <- GetEye(filepath);
-  
   #finds indexes that start with MSG
   MSG_indexes <- grep('^MSG\\t+.*',text)
   CAL_indexes <- grep('\\!CAL+.*',text)
@@ -21,13 +15,14 @@ parse.asc.file <- function(filepath, n.event = 3000, limit_lines = NULL,
   
   events = ReadEvents(text[MSG_indexes],length(MSG_indexes))
   # calibrations = ReadCalibrations(lines[CAL_indexes],length(CAL_indexes))
-
+  
   DATA_indexes <- grep("^[0-9]+.*$", text)
   pseudo_file <- paste(text[DATA_indexes],collapse="\n")
   dat <- fread(pseudo_file, header=F, col.names = c("Frame", "X", "Y", "Pupil", "NoIdea", "SomeDots"))
   dat[, X:= as.double(X)]
   dat[, Y:= as.double(Y)]
-  return(dat)
+  return_list <- list("events" = events, "data" = dat)
+  return(return_list)
   
 }
 

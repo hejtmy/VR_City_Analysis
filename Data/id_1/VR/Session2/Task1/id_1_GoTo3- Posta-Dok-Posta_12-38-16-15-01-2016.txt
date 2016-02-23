@@ -1,0 +1,54 @@
+*****
+Patient: *id_1*
+Time: *12-38-16-15-01-2016*
+-----
+***Quest policy***
+Waypoint arrow: *True*
+World path: *False*
+Minimap: *False*
+Minimap_camera_ortographic_size: *150.0000*
+Minimap path: *False*
+Minimap behaviour: *FOLLOW_ROTATE*
+Minimap type: *STATIC*
+---Quest policy---
+***Quest step data***
+Level;ID;Name;Type;Transform;null
+0;0;;experiment.questsjg.steps.TaskGroup;NO transform;
+1;1;Teleport Player [0];experiment.questsjg.steps.TeleportPlayer;NO transform;
+1;2;Go To Waypoint [1];experiment.questsjg.steps.GoToWaypoint;(-457.6, 103.0, 80.1);
+1;3;Go To Waypoint [2];experiment.questsjg.steps.GoToWaypoint;(-341.6, 103.0, 63.6);
+1;4;Go To Waypoint [3];experiment.questsjg.steps.GoToWaypoint;(-304.7, 103.0, 188.3);
+1;5;Go To Waypoint [4];experiment.questsjg.steps.GoToWaypoint;(-339.9, 103.0, 225.1);
+1;6;Go To Waypoint [5];experiment.questsjg.steps.GoToWaypoint;(-329.3, 103.0, 284.5);
+1;7;Go To Waypoint [6];experiment.questsjg.steps.GoToWaypoint;(-352.0, 103.0, 290.5);
+1;8;Go To Waypoint [7];experiment.questsjg.steps.GoToWaypoint;(-385.5, 103.0, 245.8);
+1;9;Go To Waypoint [8];experiment.questsjg.steps.GoToWaypoint;(-407.2, 103.0, 270.2);
+1;10;Go To Waypoint [9];experiment.questsjg.steps.GoToWaypoint;(-419.9, 103.0, 279.5);
+1;11;Freeze Player [10];experiment.questsjg.steps.FreezePlayer;NO transform;
+---Quest step data---
+TimeFromStart;Action;StepID;StepType;null
+155.6134;Quest started;;;
+155.6170;StepActivated;0;Step Group;
+155.6187;StepActivated;1;Teleport Player;
+157.5881;StepFinished;1;Teleport Player;
+157.5898;StepActivated;2;Go To Waypoint;
+162.3671;StepFinished;2;Go To Waypoint;
+162.3688;StepActivated;3;Go To Waypoint;
+171.4690;StepFinished;3;Go To Waypoint;
+171.4707;StepActivated;4;Go To Waypoint;
+182.3788;StepFinished;4;Go To Waypoint;
+182.3805;StepActivated;5;Go To Waypoint;
+186.2841;StepFinished;5;Go To Waypoint;
+186.2858;StepActivated;6;Go To Waypoint;
+191.4243;StepFinished;6;Go To Waypoint;
+191.4260;StepActivated;7;Go To Waypoint;
+193.3204;StepFinished;7;Go To Waypoint;
+193.3220;StepActivated;8;Go To Waypoint;
+197.6764;StepFinished;8;Go To Waypoint;
+197.6781;StepActivated;9;Go To Waypoint;
+200.8053;StepFinished;9;Go To Waypoint;
+200.8069;StepActivated;10;Go To Waypoint;
+202.3746;StepFinished;10;Go To Waypoint;
+202.3851;StepActivated;11;Freeze Player;
+210.3722;StepFinished;0;Step Group;
+210.3738;Quest finished;;;

@@ -54,64 +54,6 @@ ReadEvents <- function(text, n.event){
   output_list  =list('mouse_move_events' = mouse_move_events, 'mouse_updown_events' = mouse_updown_events, 'key_updown_events' = key_updown_events, 'rest_events' = msgs[rest_events_idx])
   
   return(output_list)
-  
-  #might have empty rows
-  events <- data.frame(
-    event = character(n.event),
-    etime = numeric(n.event),
-    mtime = numeric(n.event),
-    frame = numeric(n.event),
-    param = numeric(n.event),
-    stringsAsFactors = F)
-    ne <- 0
-  
-    event <- "NA"; etime <- NA; mtime <- NA; frame <- NA
-    param <- NA
-    etime <- as.numeric(msg[2])
-    log.this <- F
-    current.trial <- 0;
-    
-    line <- gsub("SYNC", "SYNC:", line)
-    
-    if (grepl("TRIALID", line)) {
-      event <- "TRIALID"; log.this <- T
-      param <- as.numeric(msg[4])
-      current.trial <- current.trial + 1
-    }
-    #CURRENT TRIAL - NOT SURE WHY IS THIS HERE
-    if (grepl("SYNC:START", line)) {
-      event <- "SYNC:START"; log.this <- T
-      mtime <- as.numeric(unlist(strsplit(msg[3], ":"))[3])
-      param <- current.trial
-      frame <- 0
-    } 
-    if (grepl("SYNC:END", line)) {
-      event <- "SYNC:END"; log.this <- T
-      mtime <- as.numeric(unlist(strsplit(msg[3], ":"))[3])
-      param <- current.trial
-      #current.trial <- NULL
-    }
-    if (grepl("SYNC:[0-9]", line)) {
-      event <- "SYNC"; log.this <- T
-      tokens <- unlist(strsplit(msg[3], ":"))
-      frame <- as.numeric(tokens[2])
-      mtime <- as.numeric(tokens[3])
-      param <- current.trial				
-    }
-    
-    if (grepl("DRIFTCORRECT", line)) {
-      # not now
-    }
-    # save to data frame
-    if (log.this) {
-      ne <- ne + 1
-      events$event[ne] <- event
-      events$param[ne] <- param
-      events$frame[ne] <- frame
-      events$etime[ne] <- etime    # ok   			
-      events$mtime[ne] <- mtime/1000    # ok   			
-    }
-    return(events)
 }
 
 ReadCalibrations <- function(text,ncal){
