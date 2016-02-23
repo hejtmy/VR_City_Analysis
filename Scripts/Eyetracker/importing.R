@@ -1,142 +1,73 @@
-parse.asc.file <- function(file, n.event = 3000, limit = NULL, 
+source("Scripts/Eyetracker/HelperEyetrackerFunctions.R")
+
+#what is n.calibrations, limit, n.event?
+parse.asc.file <- function(filepath, n.event = 3000, limit_lines = NULL, 
                            n.calibrations = 500) {
-  rec.file <- tempfile(pattern = "records_", tmpdir=".", fileext=".csv")
-  zz <- file(rec.file, "w")
-  lines <- readLines(file)
-  if (is.null(limit)) {
-    nlines <- length(lines)
+  #creates temporary file for WHAT?
+  temporary_file_path <- tempfile(pattern = "records_", tmpdir=".", fileext=".csv")
+  #opens it for writing
+  temporary_file <- file(temporary_file_path, "w")
+  
+  lines <- readLines(filepath)
+  if (is.null(limit_lines)) {
+    nlines_read <- length(lines)
   } else {
-    nlines <- limit
-  }  
-  n.records <- nlines
+    nlines_read <- limit_lines
+  }
+  
+  eye <- GetEye(filepath);
+  
+  #finds indexes that start with MSG
+  MSG_indexes <- grep('^MSG\\t+.*',lines)
+  CAL_indexes <- grep('\\!CAL+.*',lines)
+  #removing calibration indexes from the MSG
+  MSG_indexes <- MSG_indexes[!(MSG_indexes %in% CAL_indexes)]
+  
+  events = ReadEvents(lines[MSG_indexes],length(MSG_indexes))
+  calibrations = ReadCalibrations(lines[CAL_indexes],length(CAL_indexes))
+  n.records <- nlines_read
   # setup return variables
-  events <- data.frame(event = character(n.event),
-                       etime = numeric(n.event),
-                       mtime = numeric(n.event),
-                       frame = numeric(n.event),
-                       param = numeric(n.event),
-                       stringsAsFactors = F)
-  calibrations <- data.frame(
-    calib.time  = numeric(n.calibrations),
-    trial       = numeric(n.calibrations),
-    eye         = character(n.calibrations),
-    rating      = character(n.calibrations),
-    error.avg   = numeric(n.calibrations),
-    error.max   = numeric(n.calibrations),
-    stringsAsFactors = F)
-  ne <- 0; nr <- 0; ncal <- 0
-  eye <- "unknown"
-  cat("\nLines read: ", nlines, "\n")
-  pb <- txtProgressBar(min = 1, max = nlines, style = 3)
+  nr <- 0; 
+  
+  cat("\nlines_read read: ", nlines_read, "\n")
+  pb <- txtProgressBar(min = 1, max = nlines_read, style = 3)
   current.trial <- 0
-  for (i in 1:nlines) {
+  
+  DATA_indexes <- grep("^[0-9]+$", lines)
+  for (i in DATA_indexes) {
     setTxtProgressBar(pb, i)
     line <- lines[i]
-    line <- gsub("SYNC", "SYNC:", line)
-    line <- gsub("[\t ]+", " ", line)
     msg <- unlist(strsplit(line, "[\t ]"))
-    #cat("\n",msg)
-    # which eye we will record?
-    if (grepl("^START", line)) {
-      eye <- "unknown"
-      if (grepl("LEFT", line)) {
-        eye <- "left"
-      }
-      if (grepl("RIGHT", line)) {
-        if (eye == "left") {
-          eye <- "both"
-        } else {
-          eye <- "right"
-        }
-      }
+    #adds : to SYNC
+    line <- gsub("SYNC", "SYNC:", line)
+    #removes tabs
+    line <- gsub("[\t ]+", " ", line)
+    
+    # is it for 1 or 2 eyes?
+    ##cat("\nLen=",length(msg))
+    if (length(msg) %in% c(7, 8)) {# both eyes (time+3+3+dot) 
+      cat(current.trial, msg[1], "left", msg[2], msg[3], msg[4],
+          file = temporary_file, sep = "\t")
+      cat("\n", file = temporary_file, sep = "")
+      cat(current.trial, msg[1], "right", msg[5], msg[6], msg[7],
+          file = temporary_file, sep = "\t")
+      cat("\n", file = temporary_file, sep = "")        
+    } 
+    if (length(msg) %in% c(4, 5)) {
+      cat(current.trial, msg[1], eye, msg[2], msg[3], msg[4],
+          file = temporary_file, sep = "\t")
+      cat("\n", file = temporary_file, sep = "")        
     }
-    if (grepl("^MSG", line)) {  		
-      event <- "NA"; etime <- NA; mtime <- NA; frame <- NA
-      param <- NA
-      etime <- as.numeric(msg[2])
-      log.this <- F
-      if (grepl("TRIALID", line)) {
-        event <- "TRIALID"; log.this <- T
-        param <- as.numeric(msg[4])
-        current.trial <- current.trial + 1
-      }
-      if (grepl("SYNC:START", line)) {
-        event <- "SYNC:START"; log.this <- T
-        mtime <- as.numeric(unlist(strsplit(msg[3], ":"))[3])
-        param <- current.trial
-        frame <- 0
-      } 
-      if (grepl("SYNC:END", line)) {
-        event <- "SYNC:END"; log.this <- T
-        mtime <- as.numeric(unlist(strsplit(msg[3], ":"))[3])
-        param <- current.trial
-        #current.trial <- NULL
-      }
-      if (grepl("SYNC:[0-9]", line)) {
-        event <- "SYNC"; log.this <- T
-        tokens <- unlist(strsplit(msg[3], ":"))
-        frame <- as.numeric(tokens[2])
-        mtime <- as.numeric(tokens[3])
-        param <- current.trial				
-      }
-      # something to do with calibration etc.?
-      if (grepl("!CAL CALIBRATION", line)) {
-        # not now
-      }
-      if (grepl("!CAL VALIDATION", line) & 
-            !grepl("ABORTED", line)) {
-        ncal <- ncal + 1
-        v.eye    <- msg[7]
-        v.rating <- msg[8]
-        v.error.avg <- as.numeric(msg[10])
-        v.error.max <- as.numeric(msg[12])
-        calibrations$calib.time[ncal]  <- etime
-        calibrations$trial[ncal]  <- current.trial
-        calibrations$eye[ncal]    <- v.eye
-        calibrations$rating[ncal] <- v.rating
-        calibrations$error.avg[ncal] <- v.error.avg
-        calibrations$error.max[ncal] <- v.error.max
-      }
-      if (grepl("DRIFTCORRECT", line)) {
-        # not now
-      }
-      
-      # save to data frame
-      if (log.this) {
-        ne <- ne + 1
-        events$event[ne] <- event
-        events$param[ne] <- param
-        events$frame[ne] <- frame
-        events$etime[ne] <- etime    # ok   			
-        events$mtime[ne] <- mtime/1000    # ok   			
-      }
+    if (!(length(msg) %in% c(4, 5, 7, 8))) {
+      cat("\n>", line)
+      print(line)
+      stop("Length not between 4 and 8.")
     }
-    # is it data point? (we are in trial and line starts with number)
-    if (!is.null(current.trial) & grepl("^[0-9]+$", msg[1])) {
-      # is it for 1 or 2 eyes?
-      ##cat("\nLen=",length(msg))
-      if (length(msg) %in% c(7, 8)) {# both eyes (time+3+3+dot) 
-        cat(current.trial, msg[1], "left", msg[2], msg[3], msg[4],
-            file = zz, sep = "\t")
-        cat("\n", file = zz, sep = "")
-        cat(current.trial, msg[1], "right", msg[5], msg[6], msg[7],
-            file = zz, sep = "\t")
-        cat("\n", file = zz, sep = "")        
-      } 
-      if (length(msg) %in% c(4, 5)) {
-        cat(current.trial, msg[1], eye, msg[2], msg[3], msg[4],
-            file = zz, sep = "\t")
-        cat("\n", file = zz, sep = "")        
-      }
-      if (!(length(msg) %in% c(4, 5, 7, 8))) {
-        cat("\n>", line)
-        stop("Length not 5 or 8.")
-      }
-      nr <- nr + 1
-    }
+    nr <- nr + 1
   }
+  
   cat("\nFile parsed, now importing gaze records.")
-  close(zz)
+  close(temporary_file)
   records <- read.table(rec.file, na.strings=".")
   if (ncol(records) == 6) {
     records <- data.frame(records[, 1:6])
