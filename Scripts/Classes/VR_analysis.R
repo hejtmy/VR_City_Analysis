@@ -1,6 +1,7 @@
 library('R6')
 source(paste(getwd(),"Scripts/HelperFunctions/preprocess_functions.R",sep="/"))
 source(paste(getwd(),"Scripts/HelperFunctions/analysis_functions.R",sep="/"))
+data_path = "/Data"
 VR_analysis <- R6Class("VR_analysis",
      
     #define variables
@@ -18,7 +19,7 @@ VR_analysis <- R6Class("VR_analysis",
         scenario_log = NULL,
         quests_log = NULL,
         
-    initialize = function(dir=getwd(), id="", session=NULL, task=NULL){
+    initialize = function(dir=data_path, id="", session=NULL, task=NULL){
        self$dir = dir
        self$SetParticipant(id)
        self$SetSession(session)
@@ -68,7 +69,7 @@ VR_analysis <- R6Class("VR_analysis",
         if (is.null(self$pos_table)) return(FALSE)
       },
       set_session_task_directory = function(){
-        self$session_task_dir <- paste(self$dir,"Data",self$id,"VR",self$session,self$task,sep="/")
+        self$session_task_dir <- paste(self$dir,self$id,"VR",self$session,self$task,sep="/")
       },
       read_data_private = function(){
         #session/task folder
@@ -85,6 +86,8 @@ VR_analysis <- R6Class("VR_analysis",
         #patients id and session and task of the experiment
         self$exp_log <- OpenExperimentLog(self$session_task_dir)
         
+        self$scenario_log = OpenQuestLog(task_dir = self$session_task_dir, name = self$exp_log$scenario$Name, date_time = self$exp_log$scenario$Timestamp)
+        
         #self$scenario_log <- OpenQuestLog(self$session_task_dir,self$code,self$exp_log$scenario$Name,self$exp_log$scenario$Timestamp)
         #if we opened scenario log, we open all appropriate quest logs from the scenario
         if(!is.null(self$scenario_log)){
@@ -99,7 +102,7 @@ VR_analysis <- R6Class("VR_analysis",
            activatingStepName = self$scenario_log$steps[self$scenario_log$steps$ID == step$StepID,"Name"]
            #get the name of the quest activated from the name of the atctivation step
            quest_name <- GetActivatedQuestName(activatingStepName)
-           ls[[quest_name]]<-OpenQuestLog(self$scenario_task_dir,self$code,quest_name,timestamp)
+           ls[[quest_name]]<-OpenQuestLog(self$session_task_dir, quest_name, timestamp)
          }
          self$quests_log <- ls
         }
@@ -178,13 +181,13 @@ OpenExperimentLog <- function(dir = ""){
      return(ls)     
 }
 
-OpenQuestLog <- function(dir = "", patient_code ="",  name = "", date_time = ""){
+OpenQuestLog <- function(task_dir = "",  name = "", date_time = ""){
      
      ls = list()
-     ptr <- paste(patient_code, "_", escapeRegex(name), "_", date_time, "*.txt$", sep="")
+     ptr <- paste("_", escapeRegex(name), "_", date_time, "*.txt$", sep="")
      
      #needs to check if we got only one file out
-     log = list.files(dir, pattern = ptr,full.names = T)[1]
+     log = list.files(task_dir, pattern = ptr, full.names = T)[1]
      
      #if the file does not exists returning NULL and exiting
      if(!file.exists(log)){

@@ -9,16 +9,17 @@ source("Scripts/Classes/VUZIX_analysis.R")
 source("Scripts/Eyetracker/importing.R")
 
 #sets the working dirrectory where the logs are
-project_dir <- "C:/Users/hejtmy/Documents/NUDZ/Project/Unity/sw-main-u5/Assets/logs"
+data_dir <- "../Data"
 
 #reads a VUZIX log and parses the data
-vz = VUZIX_analysis$new(getwd(),"Testing","18072015.csv")
+vz = VUZIX_analysis$new(dir = data_dir, "HCE_1_E_1", "18072015.csv")
 
 #instantiates VR_analysis class with the name and project directory 
 #it loads appropriate log files and allows for immediate analysis
-anal = VR_analysis$new("U:/Vyzkum/VR_City_Analysis",id="id_1",session=2)
+anal = VR_analysis$new(data_dir,id="HCE_1_E_1",session=1)
 anal$SetTask(1)
-MakePathImage(analysis,"GoodMapIGuess2.png")
+anal$ReadData()
+anal$MakePathImage("Maps/GoodMapIGuess2.png")
 
 #cannot do this until the scenario log had been figured out. Need more information of how the data will look
 #SumTime(analysis)
