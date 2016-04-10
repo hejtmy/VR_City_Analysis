@@ -2,7 +2,7 @@ require(png)
 require(grid)
 require(ggplot2)
 
-make_path_image <- function (positions,locatioin,img_location,position_table){
+make_path_image <- function (img_location,position_table){
 
      img <- readPNG(img_location)
      

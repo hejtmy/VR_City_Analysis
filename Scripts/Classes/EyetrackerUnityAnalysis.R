@@ -43,13 +43,22 @@ UnityEyetrackerAnalysis <- R6Class("UnityEyetrackerAnalysis",
       private$read_data_private()
     },
     
-    MakePathImage = function(path = ""){
-      if (nargs() >= 1){
-           make_path_image(img_location = path, position_table = self$position_table)
-           
+    MakePathImage = function(path = "", quest_idx = 0){
+      map_img_location = ""
+      if (!missing(path)){
+        map_img_location = path
       } else {
-           make_path_image(img_location = self$experiment_log$terrain$Map_image_path, position_table = self$position_table)
+        map_img_location = self$experiment_log$terrain$Map_image_path
       }
+      if (quest_idx == 0){
+        path_table = self$position_table;
+      } else {
+        time_window = private$get_quest_timewindow(quest_idx)
+        if(!is.null(time_window)){
+        path_table = private$select_position_data(time_window)
+        }
+      }
+      make_path_image(img_location = map_img_location, position_table = path_table)
     }
     ),
     
@@ -99,9 +108,26 @@ UnityEyetrackerAnalysis <- R6Class("UnityEyetrackerAnalysis",
         }
         private$is_valid()
         },
-      
-      select_position_data = function(start_time, end_time){
-        return(self$position_table[Time>start_time & Time < end_time])
+      select_position_data = function(time_window){
+        if(missing(time_window)){
+          stop("Need to specify time window")
+        }
+        if (length(time_window)>2){
+          stop("Time window needs to have only two times inside")
+        }
+        return(self$position_table[Time>time_window[1] & Time < time_window[2]])
+      },
+      get_quest_timewindow = function(quest_idx){
+        if(missing(quest_idx)){
+          stop("Need to specify the quest index")
+        }
+        quest = self$quests_log[quest_idx][[1]]
+        if(is.null(quest)){
+          stop("Quest log not reachable")
+        }
+        start_time = quest$data$TimeFromStart[quest$data$Action == "Quest started"]
+        end_time = quest$data$TimeFromStart[quest$data$Action == "Quest finished"]
+        return(c(start_time,end_time))
       }
     )
 )
