@@ -1,4 +1,5 @@
 library('R6')
+library('data.table')
 source(paste(getwd(),"Scripts/Classes/BaseUnityAnalysis.R",sep="/"))
 source(paste(getwd(),"Scripts/HelperFunctions/preprocess_functions.R",sep="/"))
 source(paste(getwd(),"Scripts/HelperFunctions/analysis_functions.R",sep="/"))
@@ -108,7 +109,10 @@ UnityEyetrackerAnalysis <- R6Class("UnityEyetrackerAnalysis",
          self$quests_log <- ls
         }
         private$is_valid()
-        }
+        },
+      select_position_data = function(start_time, end_time){
+        return(self$position_table[Time>start_time & Time < end_time])
+      }
     )
 )
 
@@ -142,6 +146,7 @@ OpenPlayerLog <- function(dir = ""){
      pos_tab[,length(names(pos_tab))]=NULL
      
      pos_tab <- vector3_to_columns(pos_tab,"Position")
+     pos_tab <- data.table(pos_tab)
      return(pos_tab)
 }
 
