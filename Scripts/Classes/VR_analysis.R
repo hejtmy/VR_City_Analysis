@@ -86,9 +86,8 @@ VR_analysis <- R6Class("VR_analysis",
         #patients id and session and task of the experiment
         self$exp_log <- OpenExperimentLog(self$session_task_dir)
         
-        self$scenario_log = OpenQuestLog(task_dir = self$session_task_dir, name = self$exp_log$scenario$Name, date_time = self$exp_log$scenario$Timestamp)
+        self$scenario_log = OpenQuestLog(self$session_task_dir, self$exp_log$scenario$Name, self$exp_log$scenario$Timestamp)
         
-        #self$scenario_log <- OpenQuestLog(self$session_task_dir,self$code,self$exp_log$scenario$Name,self$exp_log$scenario$Timestamp)
         #if we opened scenario log, we open all appropriate quest logs from the scenario
         if(!is.null(self$scenario_log)){
          ls = list()
@@ -102,7 +101,9 @@ VR_analysis <- R6Class("VR_analysis",
            activatingStepName = self$scenario_log$steps[self$scenario_log$steps$ID == step$StepID,"Name"]
            #get the name of the quest activated from the name of the atctivation step
            quest_name <- GetActivatedQuestName(activatingStepName)
-           ls[[quest_name]]<-OpenQuestLog(self$session_task_dir, quest_name, timestamp)
+           if (!is.na(quest_name)){
+             ls[[quest_name]] <- OpenQuestLog(self$session_task_dir, quest_name, timestamp)
+           }
          }
          self$quests_log <- ls
         }
@@ -191,7 +192,7 @@ OpenQuestLog <- function(task_dir = "",  name = "", date_time = ""){
      
      #if the file does not exists returning NULL and exiting
      if(!file.exists(log)){
-          print("Could not find the file for given quest log")
+          print(paste("Could not find the file for given quest log", name, date_time, sep = " "))
           print(ptr)
           return(NULL)
      }
