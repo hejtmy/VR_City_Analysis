@@ -9,6 +9,12 @@ BaseAnalysis <- R6Class("BaseAnalysis",
      initialize = function(dir, id){
        self$dir = dir
        self$SetParticipant(id)
+     },
+     SetParticipant = function(id=""){
+       self$id = id
+     },
+     SetDataDir=function(dir=""){
+       self$dir = dir
      }
    )
 )

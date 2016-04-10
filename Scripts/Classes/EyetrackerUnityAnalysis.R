@@ -39,12 +39,6 @@ UnityEyetrackerAnalysis <- R6Class("UnityEyetrackerAnalysis",
     SetTask = function(number=1){
      self$task = paste("Task",number,sep="")
     },
-    SetParticipant = function(id=""){
-     self$id = id
-    },
-    SetDataDir=function(dir=""){
-     self$dir = dir
-    },
     ReadData = function(){
       private$read_data_private()
     },
@@ -61,11 +55,6 @@ UnityEyetrackerAnalysis <- R6Class("UnityEyetrackerAnalysis",
     
     private = list(
       is_valid = function(){
-        #example
-        #if((object@d < 0) || (object@y < 0)) {
-        #     return("A negative number for one of the coordinates was given.")
-        #}
-        #return(TRUE)
         if (is.null(self$experiment_log)) return(FALSE)
         if (is.null(self$position_table)) return(FALSE)
       },
@@ -110,6 +99,7 @@ UnityEyetrackerAnalysis <- R6Class("UnityEyetrackerAnalysis",
         }
         private$is_valid()
         },
+      
       select_position_data = function(start_time, end_time){
         return(self$position_table[Time>start_time & Time < end_time])
       }
