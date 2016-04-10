@@ -2,7 +2,7 @@
 #NUDZ settings
 #setwd("D:/VR/VRcity/VR_City_Analysis")
 
-source("Scripts/Classes/VR_analysis.R")
+source("Scripts/Classes/EyetrackerUnityAnalysis.R")
 
 source("Scripts/Classes/VUZIX_analysis.R")
 
@@ -16,7 +16,7 @@ vz = VUZIX_analysis$new(dir = data_dir, "HCE_1_E_1", "18072015.csv")
 
 #instantiates VR_analysis class with the name and project directory 
 #it loads appropriate log files and allows for immediate analysis
-anal = VR_analysis$new(data_dir,id="HCE_1_E_1",session=1)
+anal = UnityEyetrackerAnalysis$new(data_dir,id="HCE_1_E_1",session=1)
 anal$SetTask(1)
 anal$ReadData()
 anal$MakePathImage("Maps/GoodMapIGuess2.png")

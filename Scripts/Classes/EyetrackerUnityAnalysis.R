@@ -1,21 +1,21 @@
 library('R6')
+source(paste(getwd(),"Scripts/Classes/BaseUnityAnalysis.R",sep="/"))
 source(paste(getwd(),"Scripts/HelperFunctions/preprocess_functions.R",sep="/"))
 source(paste(getwd(),"Scripts/HelperFunctions/analysis_functions.R",sep="/"))
 data_path = "/Data"
-VR_analysis <- R6Class("VR_analysis",
-     
+UnityEyetrackerAnalysis <- R6Class("UnityEyetrackerAnalysis",
+    
+    inherit = BaseUnityAnalysis,
     #define variables
     public = list(
         #basic definitions
-        dir = NULL,
-        id = NULL,
         session = NULL,
         task= NULL,
         session_task_dir = NULL,
         
         #loaded tables and lists
         exp_log = NULL,
-        pos_table = NULL,
+        position_table = NULL,
         scenario_log = NULL,
         quests_log = NULL,
         
@@ -50,10 +50,10 @@ VR_analysis <- R6Class("VR_analysis",
     
     MakePathImage = function(path = ""){
       if (nargs() >= 1){
-           make_path_image(img_location = path, position_table = self$pos_table)
+           make_path_image(img_location = path, position_table = self$position_table)
            
       } else {
-           make_path_image(img_location = self$exp_log$terrain$Map_image_path, position_table = self$pos_table)
+           make_path_image(img_location = self$exp_log$terrain$Map_image_path, position_table = self$position_table)
       }
     }
     ),
@@ -66,7 +66,7 @@ VR_analysis <- R6Class("VR_analysis",
         #}
         #return(TRUE)
         if (is.null(self$exp_log)) return(FALSE)
-        if (is.null(self$pos_table)) return(FALSE)
+        if (is.null(self$position_table)) return(FALSE)
       },
       set_session_task_directory = function(){
         self$session_task_dir <- paste(self$dir,self$id,"VR",self$session,self$task,sep="/")
@@ -78,7 +78,7 @@ VR_analysis <- R6Class("VR_analysis",
         #open_player_log is a function in preprocess_functions.R
         #takes four arguments: directory whre the logs are located, 
         #patients id and session and task of the experiment
-        self$pos_table <- OpenPlayerLog(self$session_task_dir)
+        self$position_table <- OpenPlayerLog(self$session_task_dir)
         
         #open_experiment_log is a function in preprocess_functions.R
         #takes three arguments: directory whre the logs are located, 
