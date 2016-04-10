@@ -15,7 +15,7 @@ UnityEyetrackerAnalysis <- R6Class("UnityEyetrackerAnalysis",
         session_task_dir = NULL,
         
         #loaded tables and lists
-        exp_log = NULL,
+        experiment_log = NULL,
         position_table = NULL,
         scenario_log = NULL,
         quests_log = NULL,
@@ -54,7 +54,7 @@ UnityEyetrackerAnalysis <- R6Class("UnityEyetrackerAnalysis",
            make_path_image(img_location = path, position_table = self$position_table)
            
       } else {
-           make_path_image(img_location = self$exp_log$terrain$Map_image_path, position_table = self$position_table)
+           make_path_image(img_location = self$experiment_log$terrain$Map_image_path, position_table = self$position_table)
       }
     }
     ),
@@ -66,7 +66,7 @@ UnityEyetrackerAnalysis <- R6Class("UnityEyetrackerAnalysis",
         #     return("A negative number for one of the coordinates was given.")
         #}
         #return(TRUE)
-        if (is.null(self$exp_log)) return(FALSE)
+        if (is.null(self$experiment_log)) return(FALSE)
         if (is.null(self$position_table)) return(FALSE)
       },
       set_session_task_directory = function(){
@@ -85,9 +85,9 @@ UnityEyetrackerAnalysis <- R6Class("UnityEyetrackerAnalysis",
         #takes three arguments: directory whre the logs are located, 
 
         #patients id and session and task of the experiment
-        self$exp_log <- OpenExperimentLog(self$session_task_dir)
+        self$experiment_log <- OpenExperimentLog(self$session_task_dir)
         
-        self$scenario_log = OpenQuestLog(self$session_task_dir, self$exp_log$scenario$Name, self$exp_log$scenario$Timestamp)
+        self$scenario_log = OpenQuestLog(self$session_task_dir, self$experiment_log$scenario$Name, self$experiment_log$scenario$Timestamp)
         
         #if we opened scenario log, we open all appropriate quest logs from the scenario
         if(!is.null(self$scenario_log)){
