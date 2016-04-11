@@ -60,10 +60,11 @@ UnityEyetrackerAnalysis <- R6Class("UnityEyetrackerAnalysis",
         if(!is.null(time_window)){
           path_table = private$select_position_data(time_window)
         }
-        teleport_times = private$get_teleport_times(quest_idx)
+        special_paths = list()
+        special_paths[["teleport"]]= private$get_teleport_times(quest_idx)
         quest_start_and_stop = private$get_start_and_stops(quest_idx)
-        if (!is.null(teleport_times)){
-          make_path_image(img_location = map_img_location, position_table = path_table, special = teleport_times, special_points = quest_start_and_stop)
+        if (!is.null(special_paths)){
+          make_path_image(img_location = map_img_location, position_table = path_table, special_paths = special_paths, special_points = quest_start_and_stop)
         } else {
           make_path_image(img_location = map_img_location, position_table = path_table)
         }

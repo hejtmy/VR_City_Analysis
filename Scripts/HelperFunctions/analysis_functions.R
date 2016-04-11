@@ -2,7 +2,7 @@ require(png)
 require(grid)
 require(ggplot2)
 
-make_path_image <- function (img_location,position_table, special = NULL, special_points = NULL){
+make_path_image <- function (img_location,position_table, special_paths = NULL, special_points = NULL){
 
      img <- readPNG(img_location)
      
@@ -14,9 +14,9 @@ make_path_image <- function (img_location,position_table, special = NULL, specia
        scale_x_continuous(limits = c(-1058, 1442)) +
        scale_y_continuous(limits = c(-842,908))
      #if we want to draw some part of the track special colours
-     if (!is.null(special)){
-       position_table = position_table[, special:= is_between(Time,special[1],special[2])]
-       plot = plot + geom_path(size = 1,aes(colour = special))
+     if (!is.null(special_paths)){
+       position_table = AddSpecialPaths(position_table, special_paths)
+       plot = plot + geom_path(size = 1, aes(colour = special))
      }else {
        plot = plot + geom_path(size = 1)
      }
@@ -36,6 +36,15 @@ AddPointsToPlot = function(plot, ls){
   }
   plot = plot + geom_point(data = data_table, aes(point.x,point.y),size = 4, color = "blue") + geom_text(data = data_table, aes(point.x, point.y,label=point.name))
   return(plot)
+}
+AddSpecialPaths = function(position_table, ls){
+  list_names = names(ls)
+  position_table = position_table[, special:= "normal"]
+  list_names = names(ls)
+  for (i in 1:length(ls)){
+    position_table = position_table[is_between(Time,ls[[i]][1],ls[[i]][2]), special:= list_names[i] ]
+  }
+  return(position_table)
 }
 
 calculate_cululative_time <- function(){
