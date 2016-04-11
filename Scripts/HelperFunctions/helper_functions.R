@@ -12,3 +12,7 @@ EuclidDistanceColumns = function(x_values,y_values){
   y = c(x_values[[1]][2],y_values[[1]][2])
   return(sqrt(sum((x-y)^2)))
 }
+
+ColumnPresent = function(names,name){
+  return(name %in% names)
+}

@@ -9,9 +9,6 @@ source("Scripts/Eyetracker/importing.R")
 #sets the working dirrectory where the logs are
 data_dir <- "../Data"
 
-#reads a VUZIX log and parses the data
-vz = VUZIX_analysis$new(dir = data_dir, "HCE_1_E_1", "18072015.csv")
-
 #instantiates VR_analysis class with the name and project directory 
 #it loads appropriate log files and allows for immediate analysis
 UnityAnal = UnityEyetrackerAnalysis$new(data_dir,id="HCE_1_E_1",session=1)

@@ -40,8 +40,8 @@ UnityEyetrackerAnalysis <- R6Class("UnityEyetrackerAnalysis",
     SetTask = function(number=1){
      self$task = paste("Task",number,sep="")
     },
-    ReadData = function(override = F){
-      private$read_data_private(override)
+    ReadData = function(override = F, save = T){
+      private$read_data_private(override, save)
     },
     
     # Makes a graph with a path from start to finish
@@ -80,22 +80,27 @@ UnityEyetrackerAnalysis <- R6Class("UnityEyetrackerAnalysis",
       set_session_task_directory = function(){
         self$session_task_dir <- paste(self$dir,self$id,"VR",self$session,self$task,sep="/")
       },
-      read_data_private = function(override){
+      read_data_private = function(override, save){
         #session/task folder
         private$set_session_task_directory()
         
         #open_player_log is a function in preprocess_functions.R
         #takes four arguments: directory whre the logs are located, 
         #patients id and session and task of the experiment
-        self$position_table <- OpenPlayerLog(self$session_task_dir, override)
+        self$position_table = OpenPlayerLog(self$session_task_dir, override)
         
+        #checks if there is everything we need and if not, recomputes the stuff
+        changed = PreprocessPlayerLog(self$position_table)
+        if (changed & save) {
+          SavePreprocessedPlayer(self$session_task_dir, self$position_table)
+        }
         #open_experiment_log is a function in preprocess_functions.R
         #takes three arguments: directory whre the logs are located, 
 
         #patients id and session and task of the experiment
         self$experiment_log <- OpenExperimentLog(self$session_task_dir)
         
-        self$scenario_log = OpenQuestLog(self$session_task_dir, self$experiment_log$scenario$Name, self$experiment_log$scenario$Timestamp)
+        self$scenario_log <- OpenQuestLog(self$session_task_dir, self$experiment_log$scenario$Name, self$experiment_log$scenario$Timestamp)
         
         #if we opened scenario log, we open all appropriate quest logs from the scenario
         if(!is.null(self$scenario_log)){
@@ -205,17 +210,34 @@ OpenPlayerLog <- function(dir = "", override = F){
      
      #reads the data without the header file
      pos_tab <- fread(log, header=T, sep=";", dec=".", skip=idxBottom, stringsAsFactors=F)
-     
-     #deletes the last column - it's there for the easier logging from unity
+     #deletes the last column - it's there for the easier logging from unity 
+     # - its here because of how preprocessing works
      pos_tab[,ncol(pos_tab):=NULL]
      
-     pos_tab <- vector3_to_columns(pos_tab,"Position")
-     pos_tab <- data.table(pos_tab)
-     
-     #writes preprocessed file
-     preprocessed_filename = gsub(".txt","_preprocessed.txt",log)
-     write.csv(pos_tab, preprocessed_filename, sep=";", dec=".")
      return(pos_tab)
+}
+
+PreprocessPlayerLog = function(pos_tab){
+  #check_stuff
+  #check columns
+  changed = F
+  if (!ColumnPresent(colnames(pos_tab),"Position.x")){
+    pos_tab = vector3_to_columns(pos_tab,"Position")
+    changed = T
+  }
+  if (!ColumnPresent(colnames(pos_tab),"cumulative_distance")){
+    pos_tab = AddDistanceWalked (pos_tab)
+    changed = T
+  }
+  return(changed)
+}
+
+SavePreprocessedPlayer = function(dir = "", pos_tab){
+  logs = list.files(dir, pattern = "_player_" ,full.names = T)
+  log = logs[1]
+  #writes preprocessed file
+  preprocessed_filename = gsub(".txt","_preprocessed.txt",log)
+  write.table(pos_tab, preprocessed_filename, sep=";", dec=".", quote=F, row.names = F)
 }
 
 OpenExperimentLog <- function(dir = ""){
