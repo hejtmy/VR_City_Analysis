@@ -40,8 +40,8 @@ UnityEyetrackerAnalysis <- R6Class("UnityEyetrackerAnalysis",
     SetTask = function(number=1){
      self$task = paste("Task",number,sep="")
     },
-    ReadData = function(){
-      private$read_data_private()
+    ReadData = function(override = F){
+      private$read_data_private(override)
     },
     
     # Makes a graph with a path from start to finish
@@ -80,14 +80,14 @@ UnityEyetrackerAnalysis <- R6Class("UnityEyetrackerAnalysis",
       set_session_task_directory = function(){
         self$session_task_dir <- paste(self$dir,self$id,"VR",self$session,self$task,sep="/")
       },
-      read_data_private = function(){
+      read_data_private = function(override){
         #session/task folder
         private$set_session_task_directory()
         
         #open_player_log is a function in preprocess_functions.R
         #takes four arguments: directory whre the logs are located, 
         #patients id and session and task of the experiment
-        self$position_table <- OpenPlayerLog(self$session_task_dir)
+        self$position_table <- OpenPlayerLog(self$session_task_dir, override)
         
         #open_experiment_log is a function in preprocess_functions.R
         #takes three arguments: directory whre the logs are located, 
@@ -167,17 +167,30 @@ UnityEyetrackerAnalysis <- R6Class("UnityEyetrackerAnalysis",
     )
 )
 
-OpenPlayerLog <- function(dir = ""){
-
+OpenPlayerLog <- function(dir = "", override = F){
      logs = list.files(dir, pattern = "_player_" ,full.names = T)
      if (length(logs)>1){
+       #check if there is a preprocessed player file
+       preprocessed_index = grep("*_preprocessed",logs)
+       if(length(preprocessed_index)>0){
+         if(override){
+           log = logs[1]
+           file.remove(logs[preprocessed_index])
+         } else {
+           log = logs[preprocessed_index]
+           return(fread(log, header=T, sep=";",dec=".", stringsAsFactors = F))
+         }
+       }else{
           print("There is more player logs in the same folder. HAve you named and stored everything appropriately?")
           return(NULL)
+       }
+     } else {
+       log = logs[1]
      }
-     log = logs[1]
+     
      if(!file.exists(log)){
-          print("Could not find the file for player log")
-          return(NULL)
+        print("Could not find the file for player log")
+        return(NULL)
      }
      
      #reads into a text file at first
@@ -191,13 +204,17 @@ OpenPlayerLog <- function(dir = ""){
      #todo
      
      #reads the data without the header file
-     pos_tab <- read.table(log, header=T,sep=";",dec=".", skip=idxBottom, stringsAsFactors=F)
+     pos_tab <- fread(log, header=T, sep=";", dec=".", skip=idxBottom, stringsAsFactors=F)
      
      #deletes the last column - it's there for the easier logging from unity
-     pos_tab[,length(names(pos_tab))]=NULL
+     pos_tab[,ncol(pos_tab):=NULL]
      
      pos_tab <- vector3_to_columns(pos_tab,"Position")
      pos_tab <- data.table(pos_tab)
+     
+     #writes preprocessed file
+     preprocessed_filename = gsub(".txt","_preprocessed.txt",log)
+     write.csv(pos_tab, preprocessed_filename, sep=";", dec=".")
      return(pos_tab)
 }
 
