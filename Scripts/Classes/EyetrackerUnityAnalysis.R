@@ -61,15 +61,13 @@ UnityEyetrackerAnalysis <- R6Class("UnityEyetrackerAnalysis",
           path_table = private$select_position_data(time_window)
         }
         teleport_times = private$get_teleport_times(quest_idx)
+        quest_start_and_stop = private$get_start_and_stops(quest_idx)
         if (!is.null(teleport_times)){
-          make_path_image(img_location = map_img_location, position_table = path_table, special = teleport_times)
+          make_path_image(img_location = map_img_location, position_table = path_table, special = teleport_times, special_points = quest_start_and_stop)
         } else {
           make_path_image(img_location = map_img_location, position_table = path_table)
         }
       }
-      
-      
-     
     }
     ),
     
@@ -148,6 +146,22 @@ UnityEyetrackerAnalysis <- R6Class("UnityEyetrackerAnalysis",
         teleport_start_times = quest$data$TimeFromStart[quest$data$StepType == "Teleport Player" & quest$data$Action =="StepActivated"]
         teleport_finish_times = quest$data$TimeFromStart[quest$data$StepType == "Teleport Player" & quest$data$Action == "StepFinished"]
         return(c(teleport_start_times,teleport_finish_times))
+      },
+      get_start_and_stops = function(quest_idx){
+        quest = self$quests_log[quest_idx][[1]]
+        if(is.null(quest)){
+          stop("Quest log not reachable")
+        }
+        #gets ID of the teleport
+        teleport_id = quest$steps$ID[grepl("*Teleport*", quest$steps$Name)]
+        #gets finished time of the teleport
+        teleport_finished =  quest$data$TimeFromStart[quest$data$StepID == teleport_id & quest$data$Action == "StepFinished"]
+        teleport_target_postition = self$position_table[Time > teleport_finished, .SD[1,c(Position.x,Position.z)]]
+        quest_finish_position = text_to_vector3(tail(quest$steps,1)$Transform)[c(1,3)]
+        ls = list()
+        ls[["start"]] = teleport_target_postition
+        ls[["finish"]] = quest_finish_position
+        return(ls)
       }
     )
 )
@@ -250,7 +264,7 @@ OpenQuestLog <- function(task_dir = "",  name = "", date_time = ""){
      idxStepTop <- which(grepl('\\*\\*\\*Quest step data\\*\\*\\*',text))
      idxStepBottom <- which(grepl('\\-\\-\\-Quest step data\\-\\-\\-',text))
      #puts everyting from the quest header to the steps list
-     ls[["steps"]]  <- read.table(textConnection(text[(idxStepTop+1):(idxStepBottom-1)]),header=T,sep=";")
+     ls[["steps"]]  <- read.table(textConnection(text[(idxStepTop+1):(idxStepBottom-1)]),header=T,sep=";",stringsAsFactors=F)
      #and the timestamps and other the the data list
      ls[["data"]] <- read.table(textConnection(text), header=T, sep=";",dec=".", skip=idxStepBottom, stringsAsFactors=F)
      return(ls)     

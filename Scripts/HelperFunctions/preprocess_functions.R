@@ -40,6 +40,13 @@ vector3_to_columns <- function(tab, column_name){
      return(tab)
 }
 
+text_to_vector3 = function(text){
+  splitted = strsplit(substring(text,2,nchar(text)-1),",")
+  #final = as.numeric(splitted)
+  final = sapply(splitted, as.numeric)
+  return(final)
+}
+
 ##Helper for escaping characters in quest names
 escapeRegex <- function(string){
      
