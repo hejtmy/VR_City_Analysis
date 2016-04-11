@@ -1,5 +1,3 @@
-source()
-
 read_eyelink = function(path = ""){
   ls=list()
   

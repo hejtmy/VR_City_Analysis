@@ -1,8 +1,9 @@
 library('R6')
 library('data.table')
 source(paste(getwd(),"Scripts/Classes/BaseUnityAnalysis.R",sep="/"))
-source(paste(getwd(),"Scripts/HelperFunctions/preprocess_functions.R",sep="/"))
-source(paste(getwd(),"Scripts/HelperFunctions/analysis_functions.R",sep="/"))
+source(paste(getwd(),"Scripts/HelperFunctions/helper_functions.R",sep="/"))
+source_folder(paste(getwd(),"Scripts/HelperFunctions/",sep="/"))
+
 data_path = "/Data"
 UnityEyetrackerAnalysis <- R6Class("UnityEyetrackerAnalysis",
     
@@ -43,6 +44,7 @@ UnityEyetrackerAnalysis <- R6Class("UnityEyetrackerAnalysis",
       private$read_data_private()
     },
     
+    # Makes a graph with a path from start to finish
     MakePathImage = function(path = "", quest_idx = 0){
       map_img_location = ""
       if (!missing(path)){
@@ -51,14 +53,23 @@ UnityEyetrackerAnalysis <- R6Class("UnityEyetrackerAnalysis",
         map_img_location = self$experiment_log$terrain$Map_image_path
       }
       if (quest_idx == 0){
-        path_table = self$position_table;
+        path_table = self$position_table
+        return(make_path_image(img_location = map_img_location, position_table = path_table))
       } else {
         time_window = private$get_quest_timewindow(quest_idx)
         if(!is.null(time_window)){
-        path_table = private$select_position_data(time_window)
+          path_table = private$select_position_data(time_window)
+        }
+        teleport_times = private$get_teleport_times(quest_idx)
+        if (!is.null(teleport_times)){
+          make_path_image(img_location = map_img_location, position_table = path_table, special = teleport_times)
+        } else {
+          make_path_image(img_location = map_img_location, position_table = path_table)
         }
       }
-      make_path_image(img_location = map_img_location, position_table = path_table)
+      
+      
+     
     }
     ),
     
@@ -128,6 +139,15 @@ UnityEyetrackerAnalysis <- R6Class("UnityEyetrackerAnalysis",
         start_time = quest$data$TimeFromStart[quest$data$Action == "Quest started"]
         end_time = quest$data$TimeFromStart[quest$data$Action == "Quest finished"]
         return(c(start_time,end_time))
+      },
+      get_teleport_times = function(quest_idx){
+        quest = self$quests_log[quest_idx][[1]]
+        if(is.null(quest)){
+          stop("Quest log not reachable")
+        }
+        teleport_start_times = quest$data$TimeFromStart[quest$data$StepType == "Teleport Player" & quest$data$Action =="StepActivated"]
+        teleport_finish_times = quest$data$TimeFromStart[quest$data$StepType == "Teleport Player" & quest$data$Action == "StepFinished"]
+        return(c(teleport_start_times,teleport_finish_times))
       }
     )
 )

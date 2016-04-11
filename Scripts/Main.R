@@ -19,7 +19,7 @@ vz = VUZIX_analysis$new(dir = data_dir, "HCE_1_E_1", "18072015.csv")
 UnityAnal = UnityEyetrackerAnalysis$new(data_dir,id="HCE_1_E_1",session=1)
 UnityAnal$SetTask(1)
 UnityAnal$ReadData()
-UnityAnal$MakePathImage(path = "Maps/GoodMapIGuess2.png", 7)
+UnityAnal$MakePathImage(path = "Maps/GoodMapIGuess2.png", 9)
 
 #cannot do this until the scenario log had been figured out. Need more information of how the data will look
 #SumTime(analysis)
