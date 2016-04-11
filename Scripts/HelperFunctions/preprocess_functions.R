@@ -23,7 +23,7 @@ into_list <- function(text =""){
      }
      return(ls)
 }
-
+#turns vector columns in string "(x, y, z)" into three columns(Position.x, Position.y, Position.z) and returns the table
 vector3_to_columns <- function(tab, column_name){
      
      xyz <- c("x","y","z")
@@ -46,9 +46,14 @@ text_to_vector3 = function(text){
   final = sapply(splitted, as.numeric)
   return(final)
 }
-
 ##Helper for escaping characters in quest names
 escapeRegex <- function(string){
      
      return(gsub("([.|()\\^{}+$*?]|\\[|\\])", "\\\\\\1", string))
+}
+
+#calculates the distance walked between each two points of the position table and returns the table
+AddDistanceWalked = function(position_table){
+  positions = position_table[,list(Position.x, Position.z)]
+  distance = 0
 }
