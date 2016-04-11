@@ -1,21 +1,23 @@
 library('R6')
-source(paste(getwd(),"Scripts/HelperFunctions/preprocess_functions.R",sep="/"))
-source(paste(getwd(),"Scripts/HelperFunctions/analysis_functions.R",sep="/"))
+library('data.table')
+source(paste(getwd(),"Scripts/Classes/BaseUnityAnalysis.R",sep="/"))
+source(paste(getwd(),"Scripts/HelperFunctions/helper_functions.R",sep="/"))
+source_folder(paste(getwd(),"Scripts/HelperFunctions/",sep="/"))
+
 data_path = "/Data"
-VR_analysis <- R6Class("VR_analysis",
-     
+UnityEyetrackerAnalysis <- R6Class("UnityEyetrackerAnalysis",
+    
+    inherit = BaseUnityAnalysis,
     #define variables
     public = list(
         #basic definitions
-        dir = NULL,
-        id = NULL,
         session = NULL,
         task= NULL,
         session_task_dir = NULL,
         
         #loaded tables and lists
-        exp_log = NULL,
-        pos_table = NULL,
+        experiment_log = NULL,
+        position_table = NULL,
         scenario_log = NULL,
         quests_log = NULL,
         
@@ -38,35 +40,42 @@ VR_analysis <- R6Class("VR_analysis",
     SetTask = function(number=1){
      self$task = paste("Task",number,sep="")
     },
-    SetParticipant = function(id=""){
-     self$id = id
-    },
-    SetDataDir=function(dir=""){
-     self$dir = dir
-    },
     ReadData = function(){
       private$read_data_private()
     },
     
-    MakePathImage = function(path = ""){
-      if (nargs() >= 1){
-           make_path_image(img_location = path, position_table = self$pos_table)
-           
+    # Makes a graph with a path from start to finish
+    MakePathImage = function(path = "", quest_idx = 0){
+      map_img_location = ""
+      if (!missing(path)){
+        map_img_location = path
       } else {
-           make_path_image(img_location = self$exp_log$terrain$Map_image_path, position_table = self$pos_table)
+        map_img_location = self$experiment_log$terrain$Map_image_path
+      }
+      if (quest_idx == 0){
+        path_table = self$position_table
+        return(make_path_image(img_location = map_img_location, position_table = path_table))
+      } else {
+        time_window = private$get_quest_timewindow(quest_idx)
+        if(!is.null(time_window)){
+          path_table = private$select_position_data(time_window)
+        }
+        special_paths = list()
+        special_paths[["teleport"]]= private$get_teleport_times(quest_idx)
+        quest_start_and_stop = private$get_start_and_stops(quest_idx)
+        if (!is.null(special_paths)){
+          make_path_image(img_location = map_img_location, position_table = path_table, special_paths = special_paths, special_points = quest_start_and_stop)
+        } else {
+          make_path_image(img_location = map_img_location, position_table = path_table)
+        }
       }
     }
     ),
     
     private = list(
       is_valid = function(){
-        #example
-        #if((object@d < 0) || (object@y < 0)) {
-        #     return("A negative number for one of the coordinates was given.")
-        #}
-        #return(TRUE)
-        if (is.null(self$exp_log)) return(FALSE)
-        if (is.null(self$pos_table)) return(FALSE)
+        if (is.null(self$experiment_log)) return(FALSE)
+        if (is.null(self$position_table)) return(FALSE)
       },
       set_session_task_directory = function(){
         self$session_task_dir <- paste(self$dir,self$id,"VR",self$session,self$task,sep="/")
@@ -78,15 +87,15 @@ VR_analysis <- R6Class("VR_analysis",
         #open_player_log is a function in preprocess_functions.R
         #takes four arguments: directory whre the logs are located, 
         #patients id and session and task of the experiment
-        self$pos_table <- OpenPlayerLog(self$session_task_dir)
+        self$position_table <- OpenPlayerLog(self$session_task_dir)
         
         #open_experiment_log is a function in preprocess_functions.R
         #takes three arguments: directory whre the logs are located, 
 
         #patients id and session and task of the experiment
-        self$exp_log <- OpenExperimentLog(self$session_task_dir)
+        self$experiment_log <- OpenExperimentLog(self$session_task_dir)
         
-        self$scenario_log = OpenQuestLog(self$session_task_dir, self$exp_log$scenario$Name, self$exp_log$scenario$Timestamp)
+        self$scenario_log = OpenQuestLog(self$session_task_dir, self$experiment_log$scenario$Name, self$experiment_log$scenario$Timestamp)
         
         #if we opened scenario log, we open all appropriate quest logs from the scenario
         if(!is.null(self$scenario_log)){
@@ -108,7 +117,53 @@ VR_analysis <- R6Class("VR_analysis",
          self$quests_log <- ls
         }
         private$is_valid()
+        },
+      select_position_data = function(time_window){
+        if(missing(time_window)){
+          stop("Need to specify time window")
         }
+        if (length(time_window)>2){
+          stop("Time window needs to have only two times inside")
+        }
+        return(self$position_table[Time>time_window[1] & Time < time_window[2]])
+      },
+      get_quest_timewindow = function(quest_idx){
+        if(missing(quest_idx)){
+          stop("Need to specify the quest index")
+        }
+        quest = self$quests_log[quest_idx][[1]]
+        if(is.null(quest)){
+          stop("Quest log not reachable")
+        }
+        start_time = quest$data$TimeFromStart[quest$data$Action == "Quest started"]
+        end_time = quest$data$TimeFromStart[quest$data$Action == "Quest finished"]
+        return(c(start_time,end_time))
+      },
+      get_teleport_times = function(quest_idx){
+        quest = self$quests_log[quest_idx][[1]]
+        if(is.null(quest)){
+          stop("Quest log not reachable")
+        }
+        teleport_start_times = quest$data$TimeFromStart[quest$data$StepType == "Teleport Player" & quest$data$Action =="StepActivated"]
+        teleport_finish_times = quest$data$TimeFromStart[quest$data$StepType == "Teleport Player" & quest$data$Action == "StepFinished"]
+        return(c(teleport_start_times,teleport_finish_times))
+      },
+      get_start_and_stops = function(quest_idx){
+        quest = self$quests_log[quest_idx][[1]]
+        if(is.null(quest)){
+          stop("Quest log not reachable")
+        }
+        #gets ID of the teleport
+        teleport_id = quest$steps$ID[grepl("*Teleport*", quest$steps$Name)]
+        #gets finished time of the teleport
+        teleport_finished =  quest$data$TimeFromStart[quest$data$StepID == teleport_id & quest$data$Action == "StepFinished"]
+        teleport_target_postition = self$position_table[Time > teleport_finished, .SD[1,c(Position.x,Position.z)]]
+        quest_finish_position = text_to_vector3(tail(quest$steps,1)$Transform)[c(1,3)]
+        ls = list()
+        ls[["start"]] = teleport_target_postition
+        ls[["finish"]] = quest_finish_position
+        return(ls)
+      }
     )
 )
 
@@ -142,6 +197,7 @@ OpenPlayerLog <- function(dir = ""){
      pos_tab[,length(names(pos_tab))]=NULL
      
      pos_tab <- vector3_to_columns(pos_tab,"Position")
+     pos_tab <- data.table(pos_tab)
      return(pos_tab)
 }
 
@@ -209,7 +265,7 @@ OpenQuestLog <- function(task_dir = "",  name = "", date_time = ""){
      idxStepTop <- which(grepl('\\*\\*\\*Quest step data\\*\\*\\*',text))
      idxStepBottom <- which(grepl('\\-\\-\\-Quest step data\\-\\-\\-',text))
      #puts everyting from the quest header to the steps list
-     ls[["steps"]]  <- read.table(textConnection(text[(idxStepTop+1):(idxStepBottom-1)]),header=T,sep=";")
+     ls[["steps"]]  <- read.table(textConnection(text[(idxStepTop+1):(idxStepBottom-1)]),header=T,sep=";",stringsAsFactors=F)
      #and the timestamps and other the the data list
      ls[["data"]] <- read.table(textConnection(text), header=T, sep=";",dec=".", skip=idxStepBottom, stringsAsFactors=F)
      return(ls)     
