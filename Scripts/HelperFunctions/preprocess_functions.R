@@ -54,6 +54,11 @@ escapeRegex <- function(string){
 
 #calculates the distance walked between each two points of the position table and returns the table
 AddDistanceWalked = function(position_table){
-  positions = position_table[,list(Position.x, Position.z)]
-  distance = 0
+  distances = numeric(0)
+  for (i in 2:nrow(position_table)){
+    position_table[c(i-1,i),distance:= EuclidDistanceColumns(.(Position.x,Position.z)[1], .(Position.x,Position.z)[2])]
+    #distances = c(distances,EuclidDistance(position_table[i,list(Position.x,Position.z)],position_table[i-1,list(Position.x,Position.z)]))
+  }
+  position_table[,distances:= distances]
+  return(position_table)
 }
