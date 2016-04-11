@@ -25,7 +25,6 @@ make_path_image <- function (img_location,position_table, special_paths = NULL, 
      }
      return(plot)
 }
-
 AddPointsToPlot = function(plot, ls){
   list_names = names(ls)
   data_table = data.frame(point.x=numeric(0),point.y=numeric(0), point.name=character(), stringsAsFactors = F)
@@ -45,7 +44,4 @@ AddSpecialPaths = function(position_table, ls){
     position_table = position_table[is_between(Time,ls[[i]][1],ls[[i]][2]), special:= list_names[i] ]
   }
   return(position_table)
-}
-
-calculate_cululative_time <- function(){
 }

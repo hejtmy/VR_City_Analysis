@@ -9,14 +9,11 @@ source("Scripts/Eyetracker/importing.R")
 #sets the working dirrectory where the logs are
 data_dir <- "../Data"
 
-#reads a VUZIX log and parses the data
-vz = VUZIX_analysis$new(dir = data_dir, "HCE_1_E_1", "18072015.csv")
-
 #instantiates VR_analysis class with the name and project directory 
 #it loads appropriate log files and allows for immediate analysis
 UnityAnal = UnityEyetrackerAnalysis$new(data_dir,id="HCE_1_E_1",session=1)
 UnityAnal$SetTask(1)
-UnityAnal$ReadData()
+UnityAnal$ReadData(override = T)
 UnityAnal$MakePathImage(path = "Maps/GoodMapIGuess2.png", 11)
 
 #cannot do this until the scenario log had been figured out. Need more information of how the data will look
