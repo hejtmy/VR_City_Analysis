@@ -62,13 +62,20 @@ UnityEyetrackerAnalysis <- R6Class("UnityEyetrackerAnalysis",
         }
         special_paths = list()
         special_paths[["teleport"]]= private$get_teleport_times(quest_idx)
-        quest_start_and_stop = private$get_start_and_stops(quest_idx)
+        quest_start_and_stop = private$get_start_and_finish_positions(quest_idx)
         if (!is.null(special_paths)){
           make_path_image(img_location = map_img_location, position_table = path_table, special_paths = special_paths, special_points = quest_start_and_stop)
         } else {
           make_path_image(img_location = map_img_location, position_table = path_table)
         }
       }
+    },
+    QuestSummary = function(quest_idx = 0){
+      ls = list()
+      quest = self$quests_log[quest_idx][[1]]
+      #needs to remove teleport info
+      ls[["Time"]] =  diff(get_quest_timewindow(quest_idx))
+      ls[["Distance"]] = diff()
     }
     ),
     
@@ -149,25 +156,49 @@ UnityEyetrackerAnalysis <- R6Class("UnityEyetrackerAnalysis",
         if(is.null(quest)){
           stop("Quest log not reachable")
         }
-        teleport_start_times = quest$data$TimeFromStart[quest$data$StepType == "Teleport Player" & quest$data$Action =="StepActivated"]
-        teleport_finish_times = quest$data$TimeFromStart[quest$data$StepType == "Teleport Player" & quest$data$Action == "StepFinished"]
-        return(c(teleport_start_times,teleport_finish_times))
+        teleport_start_time = quest$data$TimeFromStart[quest$data$StepType == "Teleport Player" & quest$data$Action =="StepActivated"]
+        teleport_finish_time = quest$data$TimeFromStart[quest$data$StepType == "Teleport Player" & quest$data$Action == "StepFinished"]
+        ls = list()
+        ls[["start"]] = teleport_start_time
+        ls[["finish"]] = teleport_finish_time
+        return(ls)
       },
-      get_start_and_stops = function(quest_idx){
+      get_start_and_finish_times = function(quest_idx, include_teleport = T){
         quest = self$quests_log[quest_idx][[1]]
         if(is.null(quest)){
           stop("Quest log not reachable")
         }
-        #gets ID of the teleport
-        teleport_id = quest$steps$ID[grepl("*Teleport*", quest$steps$Name)]
         #gets finished time of the teleport
-        teleport_finished =  quest$data$TimeFromStart[quest$data$StepID == teleport_id & quest$data$Action == "StepFinished"]
+        teleport_finished_time =private$get_teleport_times(quest_idx)$finish
+        quest_finished_time = tail(quest$steps,1)$TimeFromStart
+        ls = list()
+        ls[["start"]] = teleport_finished_time
+        ls[["finish"]] = quest_finished_time
+        return(ls)
+      },
+      get_start_and_finish_positions = function(quest_idx, include_teleport = T){
+        quest = self$quests_log[quest_idx][[1]]
+        if(is.null(quest)){
+          stop("Quest log not reachable")
+        }
+        #gets finished time of the teleport
+        teleport_finished =  private$get_teleport_times(quest_idx)$finish
         teleport_target_postition = self$position_table[Time > teleport_finished, .SD[1,c(Position.x,Position.z)]]
         quest_finish_position = text_to_vector3(tail(quest$steps,1)$Transform)[c(1,3)]
         ls = list()
         ls[["start"]] = teleport_target_postition
         ls[["finish"]] = quest_finish_position
         return(ls)
+      },
+      get_step_time = function(quest_idx, step_name, step_action = "StepActivated", step_id = 0){
+        quest = self$quests_log[quest_idx][[1]]
+        if(is.null(quest)){
+          stop("Quest log not reachable")
+        }
+        if(step_id != 0){
+          return(quest$data$TimeFromStart[quest$data$StepID == quest_idx & quest$data$Action == step_action])
+        }
+        return(quest$data$TimeFromStart[quest$data$StepType == step_name & quest$data$Action == step_action])
       }
     )
 )
@@ -216,7 +247,6 @@ OpenPlayerLog <- function(dir = "", override = F){
      
      return(pos_tab)
 }
-
 PreprocessPlayerLog = function(pos_tab){
   #check_stuff
   #check columns
@@ -231,7 +261,6 @@ PreprocessPlayerLog = function(pos_tab){
   }
   return(changed)
 }
-
 SavePreprocessedPlayer = function(dir = "", pos_tab){
   logs = list.files(dir, pattern = "_player_" ,full.names = T)
   log = logs[1]
@@ -239,7 +268,6 @@ SavePreprocessedPlayer = function(dir = "", pos_tab){
   preprocessed_filename = gsub(".txt","_preprocessed.txt",log)
   write.table(pos_tab, preprocessed_filename, sep=";", dec=".", quote=F, row.names = F)
 }
-
 OpenExperimentLog <- function(dir = ""){
      
      ls = list()
@@ -276,7 +304,6 @@ OpenExperimentLog <- function(dir = ""){
      
      return(ls)     
 }
-
 OpenQuestLog <- function(task_dir = "",  name = "", date_time = ""){
      
      ls = list()
@@ -309,7 +336,6 @@ OpenQuestLog <- function(task_dir = "",  name = "", date_time = ""){
      ls[["data"]] <- read.table(textConnection(text), header=T, sep=";",dec=".", skip=idxStepBottom, stringsAsFactors=F)
      return(ls)     
 }
-
 #helper function to figure out the name of the activated quest as is saved in the steps
 #list in the scenario quest
 GetActivatedQuestName <- function(string =""){

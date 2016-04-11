@@ -41,7 +41,7 @@ AddSpecialPaths = function(position_table, ls){
   position_table = position_table[, special:= "normal"]
   list_names = names(ls)
   for (i in 1:length(ls)){
-    position_table = position_table[is_between(Time,ls[[i]][1],ls[[i]][2]), special:= list_names[i] ]
+    position_table = position_table[is_between(Time,ls[[i]]$start,ls[[i]]$finish), special:= list_names[i] ]
   }
   return(position_table)
 }

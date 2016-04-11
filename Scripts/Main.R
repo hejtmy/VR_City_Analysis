@@ -13,7 +13,7 @@ data_dir <- "../Data"
 #it loads appropriate log files and allows for immediate analysis
 UnityAnal = UnityEyetrackerAnalysis$new(data_dir,id="HCE_1_E_1",session=1)
 UnityAnal$SetTask(1)
-UnityAnal$ReadData(override = T)
+UnityAnal$ReadData()
 UnityAnal$MakePathImage(path = "Maps/GoodMapIGuess2.png", 11)
 
 #cannot do this until the scenario log had been figured out. Need more information of how the data will look
