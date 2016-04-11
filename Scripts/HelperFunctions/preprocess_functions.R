@@ -59,6 +59,6 @@ AddDistanceWalked = function(position_table){
     position_table[c(i-1,i),distance:= EuclidDistanceColumns(.(Position.x,Position.z)[1], .(Position.x,Position.z)[2])]
     #distances = c(distances,EuclidDistance(position_table[i,list(Position.x,Position.z)],position_table[i-1,list(Position.x,Position.z)]))
   }
-  position_table[,distances:= distances]
+  position_table[,cumulative_distance:=cumsum(distance)]
   return(position_table)
 }
