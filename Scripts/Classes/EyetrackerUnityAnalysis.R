@@ -73,9 +73,13 @@ UnityEyetrackerAnalysis <- R6Class("UnityEyetrackerAnalysis",
     QuestSummary = function(quest_idx = 0){
       ls = list()
       quest = self$quests_log[quest_idx][[1]]
-      #needs to remove teleport info
-      ls[["Time"]] =  diff(get_quest_timewindow(quest_idx))
-      ls[["Distance"]] = diff()
+      
+      quest_times = private$get_quest_timewindow(quest_idx, include_teleport = F)
+      ls[["Time"]] =  diff(c(quest_times$start,quest_times$finish))
+      #distance
+      positions = c(self$position_table[Time > quest_times$start, .SD[1,cumulative_distance]],self$position_table[Time > quest_times$finish, .SD[1,cumulative_distance]])
+      ls[["Distance"]] = diff(positions)
+      return(ls)
     }
     ),
     
@@ -134,12 +138,12 @@ UnityEyetrackerAnalysis <- R6Class("UnityEyetrackerAnalysis",
         if(missing(time_window)){
           stop("Need to specify time window")
         }
-        if (length(time_window)>2){
+        if (length(time_window)!=2){
           stop("Time window needs to have only two times inside")
         }
-        return(self$position_table[Time>time_window[1] & Time < time_window[2]])
+        return(self$position_table[Time>time_window$start & Time < time_window$finish])
       },
-      get_quest_timewindow = function(quest_idx){
+      get_quest_timewindow = function(quest_idx, include_teleport = T){
         if(missing(quest_idx)){
           stop("Need to specify the quest index")
         }
@@ -147,9 +151,16 @@ UnityEyetrackerAnalysis <- R6Class("UnityEyetrackerAnalysis",
         if(is.null(quest)){
           stop("Quest log not reachable")
         }
-        start_time = quest$data$TimeFromStart[quest$data$Action == "Quest started"]
+        if (include_teleport){
+          start_time = quest$data$TimeFromStart[quest$data$Action == "Quest started"]
+        } else{
+          start_time = private$get_teleport_times(quest_idx)$finish
+        }
         end_time = quest$data$TimeFromStart[quest$data$Action == "Quest finished"]
-        return(c(start_time,end_time))
+        ls = list()
+        ls[["start"]] = start_time
+        ls[["finish"]] = end_time
+        return(ls)
       },
       get_teleport_times = function(quest_idx){
         quest = self$quests_log[quest_idx][[1]]
@@ -163,28 +174,20 @@ UnityEyetrackerAnalysis <- R6Class("UnityEyetrackerAnalysis",
         ls[["finish"]] = teleport_finish_time
         return(ls)
       },
-      get_start_and_finish_times = function(quest_idx, include_teleport = T){
-        quest = self$quests_log[quest_idx][[1]]
-        if(is.null(quest)){
-          stop("Quest log not reachable")
-        }
-        #gets finished time of the teleport
-        teleport_finished_time =private$get_teleport_times(quest_idx)$finish
-        quest_finished_time = tail(quest$steps,1)$TimeFromStart
-        ls = list()
-        ls[["start"]] = teleport_finished_time
-        ls[["finish"]] = quest_finished_time
-        return(ls)
-      },
       get_start_and_finish_positions = function(quest_idx, include_teleport = T){
         quest = self$quests_log[quest_idx][[1]]
-        if(is.null(quest)){
-          stop("Quest log not reachable")
-        }
+        if(is.null(quest)) stop("Quest log not reachable")
         #gets finished time of the teleport
-        teleport_finished =  private$get_teleport_times(quest_idx)$finish
+        teleport_finished = private$get_teleport_times(quest_idx)$finish
         teleport_target_postition = self$position_table[Time > teleport_finished, .SD[1,c(Position.x,Position.z)]]
-        quest_finish_position = text_to_vector3(tail(quest$steps,1)$Transform)[c(1,3)]
+        #goes step by step from the end until it gets end with transform
+        for(i in nrow(quest$steps):1){
+          quest_finish_position = text_to_vector3(quest$steps$Transform[i])
+          if(!is.null(quest_finish_position)){
+            quest_finish_position = quest_finish_position[c(1,3)]
+            break
+          }
+        }
         ls = list()
         ls[["start"]] = teleport_target_postition
         ls[["finish"]] = quest_finish_position

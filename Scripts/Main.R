@@ -14,8 +14,8 @@ data_dir <- "../Data"
 UnityAnal = UnityEyetrackerAnalysis$new(data_dir,id="HCE_1_E_1",session=1)
 UnityAnal$SetTask(1)
 UnityAnal$ReadData()
-UnityAnal$MakePathImage(path = "Maps/GoodMapIGuess2.png", 11)
-
+UnityAnal$MakePathImage(path = "Maps/GoodMapIGuess2.png", 10)
+UnityAnal$QuestSummary(7)
 #cannot do this until the scenario log had been figured out. Need more information of how the data will look
 #SumTime(analysis)
 
