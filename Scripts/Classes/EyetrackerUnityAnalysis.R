@@ -14,7 +14,7 @@ UnityEyetrackerAnalysis <- R6Class("UnityEyetrackerAnalysis",
         #basic definitions
         session = NULL,
         task= NULL,
-        session_task_dir = NULL,
+        session_dir = NULL,
         
         trial_sets = NULL,
         
@@ -88,15 +88,15 @@ UnityEyetrackerAnalysis <- R6Class("UnityEyetrackerAnalysis",
         if (is.null(self$experiment_log)) return(FALSE)
         if (is.null(self$position_table)) return(FALSE)
       },
-      set_session_task_directory = function(){
-        self$session_task_dir <- paste(self$dir,self$id,"VR",self$session,self$task,sep="/")
+      set_session_directory = function(){
+        self$session_dir <- paste(self$dir,self$id,"VR",self$session,sep="/")
       },
       read_data_private = function(override, save){
         #session/task folder
-        private$set_session_task_directory()
+        private$set_session_directory()
         
         #open experiment_logs to see how many do we have
-        experiment_logs = OpenExperimentLogs(self$session_task_dir)
+        experiment_logs = OpenExperimentLogs(self$session_dir)
         
         #for each experiment_log, we open player log, scenario log and appropriate quest logs
         self$trial_sets = list()
@@ -107,9 +107,8 @@ UnityEyetrackerAnalysis <- R6Class("UnityEyetrackerAnalysis",
           #checks if there is everything we need and if not, recomputes the stuff
           changed = PreprocessPlayerLog(player_log)
           if (changed & save) {
-            SavePreprocessedPlayer(dirname(experiment_log$filename), player_log)
+            SavePreprocessedPlayer(experiment_log, player_log)
           }
-          
           scenario_log = OpenScenarioLog(experiment_log)
           quests_logs = OpenQuestLogs(experiment_log, scenario_log)
           
@@ -281,9 +280,10 @@ PreprocessPlayerLog = function(pos_tab){
   }
   return(changed)
 }
-SavePreprocessedPlayer = function(dir = "", pos_tab){
-  logs = list.files(dir, pattern = "_player_" ,full.names = T)
-  log = logs[1]
+SavePreprocessedPlayer = function(experiment_log, pos_tab){
+  directory = dirname(experiment_log$filename)
+  ptr = paste("_player_", experiment_log$header$Time, sep="", collapse="")
+  log = list.files(directory, pattern = ptr ,full.names = T)[1]
   #writes preprocessed file
   preprocessed_filename = gsub(".txt","_preprocessed.txt",log)
   write.table(pos_tab, preprocessed_filename, sep=";", dec=".", quote=F, row.names = F)
@@ -335,23 +335,24 @@ OpenQuestLogs = function(experiment_log,scenario_log = NULL){
   }
 }
 OpenQuestLog = function(filepath){
-     #reads into a text file at first
-     text = readLines(filepath,warn=F)
-     #finds the header start
-     idxHeaderTop <- which(grepl('\\*\\*\\*\\*\\*',text))
-     #finds the header bottom
-     idxHeaderBottom <- which(grepl('\\-\\-\\-\\-\\-',text))
-     #potentially returns the header as well in a list
-     ls[["header"]] <- into_list(text[(idxHeaderTop+1):(idxHeaderBottom-1)])
-     
-     #todo - reads the header 
-     idxStepTop <- which(grepl('\\*\\*\\*Quest step data\\*\\*\\*',text))
-     idxStepBottom <- which(grepl('\\-\\-\\-Quest step data\\-\\-\\-',text))
-     #puts everyting from the quest header to the steps list
-     ls[["steps"]]  <- read.table(textConnection(text[(idxStepTop+1):(idxStepBottom-1)]),header=T,sep=";",stringsAsFactors=F)
-     #and the timestamps and other the the data list
-     ls[["data"]] <- read.table(textConnection(text), header=T, sep=";",dec=".", skip=idxStepBottom, stringsAsFactors=F)
-     return(ls)     
+  ls = list()
+  #reads into a text file at first
+  text = readLines(filepath,warn=F)
+  #finds the header start
+  idxHeaderTop <- which(grepl('\\*\\*\\*\\*\\*',text))
+  #finds the header bottom
+  idxHeaderBottom <- which(grepl('\\-\\-\\-\\-\\-',text))
+  #potentially returns the header as well in a list
+  ls[["header"]] <- into_list(text[(idxHeaderTop+1):(idxHeaderBottom-1)])
+  
+  #todo - reads the header 
+  idxStepTop <- which(grepl('\\*\\*\\*Quest step data\\*\\*\\*',text))
+  idxStepBottom <- which(grepl('\\-\\-\\-Quest step data\\-\\-\\-',text))
+  #puts everyting from the quest header to the steps list
+  ls[["steps"]]  <- read.table(textConnection(text[(idxStepTop+1):(idxStepBottom-1)]),header=T,sep=";",stringsAsFactors=F)
+  #and the timestamps and other the the data list
+  ls[["data"]] <- read.table(textConnection(text), header=T, sep=";",dec=".", skip=idxStepBottom, stringsAsFactors=F)
+  return(ls)     
 }
 #helper function to figure out the name of the activated quest as is saved in the steps
 #list in the scenario quest

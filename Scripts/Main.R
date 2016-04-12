@@ -12,7 +12,6 @@ data_dir <- "../Data"
 #instantiates VR_analysis class with the name and project directory 
 #it loads appropriate log files and allows for immediate analysis
 UnityAnal = UnityEyetrackerAnalysis$new(data_dir,id="HCE_1_E_1",session=1)
-UnityAnal$SetTask(1)
 UnityAnal$ReadData()
 UnityAnal$MakePathImage(path = "Maps/megamap5.png", 10)
 UnityAnal$QuestSummary(7)
