@@ -344,7 +344,6 @@ OpenQuestLog = function(filepath){
   idxHeaderBottom <- which(grepl('\\-\\-\\-\\-\\-',text))
   #potentially returns the header as well in a list
   ls[["header"]] <- into_list(text[(idxHeaderTop+1):(idxHeaderBottom-1)])
-  
   #todo - reads the header 
   idxStepTop <- which(grepl('\\*\\*\\*Quest step data\\*\\*\\*',text))
   idxStepBottom <- which(grepl('\\-\\-\\-Quest step data\\-\\-\\-',text))
@@ -373,3 +372,25 @@ GetMapSize = function(terrain_info){
   return(ls)
 }
 
+MakeQuestTable = function(quest_logs, trial_set_idx){
+  num_rows = length(quest_logs)
+  dt = data.table(id = numeric(num_rows), set_id = numeric(num_rows),name = character(num_rows), set_id)
+  for(i in 1:length(quest_logs)){
+    #needs to pass the whole thing
+    quest_info = GetQuestInfo(quest_log[i])
+    dt[i,] = list(quest_info$id,trial_set_idx, quest_info$name,i)
+  }
+}
+
+GetQuestInfo = function(quest_log){
+  ls = list()
+  ls[["name"]] = names(quest_log)
+  #gets all the letters and numbers until the dash(-) symbol
+  #first is E in VR experiments, second the quest index and then the a/b version
+  id_pattern = "(.*?)-"
+  id_part = str_match(ls[["name"]],id_pattern)[2]
+  ls[["id"]] = str_match(id_part, "[1-9]")
+  ls[["type"]] = if (str_match(id_part, "[a-b]")[1]=="a") "learn" else "trial"
+  quest_log = quest_log[[1]]
+  return(ls)
+}
