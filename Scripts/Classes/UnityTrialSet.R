@@ -1,6 +1,6 @@
+library('R6')
 UnityTrialSet <- R6Class("UnityTrialSet",
                                    
- inherit = BaseUnityAnalysis,
  #define variables
  public = list(
    #basic definitions
@@ -14,10 +14,5 @@ UnityTrialSet <- R6Class("UnityTrialSet",
      self$scenario_log = scenario_log
      self$player_log = player_log
      self$quest_logs = quest_logs
-     
-     #TODO - check the data
-     if(nargs() >= 4) {
-       self$read_data_private()
-     }
    })
 )

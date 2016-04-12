@@ -1,5 +1,6 @@
 library('R6')
 library('data.table')
+source(paste(getwd(),"Scripts/Classes/UnityTrialSet.R",sep="/"))
 source(paste(getwd(),"Scripts/Classes/BaseUnityAnalysis.R",sep="/"))
 source(paste(getwd(),"Scripts/HelperFunctions/helper_functions.R",sep="/"))
 source_folder(paste(getwd(),"Scripts/HelperFunctions/",sep="/"))
@@ -98,11 +99,12 @@ UnityEyetrackerAnalysis <- R6Class("UnityEyetrackerAnalysis",
         experiment_logs = OpenExperimentLogs(self$session_task_dir)
         
         #for each experiment_log, we open player log, scenario log and appropriate quest logs
-        
+        self$trial_sets = list()
         for (i in 1:length(experiment_logs)){
-          experiment_log = experiment_logs[i]
-          player_log = OpenPlayerLog(self$session_task_dir,experiment_log, override)
+          experiment_log = experiment_logs[[i]]
+          player_log = OpenPlayerLog(experiment_log, override)
           #preprocesses player log
+          #checks if there is everything we need and if not, recomputes the stuff
           changed = PreprocessPlayerLog(player_log)
           if (changed & save) {
             SavePreprocessedPlayer(dirname(experiment_log$filename), player_log)
@@ -111,40 +113,10 @@ UnityEyetrackerAnalysis <- R6Class("UnityEyetrackerAnalysis",
           scenario_log = OpenScenarioLog(experiment_log)
           quests_logs = OpenQuestLogs(experiment_log, scenario_log)
           
-          trial_sets[i] = UnityTrialSet$new(experiment_log, player_log, scenario_log, quests_logs)
-        }
-        
-        #checks if there is everything we need and if not, recomputes the stuff
-        
-        #open_experiment_log is a function in preprocess_functions.R
-        #takes three arguments: directory whre the logs are located, 
-
-        #patients id and session and task of the experiment
-        self$experiment_log <- OpenExperimentLog(self$session_task_dir)
-        
-        self$scenario_log <- OpenQuestLog(self$session_task_dir, self$experiment_log$scenario$Name, self$experiment_log$scenario$Timestamp)
-        
-        #if we opened scenario log, we open all appropriate quest logs from the scenario
-        if(!is.null(self$scenario_log)){
-         ls = list()
-         #list of activated logs from the scenario process
-         table_steps_activated <- self$scenario_log$data[self$scenario_log$data$Action=="StepActivated",]
-         for(i in 1:nrow(table_steps_activated)){
-           ##MIGHT HAVE TO CHANGE IT A BIT BECAUSE OF TASK GROUPS
-           step = table_steps_activated[i,]
-           timestamp = step$Timestamp
-           #name of the step that activated the quest
-           activatingStepName = self$scenario_log$steps[self$scenario_log$steps$ID == step$StepID,"Name"]
-           #get the name of the quest activated from the name of the atctivation step
-           quest_name <- GetActivatedQuestName(activatingStepName)
-           if (!is.na(quest_name)){
-             ls[[quest_name]] <- OpenQuestLog(self$session_task_dir, quest_name, timestamp)
-           }
-         }
-         self$quests_log <- ls
+          self$trial_sets[[i]] = UnityTrialSet$new(experiment_log, player_log, scenario_log, quests_logs)
         }
         private$is_valid()
-        },
+      },
       select_position_data = function(time_window){
         if(missing(time_window)) stop("Need to specify time window")
         if (length(time_window)!=2) stop("Time window needs to have only two times inside")
@@ -212,7 +184,43 @@ UnityEyetrackerAnalysis <- R6Class("UnityEyetrackerAnalysis",
       }
     )
 )
-
+OpenExperimentLogs = function(directory = ""){
+  ls = list()
+  #needs to check if we got only one file out
+  logs = list.files(directory, pattern = "_experiment_",full.names = T)
+  if(!file.exists(logs)){
+    print("Could not find the file for experiment log")
+    return(NULL)
+  }
+  for(i in 1:length(logs)){
+    ls[[i]] = OpenExperimentLog(logs[i])
+    ls[[i]]$filename = logs[i]
+  }
+  return(ls)
+}
+OpenExperimentLog = function(filepath){
+  ls = list()
+  #reads into a text file at first
+  text = readLines(filepath,warn=F)
+  #finds the header start
+  idxHeaderTop <- which(grepl('\\*\\*\\*\\*\\*',text))
+  #finds the header bottom
+  idxHeaderBottom <- which(grepl('\\-\\-\\-\\-\\-',text))
+  #potentially returns the header as well in a list
+  ls[["header"]] <- into_list(text[(idxHeaderTop+1):(idxHeaderBottom-1)])
+  
+  #todo
+  idxTerrainTop <- which(grepl('\\*\\*\\*Terrain information\\*\\*\\*',text))
+  idxTerrainBottom <- which(grepl('\\-\\-\\-Terrain information\\-\\-\\-',text))
+  ls[["terrain"]]  <- into_list(text[(idxTerrainTop+1):(idxTerrainBottom-1)])
+  
+  #todo - so far it only reads one
+  idxSceneTop <- which(grepl('\\*\\*\\*Scenario information\\*\\*\\*',text))
+  idxSceneBottom <- which(grepl('\\-\\-\\-Scenario information\\-\\-\\-',text))
+  ls[["scenario"]]  <- into_list(text[(idxSceneTop+1):(idxSceneBottom-1)])
+  
+  return(ls)     
+}
 OpenPlayerLog = function(experiment_log, override = F){
  directory = dirname(experiment_log$filename)
  ptr = paste("_player_", experiment_log$header$Time, sep="", collapse="")
@@ -280,51 +288,14 @@ SavePreprocessedPlayer = function(dir = "", pos_tab){
   preprocessed_filename = gsub(".txt","_preprocessed.txt",log)
   write.table(pos_tab, preprocessed_filename, sep=";", dec=".", quote=F, row.names = F)
 }
-OpenExperimentLogs = function(dir = ""){
-     
-     ls = list()
-     #needs to check if we got only one file out
-     logs = list.files(dir, pattern = "_experiment_",full.names = T)
-     if(!file.exists(logs)){
-          print("Could not find the file for experiment log")
-          return(NULL)
-     }
-     for(i in 1:length(logs)){
-       ls[i] = OpenExperimentLog(logs[i])
-       ls[i]$filename = logs[i]
-     }
-     return(ls)
-}
-OpenExperimentLog = function(filepath){
-  ls = list()
-  #reads into a text file at first
-  text = readLines(filepath,warn=F)
-  #finds the header start
-  idxHeaderTop <- which(grepl('\\*\\*\\*\\*\\*',text))
-  #finds the header bottom
-  idxHeaderBottom <- which(grepl('\\-\\-\\-\\-\\-',text))
-  #potentially returns the header as well in a list
-  ls[["header"]] <- into_list(text[(idxHeaderTop+1):(idxHeaderBottom-1)])
-  
-  #todo
-  idxTerrainTop <- which(grepl('\\*\\*\\*Terrain information\\*\\*\\*',text))
-  idxTerrainBottom <- which(grepl('\\-\\-\\-Terrain information\\-\\-\\-',text))
-  ls[["terrain"]]  <- into_list(text[(idxTerrainTop+1):(idxTerrainBottom-1)])
-  
-  #todo - so far it only reads one
-  idxSceneTop <- which(grepl('\\*\\*\\*Scenario information\\*\\*\\*',text))
-  idxSceneBottom <- which(grepl('\\-\\-\\-Scenario information\\-\\-\\-',text))
-  ls[["scenario"]]  <- into_list(text[(idxSceneTop+1):(idxSceneBottom-1)])
-  
-  return(ls)     
-}
 OpenScenarioLog = function(experiment_log){
+  directory = dirname(experiment_log$filename)
   ptr <- paste("_", escapeRegex(experiment_log$scenario$Name), "_", experiment_log$scenario$Timestamp, "*.txt$", sep="")
   #needs to check if we got only one file out
-  log = list.files(task_dir, pattern = ptr, full.names = T)[1]
+  log = list.files(directory, pattern = ptr, full.names = T)[1]
   #if the file does not exists returning NULL and exiting
   if(!file.exists(log)){
-    print(paste("Could not find the file for given quest log", name, date_time, sep = " "))
+    print(paste("Could not find the file for given quest log", ptr, sep = " "))
     print(ptr)
     return(NULL)
   }
@@ -347,12 +318,12 @@ OpenQuestLogs = function(experiment_log,scenario_log = NULL){
       activatingStepName = scenario_log$steps[scenario_log$steps$ID == step$StepID,"Name"]
       #get the name of the quest activated from the name of the atctivation step
       quest_name <- GetActivatedQuestName(activatingStepName)
-      if (!is.na(quest_name)){
+      if (!is.null(quest_name)){
         ptr <- paste("_", escapeRegex(quest_name), "_", timestamp, "*.txt$", sep="")
         #needs to check if we got only one file out
-        log = list.files(task_dir, pattern = ptr, full.names = T)[1]
+        log = list.files(directory, pattern = ptr, full.names = T)[1]
         if(!file.exists(log)){
-          print(paste("Could not find the file for given quest log", name, date_time, sep = " "))
+          print(paste("Could not find the file for given quest log", ptr, sep = " "))
           print(ptr)
           next
         }
