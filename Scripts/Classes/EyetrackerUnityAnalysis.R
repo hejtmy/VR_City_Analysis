@@ -63,10 +63,13 @@ UnityEyetrackerAnalysis <- R6Class("UnityEyetrackerAnalysis",
         special_paths = list()
         special_paths[["teleport"]]= private$get_teleport_times(quest_idx)
         quest_start_and_stop = private$get_start_and_finish_positions(quest_idx)
+
+        map_size = GetMapSize(self$experiment_log$terrain)
+        
         if (!is.null(special_paths)){
-          make_path_image(img_location = map_img_location, position_table = path_table, special_paths = special_paths, special_points = quest_start_and_stop)
+          make_path_image(img_location = map_img_location, position_table = path_table, map_size = map_size, special_paths = special_paths, special_points = quest_start_and_stop)
         } else {
-          make_path_image(img_location = map_img_location, position_table = path_table)
+          make_path_image(img_location = map_img_location, position_table = path_table, map_size = map_size)
         }
       }
     },
@@ -347,5 +350,14 @@ GetActivatedQuestName <- function(string =""){
      #removing the square brackets
      name <- substring(name,2,nchar(name)-1)
      return(name)
+}
+
+GetMapSize = function(terrain_info){
+  ls = list()
+  size = text_to_vector3(terrain_info$Size)
+  pivot = text_to_vector3(terrain_info$Pivot)
+  ls[["x"]] = c(pivot[1],pivot[1] + size[1])
+  ls[["y"]] = c(pivot[3],pivot[3] + size[3])
+  return(ls)
 }
 
