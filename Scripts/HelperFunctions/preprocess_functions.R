@@ -23,25 +23,39 @@ into_list <- function(text =""){
      }
      return(ls)
 }
-
+#turns vector columns in string "(x, y, z)" into three columns(Position.x, Position.y, Position.z) and returns the table
 vector3_to_columns <- function(tab, column_name){
      
      xyz <- c("x","y","z")
-     
-     splitted <- strsplit(substring(tab[,column_name],2,nchar(tab[,column_name])-1),",")
-     
+     splitted <- strsplit(substring(tab[,get(column_name)],2,nchar(tab[,get(column_name)])-1),",")
      #turns the Vector3 into lists of 3 values
      i = 1
      for (letter in xyz){
-          new_name <- paste(column_name,letter,sep=".")
-          tab[,new_name] <- as.numeric(sapply(splitted,"[",i))
-          i<-i+1
+      new_name <- paste(column_name,letter,sep=".")
+      tab[,(new_name):=as.numeric(sapply(splitted,"[",i))]
+      i<-i+1
      }
      return(tab)
 }
 
+text_to_vector3 = function(text){
+  splitted = strsplit(substring(text,2,nchar(text)-1),",")
+  if(length(splitted[[1]])>2) return(sapply(splitted[[1]], as.numeric, warning = F, USE.NAMES = F))
+  return(NULL)
+}
 ##Helper for escaping characters in quest names
 escapeRegex <- function(string){
      
      return(gsub("([.|()\\^{}+$*?]|\\[|\\])", "\\\\\\1", string))
+}
+
+#calculates the distance walked between each two points of the position table and returns the table
+AddDistanceWalked = function(position_table){
+  distances = numeric(0)
+  for (i in 2:nrow(position_table)){
+    position_table[c(i-1,i),distance:= EuclidDistanceColumns(.(Position.x,Position.z)[1], .(Position.x,Position.z)[2])]
+    #distances = c(distances,EuclidDistance(position_table[i,list(Position.x,Position.z)],position_table[i-1,list(Position.x,Position.z)]))
+  }
+  position_table[,cumulative_distance:=cumsum(distance)]
+  return(position_table)
 }
