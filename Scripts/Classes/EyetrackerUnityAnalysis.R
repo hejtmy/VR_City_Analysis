@@ -42,15 +42,16 @@ UnityEyetrackerAnalysis <- R6Class("UnityEyetrackerAnalysis",
     },
     
     # Makes a graph with a path from start to finish
-    MakePathImage = function(path = "", quest_idx = 0){
+    MakePathImage = function(quest_idx = 0, path = "Maps/megamap5.png"){
       map_img_location = ""
       if (!missing(path)){
         map_img_location = path
       } else {
-        map_img_location = self$experiment_log$terrain$Map_image_path
+        #map_img_location = self$experiment_log$terrain$Map_image_path
+        map_img_location = "Maps/megamap5.png"
       }
       if (quest_idx == 0){
-        path_table = self$position_table
+        path_table = private$PlayerLog()
         return(make_path_image(img_location = map_img_location, position_table = path_table))
       } else {
         time_window = private$get_quest_timewindow(quest_idx)
@@ -77,7 +78,7 @@ UnityEyetrackerAnalysis <- R6Class("UnityEyetrackerAnalysis",
       quest_times = private$get_quest_timewindow(quest_idx, include_teleport = F)
       ls[["Time"]] =  diff(c(quest_times$start,quest_times$finish))
       #distance
-      positions = c(self$position_table[Time > quest_times$start, .SD[1,cumulative_distance]],self$position_table[Time > quest_times$finish, .SD[1,cumulative_distance]])
+      positions = c(private$PlayerLog(quest_idx)[Time > quest_times$start, .SD[1,cumulative_distance]],private$PlayerLog(quest_idx)[Time > quest_times$finish, .SD[1,cumulative_distance]])
       ls[["Distance"]] = diff(positions)
       return(ls)
     }
@@ -188,8 +189,16 @@ UnityEyetrackerAnalysis <- R6Class("UnityEyetrackerAnalysis",
         quest = self$trial_sets[[quest_line$id_of_set]]$quest_logs[quest_line$set_id]
         return(quest)
       },
-      PlayerLog = function(quest_idx){
-        player_log = self$trial_sets[[self$quest_set[quest_idx]$id_of_set]]$player_log
+      PlayerLog = function(quest_idx = 0){
+        if (quest_idx == 0){
+          player_log = data.table()
+          for(i in 1:length(self$trial_sets)){
+            pos_tab =  self$trial_sets[[self$quest_set[quest_idx]$id_of_set]]$player_log
+            player_log = rbindlist(list(player_log,pos_tab))
+          }
+        } else {
+          player_log = self$trial_sets[[self$quest_set[quest_idx]$id_of_set]]$player_log
+        }
         return(player_log)
       },
       MapSize = function(quest_idx){
@@ -390,6 +399,7 @@ OpenQuestLog = function(filepath){
 }
 #helper function to figure out the name of the activated quest as is saved in the steps
 #list in the scenario quest
+
 GetActivatedQuestName <- function(string =""){
      #The name of the quest is between square brackets - [quest name]
      name <- str_extract_all(string,"\\[(.*?)\\]")[[1]][1]
@@ -397,7 +407,6 @@ GetActivatedQuestName <- function(string =""){
      name <- substring(name,2,nchar(name)-1)
      return(name)
 }
-
 MakeQuestTable = function(trial_sets){
   dt = data.table(id = numeric(0), session_id = numeric(0), name = character(0), type=character(0), id_of_set = numeric(0), set_id = numeric(0))
   #to keep track of the number of quests
@@ -418,7 +427,6 @@ MakeQuestTable = function(trial_sets){
   }
   return(dt)
 }
-
 GetQuestInfo = function(quest_log){
   ls = list()
   ls[["name"]] = names(quest_log)
