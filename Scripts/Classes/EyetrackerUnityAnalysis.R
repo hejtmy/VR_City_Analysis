@@ -17,7 +17,7 @@ UnityEyetrackerAnalysis <- R6Class("UnityEyetrackerAnalysis",
         session_dir = NULL,
         
         trial_sets = NULL,
-        
+        quest_set = NULL,
     initialize = function(dir=data_path, id="", session=NULL, task=NULL){
        self$dir = dir
        self$SetParticipant(id)
@@ -114,6 +114,7 @@ UnityEyetrackerAnalysis <- R6Class("UnityEyetrackerAnalysis",
           
           self$trial_sets[[i]] = UnityTrialSet$new(experiment_log, player_log, scenario_log, quests_logs)
         }
+        self$quest_set = MakeQuestTable(self$trial_sets)
         private$is_valid()
       },
       select_position_data = function(time_window){
@@ -303,23 +304,35 @@ OpenScenarioLog = function(experiment_log){
   return(scenario_log)
 }
 OpenQuestLogs = function(experiment_log,scenario_log = NULL){
-  
   if(!is.null(scenario_log)){
     directory = dirname(experiment_log$filename)
     #prepares list
     ls = list()
     #list of activated logs from the scenario process
+    #it looks for steps finished because for some weird reason of bad logging
     table_steps_activated <- scenario_log$data[scenario_log$data$Action=="StepActivated",]
-    for(i in 1:nrow(table_steps_activated)){
+    table_steps_finished <- scenario_log$data[scenario_log$data$Action=="StepFinished",]
+    if (nrow(table_steps_activated)>nrow(table_steps_finished)) use_finished = F else use_finished = T
+    for_interations = if (use_finished) nrow(table_steps_finished) else nrow(table_steps_activated) 
+    for(i in 1:for_interations){
       ##MIGHT HAVE TO CHANGE IT A BIT BECAUSE OF TASK GROUPS
-      step = table_steps_activated[i,]
-      timestamp = step$Timestamp
-      #name of the step that activated the quest
-      activatingStepName = scenario_log$steps[scenario_log$steps$ID == step$StepID,"Name"]
-      #get the name of the quest activated from the name of the atctivation step
-      quest_name <- GetActivatedQuestName(activatingStepName)
+      if (use_finished){
+        step = table_steps_finished[i,]
+        timestamp = ""
+        #name of the step that activated the quest
+        finished_step_name = scenario_log$steps[scenario_log$steps$ID == step$StepID,"Name"]
+        #get the name of the quest activated from the name of the atctivation step
+        quest_name <- GetActivatedQuestName(finished_step_name)
+      } else {
+        step = table_steps_activated[i,]
+        timestamp = step$Timestamp
+        #name of the step that activated the quest
+        activated_step_name = scenario_log$steps[scenario_log$steps$ID == step$StepID,"Name"]
+        #get the name of the quest activated from the name of the atctivation step
+        quest_name <- GetActivatedQuestName(activated_step_name)
+      }
       if (!is.null(quest_name)){
-        ptr <- paste("_", escapeRegex(quest_name), "_", timestamp, "*.txt$", sep="")
+        ptr <- paste("_", escapeRegex(quest_name), "_", timestamp, sep="")
         #needs to check if we got only one file out
         log = list.files(directory, pattern = ptr, full.names = T)[1]
         if(!file.exists(log)){
@@ -372,14 +385,22 @@ GetMapSize = function(terrain_info){
   return(ls)
 }
 
-MakeQuestTable = function(quest_logs, trial_set_idx){
-  num_rows = length(quest_logs)
-  dt = data.table(id = numeric(num_rows), set_id = numeric(num_rows),name = character(num_rows), set_id)
-  for(i in 1:length(quest_logs)){
-    #needs to pass the whole thing
-    quest_info = GetQuestInfo(quest_log[i])
-    dt[i,] = list(quest_info$id,trial_set_idx, quest_info$name,i)
+MakeQuestTable = function(trial_sets){
+  dt = data.table(id = numeric(0), name = character(0), type=character(0), id_of_set = numeric(0), set_id = numeric(0))
+  for (n in 1:length(trial_sets)){
+    quest_logs = trial_sets[[n]]$quest_logs
+    num_rows = length(quest_logs)
+    dt_trial = data.table(id = numeric(num_rows), name = character(num_rows), type=character(num_rows), id_of_set = numeric(num_rows),set_id = numeric(num_rows))
+    #if we pass an empty list
+    if (length(quest_logs) == 0) next
+    for(i in 1:length(quest_logs)){
+      #needs to pass the whole thing
+      quest_info = GetQuestInfo(quest_logs[i])
+      dt_trial[i,] = list(as.numeric(quest_info$id), quest_info$name, quest_info$type, n, i)
+    }
+    dt = rbindlist(list(dt,dt_trial))
   }
+  return(dt)
 }
 
 GetQuestInfo = function(quest_log){
@@ -389,7 +410,10 @@ GetQuestInfo = function(quest_log){
   #first is E in VR experiments, second the quest index and then the a/b version
   id_pattern = "(.*?)-"
   id_part = str_match(ls[["name"]],id_pattern)[2]
-  ls[["id"]] = str_match(id_part, "[1-9]")
+  ls[["id"]] = str_match(id_part, "\\d+")[1]
+  if(is.na(id_part)){
+    print("sth")
+  }
   ls[["type"]] = if (str_match(id_part, "[a-b]")[1]=="a") "learn" else "trial"
   quest_log = quest_log[[1]]
   return(ls)
