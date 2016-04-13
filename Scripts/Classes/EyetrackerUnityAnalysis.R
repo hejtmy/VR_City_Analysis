@@ -17,7 +17,7 @@ UnityEyetrackerAnalysis <- R6Class("UnityEyetrackerAnalysis",
         session_dir = NULL,
         
         trial_sets = NULL,
-        
+        quest_set = NULL,
     initialize = function(dir=data_path, id="", session=NULL, task=NULL){
        self$dir = dir
        self$SetParticipant(id)
@@ -42,26 +42,27 @@ UnityEyetrackerAnalysis <- R6Class("UnityEyetrackerAnalysis",
     },
     
     # Makes a graph with a path from start to finish
-    MakePathImage = function(path = "", quest_idx = 0){
+    MakePathImage = function(quest_idx = 0, path = "Maps/megamap5.png"){
       map_img_location = ""
       if (!missing(path)){
         map_img_location = path
       } else {
-        map_img_location = self$experiment_log$terrain$Map_image_path
+        #map_img_location = self$experiment_log$terrain$Map_image_path
+        map_img_location = "Maps/megamap5.png"
       }
       if (quest_idx == 0){
-        path_table = self$position_table
+        path_table = private$PlayerLog()
         return(make_path_image(img_location = map_img_location, position_table = path_table))
       } else {
         time_window = private$get_quest_timewindow(quest_idx)
         if(!is.null(time_window)){
-          path_table = private$select_position_data(time_window)
+          path_table = private$select_position_data(quest_idx,time_window)
         }
         special_paths = list()
         special_paths[["teleport"]]= private$get_teleport_times(quest_idx)
         quest_start_and_stop = private$get_start_and_finish_positions(quest_idx)
 
-        map_size = GetMapSize(self$experiment_log$terrain)
+        map_size = private$MapSize(quest_idx)
         
         if (!is.null(special_paths)){
           make_path_image(img_location = map_img_location, position_table = path_table, map_size = map_size, special_paths = special_paths, special_points = quest_start_and_stop)
@@ -72,12 +73,12 @@ UnityEyetrackerAnalysis <- R6Class("UnityEyetrackerAnalysis",
     },
     QuestSummary = function(quest_idx = 0){
       ls = list()
-      quest = self$quests_log[quest_idx][[1]]
+      quest = private$QuestStep(quest_idx)[[1]]
       
       quest_times = private$get_quest_timewindow(quest_idx, include_teleport = F)
       ls[["Time"]] =  diff(c(quest_times$start,quest_times$finish))
       #distance
-      positions = c(self$position_table[Time > quest_times$start, .SD[1,cumulative_distance]],self$position_table[Time > quest_times$finish, .SD[1,cumulative_distance]])
+      positions = c(private$PlayerLog(quest_idx)[Time > quest_times$start, .SD[1,cumulative_distance]],private$PlayerLog(quest_idx)[Time > quest_times$finish, .SD[1,cumulative_distance]])
       ls[["Distance"]] = diff(positions)
       return(ls)
     }
@@ -114,18 +115,20 @@ UnityEyetrackerAnalysis <- R6Class("UnityEyetrackerAnalysis",
           
           self$trial_sets[[i]] = UnityTrialSet$new(experiment_log, player_log, scenario_log, quests_logs)
         }
+        self$quest_set = MakeQuestTable(self$trial_sets)
         private$is_valid()
       },
-      select_position_data = function(time_window){
+      select_position_data = function(quest_idx,time_window){
         if(missing(time_window)) stop("Need to specify time window")
         if (length(time_window)!=2) stop("Time window needs to have only two times inside")
-        return(self$position_table[Time>time_window$start & Time < time_window$finish])
+        position_table = self$trial_sets[[self$quest_set[quest_idx]$id_of_set]]$player_log
+        return(position_table[Time>time_window$start & Time < time_window$finish])
       },
       get_quest_timewindow = function(quest_idx, include_teleport = T){
         if(missing(quest_idx)){
           stop("Need to specify the quest index")
         }
-        quest = self$quests_log[quest_idx][[1]]
+        quest = private$QuestStep(quest_idx)[[1]]
         if(is.null(quest)){
           stop("Quest log not reachable")
         }
@@ -141,7 +144,7 @@ UnityEyetrackerAnalysis <- R6Class("UnityEyetrackerAnalysis",
         return(ls)
       },
       get_teleport_times = function(quest_idx){
-        quest = self$quests_log[quest_idx][[1]]
+        quest = private$QuestStep(quest_idx)[[1]]
         if(is.null(quest)){
           stop("Quest log not reachable")
         }
@@ -153,11 +156,11 @@ UnityEyetrackerAnalysis <- R6Class("UnityEyetrackerAnalysis",
         return(ls)
       },
       get_start_and_finish_positions = function(quest_idx, include_teleport = T){
-        quest = self$quests_log[quest_idx][[1]]
+        quest = private$QuestStep(quest_idx)[[1]]
         if(is.null(quest)) stop("Quest log not reachable")
         #gets finished time of the teleport
         teleport_finished = private$get_teleport_times(quest_idx)$finish
-        teleport_target_postition = self$position_table[Time > teleport_finished, .SD[1,c(Position.x,Position.z)]]
+        teleport_target_postition = private$PlayerLog(quest_idx)[Time > teleport_finished, .SD[1,c(Position.x,Position.z)]]
         #goes step by step from the end until it gets end with transform
         for(i in nrow(quest$steps):1){
           quest_finish_position = text_to_vector3(quest$steps$Transform[i])
@@ -172,7 +175,7 @@ UnityEyetrackerAnalysis <- R6Class("UnityEyetrackerAnalysis",
         return(ls)
       },
       get_step_time = function(quest_idx, step_name, step_action = "StepActivated", step_id = 0){
-        quest = self$quests_log[quest_idx][[1]]
+        quest = private$QuestStep(quest_idx)[[1]]
         if(is.null(quest)){
           stop("Quest log not reachable")
         }
@@ -180,9 +183,38 @@ UnityEyetrackerAnalysis <- R6Class("UnityEyetrackerAnalysis",
           return(quest$data$TimeFromStart[quest$data$StepID == quest_idx & quest$data$Action == step_action])
         }
         return(quest$data$TimeFromStart[quest$data$StepType == step_name & quest$data$Action == step_action])
+      },
+      QuestStep = function(quest_idx){
+        quest_line = self$quest_set[quest_idx]
+        quest = self$trial_sets[[quest_line$id_of_set]]$quest_logs[quest_line$set_id]
+        return(quest)
+      },
+      PlayerLog = function(quest_idx = 0){
+        if (quest_idx == 0){
+          player_log = data.table()
+          for(i in 1:length(self$trial_sets)){
+            pos_tab =  self$trial_sets[[self$quest_set[quest_idx]$id_of_set]]$player_log
+            player_log = rbindlist(list(player_log,pos_tab))
+          }
+        } else {
+          player_log = self$trial_sets[[self$quest_set[quest_idx]$id_of_set]]$player_log
+        }
+        return(player_log)
+      },
+      MapSize = function(quest_idx){
+        ls = list()
+        terrain_info = self$trial_sets[[self$quest_set[quest_idx]$id_of_set]]$experiment_log$terrain
+        size = text_to_vector3(terrain_info$Size)
+        pivot = text_to_vector3(terrain_info$Pivot)
+        ls[["x"]] = c(pivot[1],pivot[1] + size[1])
+        ls[["y"]] = c(pivot[3],pivot[3] + size[3])
+        return(ls)
       }
     )
 )
+
+
+### Reading thye data in 
 OpenExperimentLogs = function(directory = ""){
   ls = list()
   #needs to check if we got only one file out
@@ -303,23 +335,35 @@ OpenScenarioLog = function(experiment_log){
   return(scenario_log)
 }
 OpenQuestLogs = function(experiment_log,scenario_log = NULL){
-  
   if(!is.null(scenario_log)){
     directory = dirname(experiment_log$filename)
     #prepares list
     ls = list()
     #list of activated logs from the scenario process
+    #it looks for steps finished because for some weird reason of bad logging
     table_steps_activated <- scenario_log$data[scenario_log$data$Action=="StepActivated",]
-    for(i in 1:nrow(table_steps_activated)){
+    table_steps_finished <- scenario_log$data[scenario_log$data$Action=="StepFinished",]
+    if (nrow(table_steps_activated)>nrow(table_steps_finished)) use_finished = F else use_finished = T
+    for_interations = if (use_finished) nrow(table_steps_finished) else nrow(table_steps_activated) 
+    for(i in 1:for_interations){
       ##MIGHT HAVE TO CHANGE IT A BIT BECAUSE OF TASK GROUPS
-      step = table_steps_activated[i,]
-      timestamp = step$Timestamp
-      #name of the step that activated the quest
-      activatingStepName = scenario_log$steps[scenario_log$steps$ID == step$StepID,"Name"]
-      #get the name of the quest activated from the name of the atctivation step
-      quest_name <- GetActivatedQuestName(activatingStepName)
+      if (use_finished){
+        step = table_steps_finished[i,]
+        timestamp = ""
+        #name of the step that activated the quest
+        finished_step_name = scenario_log$steps[scenario_log$steps$ID == step$StepID,"Name"]
+        #get the name of the quest activated from the name of the atctivation step
+        quest_name <- GetActivatedQuestName(finished_step_name)
+      } else {
+        step = table_steps_activated[i,]
+        timestamp = step$Timestamp
+        #name of the step that activated the quest
+        activated_step_name = scenario_log$steps[scenario_log$steps$ID == step$StepID,"Name"]
+        #get the name of the quest activated from the name of the atctivation step
+        quest_name <- GetActivatedQuestName(activated_step_name)
+      }
       if (!is.null(quest_name)){
-        ptr <- paste("_", escapeRegex(quest_name), "_", timestamp, "*.txt$", sep="")
+        ptr <- paste("_", escapeRegex(quest_name), "_", timestamp, sep="")
         #needs to check if we got only one file out
         log = list.files(directory, pattern = ptr, full.names = T)[1]
         if(!file.exists(log)){
@@ -344,7 +388,6 @@ OpenQuestLog = function(filepath){
   idxHeaderBottom <- which(grepl('\\-\\-\\-\\-\\-',text))
   #potentially returns the header as well in a list
   ls[["header"]] <- into_list(text[(idxHeaderTop+1):(idxHeaderBottom-1)])
-  
   #todo - reads the header 
   idxStepTop <- which(grepl('\\*\\*\\*Quest step data\\*\\*\\*',text))
   idxStepBottom <- which(grepl('\\-\\-\\-Quest step data\\-\\-\\-',text))
@@ -356,6 +399,7 @@ OpenQuestLog = function(filepath){
 }
 #helper function to figure out the name of the activated quest as is saved in the steps
 #list in the scenario quest
+
 GetActivatedQuestName <- function(string =""){
      #The name of the quest is between square brackets - [quest name]
      name <- str_extract_all(string,"\\[(.*?)\\]")[[1]][1]
@@ -363,13 +407,38 @@ GetActivatedQuestName <- function(string =""){
      name <- substring(name,2,nchar(name)-1)
      return(name)
 }
-
-GetMapSize = function(terrain_info){
+MakeQuestTable = function(trial_sets){
+  dt = data.table(id = numeric(0), session_id = numeric(0), name = character(0), type=character(0), id_of_set = numeric(0), set_id = numeric(0))
+  #to keep track of the number of quests
+  session_id = 1
+  for (n in 1:length(trial_sets)){
+    quest_logs = trial_sets[[n]]$quest_logs
+    num_rows = length(quest_logs)
+    dt_trial = data.table(id = numeric(num_rows), session_id = numeric(num_rows), name = character(num_rows), type=character(num_rows), id_of_set = numeric(num_rows),set_id = numeric(num_rows))
+    #if we pass an empty list
+    if (length(quest_logs) == 0) next
+    for(i in 1:length(quest_logs)){
+      #needs to pass the whole thing
+      quest_info = GetQuestInfo(quest_logs[i])
+      dt_trial[i,] = list(as.numeric(quest_info$id), session_id, quest_info$name, quest_info$type, n, i)
+      session_id = session_id +1
+    }
+    dt = rbindlist(list(dt,dt_trial))
+  }
+  return(dt)
+}
+GetQuestInfo = function(quest_log){
   ls = list()
-  size = text_to_vector3(terrain_info$Size)
-  pivot = text_to_vector3(terrain_info$Pivot)
-  ls[["x"]] = c(pivot[1],pivot[1] + size[1])
-  ls[["y"]] = c(pivot[3],pivot[3] + size[3])
+  ls[["name"]] = names(quest_log)
+  #gets all the letters and numbers until the dash(-) symbol
+  #first is E in VR experiments, second the quest index and then the a/b version
+  id_pattern = "(.*?)-"
+  id_part = str_match(ls[["name"]],id_pattern)[2]
+  ls[["id"]] = str_match(id_part, "\\d+")[1]
+  if(is.na(id_part)){
+    print("sth")
+  }
+  ls[["type"]] = if (str_match(id_part, "[a-b]")[1]=="a") "learn" else "trial"
+  quest_log = quest_log[[1]]
   return(ls)
 }
-
