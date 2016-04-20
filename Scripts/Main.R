@@ -15,6 +15,7 @@ UnityAnal = UnityEyetrackerAnalysis$new(data_dir,id="HCE_1_E_1",session=1)
 UnityAnal$ReadData()
 UnityAnal$MakePathImage(20)
 UnityAnal$QuestSummary(7)
+UnityAnal$QuestsSummary()
 
 UnityAnal3 = UnityEyetrackerAnalysis$new(data_dir,id="HCE_1_E_3",session=1)
 UnityAnal3$ReadData()

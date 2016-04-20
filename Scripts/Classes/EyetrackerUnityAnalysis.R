@@ -71,10 +71,21 @@ UnityEyetrackerAnalysis <- R6Class("UnityEyetrackerAnalysis",
         }
       }
     },
+    QuestsSummary = function(){
+      df = self$quest_set
+      trail_times = numeric(nrow(df))
+      trail_distances = numeric(nrow(df))
+      for(i in 1:nrow(df)){
+        quest_summary = self$QuestSummary(i)
+        trail_times[i] = quest_summary$Time
+        trail_distances[i] = quest_summary$Distance
+      }
+      df = mutate(df, time = trail_times, distance = trail_distances)
+      return(df)
+    },
     QuestSummary = function(quest_idx = 0){
       ls = list()
       quest = private$QuestStep(quest_idx)[[1]]
-      
       quest_times = private$get_quest_timewindow(quest_idx, include_teleport = F)
       ls[["Time"]] =  diff(c(quest_times$start,quest_times$finish))
       #distance
