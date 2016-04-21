@@ -18,12 +18,16 @@ UnityAnal$MakePathImage(7)
 UnityAnal$QuestSummary(7)
 UnityAnal$QuestsSummary()
 
+#choose participants
 participants = c("HCE_1_E_1","HCE_1_E_2","HCE_1_E_3","HCE_1_E_4","HCE_1_E_5")
 
 anal = MultiParticipantUnityAnalysis$new(data_dir,participants,1)
+tab = anal$QuestsSummary()
 
-#cannot do this until the scenario log had been figured out. Need more information of how the data will look
-#SumTime(analysis)
+t.test(tab$time~tab$type)
+#anova model
+summary(aov(time~id, ab))
+summary(aov(time~type*participant_id, ab))
 
 #eytracker stuff
 result <- parse.asc.file(filepath)
