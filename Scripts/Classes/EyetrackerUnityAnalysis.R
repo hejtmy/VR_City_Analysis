@@ -1,5 +1,6 @@
 library('R6')
 library('data.table')
+library('dplyr')
 source(paste(getwd(),"Scripts/Classes/UnityTrialSet.R",sep="/"))
 source(paste(getwd(),"Scripts/Classes/BaseUnityAnalysis.R",sep="/"))
 source(paste(getwd(),"Scripts/HelperFunctions/helper_functions.R",sep="/"))

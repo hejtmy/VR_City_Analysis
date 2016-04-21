@@ -13,7 +13,8 @@ MultiParticipantUnityAnalysis <- R6Class("MultiParticipantUnityAnalysis",
         self$Analyses[[participant_code]] = analysis
       }
    },
-   QuestsSummary = function(){
+   QuestsSummary = function(force = F){
+     if (!force & !is.null(private$quest_summary_tab)) return (private$quest_summary_tab)
      final = data.frame()
      for(i in 1:length(self$Analyses)){
        ana = self$Analyses[[i]]
@@ -21,7 +22,11 @@ MultiParticipantUnityAnalysis <- R6Class("MultiParticipantUnityAnalysis",
        df = mutate(df, participant_id = rep(ana$id,nrow(df)))
        final = rbindlist(list(final,df))
      }
+     private$quest_summary_tab = final
      return(final)
    }
+ ),
+ private = list(
+   quest_summary_tab = NULL
  )
 )

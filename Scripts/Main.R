@@ -3,6 +3,7 @@
 #setwd("D:/VR/VRcity/VR_City_Analysis")
 
 source("Scripts/Classes/EyetrackerUnityAnalysis.R")
+source("Scripts/Classes/MultiParticipantUnityAnalysis.R")
 source("Scripts/Classes/VUZIX_analysis.R")
 source("Scripts/Eyetracker/importing.R")
 
@@ -11,16 +12,16 @@ data_dir <- "../Data"
 
 #instantiates VR_analysis class with the name and project directory 
 #it loads appropriate log files and allows for immediate analysis
-UnityAnal = UnityEyetrackerAnalysis$new(data_dir,id="HCE_1_E_1",session=1)
+UnityAnal = UnityEyetrackerAnalysis$new(data_dir,id="HCE_1_E_3",session=1)
 UnityAnal$ReadData()
-UnityAnal$MakePathImage(20)
+UnityAnal$MakePathImage(7)
 UnityAnal$QuestSummary(7)
 UnityAnal$QuestsSummary()
 
-UnityAnal3 = UnityEyetrackerAnalysis$new(data_dir,id="HCE_1_E_3",session=1)
-UnityAnal3$ReadData()
-UnityAnal3$MakePathImage(20)
-UnityAnal3$QuestSummary(7)
+participants = c("HCE_1_E_1","HCE_1_E_2","HCE_1_E_3","HCE_1_E_4","HCE_1_E_5")
+
+anal = MultiParticipantUnityAnalysis$new(data_dir,participants,1)
+
 #cannot do this until the scenario log had been figured out. Need more information of how the data will look
 #SumTime(analysis)
 
