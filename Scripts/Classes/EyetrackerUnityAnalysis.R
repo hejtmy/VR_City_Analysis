@@ -38,7 +38,8 @@ UnityEyetrackerAnalysis <- R6Class("UnityEyetrackerAnalysis",
     },
     
     # Makes a graph with a path from start to finish
-    MakePathImage = function(quest_idx = 0, path = "Maps/megamap5.png"){
+    MakePathImage = function(quest_session_idx = NULL, path = "Maps/megamap5.png"){
+      quest = private$QuestStep(quest_session_idx)[[1]]
       map_img_location = ""
       if (!missing(path)){
         map_img_location = path
@@ -46,20 +47,19 @@ UnityEyetrackerAnalysis <- R6Class("UnityEyetrackerAnalysis",
         #map_img_location = self$experiment_log$terrain$Map_image_path
         map_img_location = "Maps/megamap5.png"
       }
-      if (quest_idx == 0){
-        path_table = private$PlayerLogForQuest()
-        return(make_path_image(img_location = map_img_location, position_table = path_table))
+      if (is.null(quest_session_idx)){
+        path_table = private$PlayerLog()
+        map_size = private$MapSize()
+        return(make_path_image(img_location = map_img_location, position_table = path_table, map_size = map_size))
       } else {
-        time_window = private$get_quest_timewindow(quest_idx)
+        time_window = private$get_quest_timewindow(quest)
         if(!is.null(time_window)){
-          path_table = private$select_position_data(quest_idx,time_window)
+          path_table = private$select_position_data(quest,time_window)
         }
         special_paths = list()
-        special_paths[["teleport"]]= private$get_teleport_times(quest_idx)
-        quest_start_and_stop = private$get_start_and_finish_positions(quest_idx)
-
-        map_size = private$MapSize(quest_idx)
-        
+        special_paths[["teleport"]]= private$get_teleport_times(quest)
+        quest_start_and_stop = private$get_start_and_finish_positions(quest)
+        map_size = private$MapSize(quest)
         if (!is.null(special_paths)){
           make_path_image(img_location = map_img_location, position_table = path_table, map_size = map_size, special_paths = special_paths, special_points = quest_start_and_stop)
         } else {
@@ -105,7 +105,6 @@ UnityEyetrackerAnalysis <- R6Class("UnityEyetrackerAnalysis",
         #for each list member - checking if there are two
         for(type in quest_types){
           quest = quests[[type]]
-          print(quest)
           quest_times = private$get_quest_timewindow(quest, include_teleport = F)
           ls[[type]]$Time = diff(c(quest_times$start, quest_times$finish))
           player_log = private$PlayerLogForQuest(quest)
@@ -154,11 +153,12 @@ UnityEyetrackerAnalysis <- R6Class("UnityEyetrackerAnalysis",
         self$quest_set = MakeQuestTable(self$trial_sets)
         private$is_valid()
       },
-      select_position_data = function(quest_idx,time_window){
+      select_position_data = function(quest,time_window){
         if(missing(time_window)) stop("Need to specify time window")
         if (length(time_window)!=2) stop("Time window needs to have only two times inside")
-        position_table = self$trial_sets[[self$quest_set[quest_idx]$id_of_set]]$player_log
-        return(position_table[Time>time_window$start & Time < time_window$finish])
+        id_of_set = (filter(self$quest_set, name == quest$name) %>% select(id_of_set))[[1]]
+        position_table = self$trial_sets[[id_of_set]]$player_log
+        return(position_table[Time > time_window$start & Time < time_window$finish])
       },
       get_quest_timewindow = function(quest = NULL, quest_idx = NULL, include_teleport = T){
         if(is.null(quest)) quest = private$QuestStep(quest_idx)[[1]]
@@ -184,11 +184,10 @@ UnityEyetrackerAnalysis <- R6Class("UnityEyetrackerAnalysis",
         ls[["finish"]] = teleport_finish_time
         return(ls)
       },
-      get_start_and_finish_positions = function(quest_idx, include_teleport = T){
-        quest = private$QuestStep(quest_idx)[[1]]
+      get_start_and_finish_positions = function(quest, include_teleport = T){
         if(is.null(quest)) stop("Quest log not reachable")
         #gets finished time of the teleport
-        teleport_finished = private$get_teleport_times(quest_idx)$finish
+        teleport_finished = private$get_teleport_times(quest)$finish
         teleport_target_postition = private$PlayerLogForQuest(quest)[Time > teleport_finished, .SD[1,c(Position.x,Position.z)]]
         #goes step by step from the end until it gets end with transform
         for(i in nrow(quest$steps):1){
@@ -214,8 +213,10 @@ UnityEyetrackerAnalysis <- R6Class("UnityEyetrackerAnalysis",
         #if the length is 0, we assume that the quest_idx is quest_session_idx
         if (length(quest_types) == 0){
           quest_lines = filter(self$quest_set, session_id %in% quest_idx)
+          if(nrow(quest_lines) == 0) return(NULL);
           #foreach
           for(i in 1:nrow(quest_lines)){
+            print(quest_lines[i])
             quest_line = quest_lines[i]
             quest = self$trial_sets[[quest_line$id_of_set]]$quest_logs[quest_line$set_id]
             quest[[1]]$name = select(quest_line,name)[[1]]
@@ -240,6 +241,7 @@ UnityEyetrackerAnalysis <- R6Class("UnityEyetrackerAnalysis",
           pos_tab =  self$trial_sets[[i]]$player_log
           player_log = rbindlist(list(player_log,pos_tab))
         }
+        return(player_log)
       },
       PlayerLogForQuest = function(quest){
         quest_line = filter(self$quest_set, name == quest$name)
@@ -247,10 +249,11 @@ UnityEyetrackerAnalysis <- R6Class("UnityEyetrackerAnalysis",
         player_log = self$trial_sets[[quest_line$id_of_set]]$player_log[Time > quest_times$start & Time <quest_times$finish,]
         return(player_log)
       },
-      MapSize = function(quest_idx = 0){
+      MapSize = function(quest = NULL){
         ls = list()
-        if (quest_idx == 0) quest_idx = 1
-        terrain_info = self$trial_sets[[self$quest_set[quest_idx]$id_of_set]]$experiment_log$terrain
+        if (is.null(quest)) quest = private$QuestStep(1)[[1]]
+        quest_line = filter(self$quest_set, name == quest$name)
+        terrain_info = self$trial_sets[[quest_line$id_of_set]]$experiment_log$terrain
         size = text_to_vector3(terrain_info$Size)
         pivot = text_to_vector3(terrain_info$Pivot)
         ls[["x"]] = c(pivot[1],pivot[1] + size[1])
