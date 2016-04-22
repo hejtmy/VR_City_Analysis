@@ -39,7 +39,7 @@ UnityEyetrackerAnalysis <- R6Class("UnityEyetrackerAnalysis",
     
     # Makes a graph with a path from start to finish
     MakePathImage = function(quest_session_idx = NULL, path = "Maps/megamap5.png"){
-      quest = private$QuestStep(quest_session_idx)[[1]]
+      quest = private$QuestStep(quest_session_idx)
       map_img_location = ""
       if (!missing(path)){
         map_img_location = path
@@ -91,7 +91,7 @@ UnityEyetrackerAnalysis <- R6Class("UnityEyetrackerAnalysis",
     QuestSummary = function(quest_idx = NULL, quest_session_idx = NULL){
       ls = list()
       if (is.null(quest_idx)){
-        quest = private$QuestStep(quest_session_idx)[[1]]
+        quest = private$QuestStep(quest_session_idx)
         quest_times = private$get_quest_timewindow(quest, include_teleport = F)
         ls$Time =  diff(c(quest_times$start,quest_times$finish))
         player_log = private$PlayerLogForQuest(quest)
@@ -157,11 +157,12 @@ UnityEyetrackerAnalysis <- R6Class("UnityEyetrackerAnalysis",
         if(missing(time_window)) stop("Need to specify time window")
         if (length(time_window)!=2) stop("Time window needs to have only two times inside")
         id_of_set = (filter(self$quest_set, name == quest$name) %>% select(id_of_set))[[1]]
+        
         position_table = self$trial_sets[[id_of_set]]$player_log
         return(position_table[Time > time_window$start & Time < time_window$finish])
       },
       get_quest_timewindow = function(quest = NULL, quest_idx = NULL, include_teleport = T){
-        if(is.null(quest)) quest = private$QuestStep(quest_idx)[[1]]
+        if(is.null(quest)) quest = private$QuestStep(quest_idx)
         if(is.null(quest)) stop("Quest log not reachable")
         if(include_teleport){
           start_time = quest$data$TimeFromStart[quest$data$Action == "Quest started"]
@@ -175,7 +176,7 @@ UnityEyetrackerAnalysis <- R6Class("UnityEyetrackerAnalysis",
         return(ls)
       },
       get_teleport_times = function(quest = NULL, quest_idx=NULL){
-        if(is.null(quest)) quest = private$QuestStep(quest_idx)[[1]]
+        if(is.null(quest)) quest = private$QuestStep(quest_idx)
         if(is.null(quest)) stop("Quest log not reachable")
         teleport_start_time = quest$data$TimeFromStart[quest$data$StepType == "Teleport Player" & quest$data$Action =="StepActivated"]
         teleport_finish_time = quest$data$TimeFromStart[quest$data$StepType == "Teleport Player" & quest$data$Action == "StepFinished"]
@@ -203,7 +204,7 @@ UnityEyetrackerAnalysis <- R6Class("UnityEyetrackerAnalysis",
         return(ls)
       },
       get_step_time = function(quest_idx, step_name, step_action = "StepActivated", step_id = 0){
-        quest = private$QuestStep(quest_idx)[[1]]
+        quest = private$QuestStep(quest_idx)
         if(is.null(quest))stop("Quest log not reachable")
         if(step_id != 0) return(quest$data$TimeFromStart[quest$data$StepID == quest_idx & quest$data$Action == step_action])
         return(quest$data$TimeFromStart[quest$data$StepType == step_name & quest$data$Action == step_action])
@@ -216,12 +217,13 @@ UnityEyetrackerAnalysis <- R6Class("UnityEyetrackerAnalysis",
           if(nrow(quest_lines) == 0) return(NULL);
           #foreach
           for(i in 1:nrow(quest_lines)){
-            print(quest_lines[i])
             quest_line = quest_lines[i]
             quest = self$trial_sets[[quest_line$id_of_set]]$quest_logs[quest_line$set_id]
             quest[[1]]$name = select(quest_line,name)[[1]]
             ls = c(ls,quest)
           }
+          #$removes redundant header - we can resave it
+          ls = ls[[1]]
         } 
         if(length(quest_types) > 0){
           quest_session_id  = filter(self$quest_set, id == quest_idx & type %in% quest_types) %>% select(session_id)
@@ -251,7 +253,7 @@ UnityEyetrackerAnalysis <- R6Class("UnityEyetrackerAnalysis",
       },
       MapSize = function(quest = NULL){
         ls = list()
-        if (is.null(quest)) quest = private$QuestStep(1)[[1]]
+        if (is.null(quest)) quest = private$QuestStep(1)
         quest_line = filter(self$quest_set, name == quest$name)
         terrain_info = self$trial_sets[[quest_line$id_of_set]]$experiment_log$terrain
         size = text_to_vector3(terrain_info$Size)
