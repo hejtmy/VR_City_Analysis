@@ -68,38 +68,43 @@ UnityEyetrackerAnalysis <- R6Class("UnityEyetrackerAnalysis",
       }
     },
     DrawQuestParth = function(quest_id, types = c("learn","trial")){
-      
       special_paths = list()
       for(type in types){
         #get the session quest_idx
-        
         special_paths[[type]]= private$get_teleport_times(quest_idx)
         quest_start_and_stop = private$get_start_and_finish_positions(quest_idx)
       }
-      
-      
-    }
+    },
     QuestsSummary = function(){
       df = self$quest_set
       trail_times = numeric(nrow(df))
       trail_distances = numeric(nrow(df))
       for(i in 1:nrow(df)){
-        quest_summary = self$QuestSummary(i)
+        quest_summary = self$QuestSummary(quest_session_idx = i)
         trail_times[i] = quest_summary$Time
         trail_distances[i] = quest_summary$Distance
       }
       df = mutate(df, time = trail_times, distance = trail_distances)
       return(df)
     },
-    QuestSummary = function(quest_idx = 0){
-      ls = list()
-      quest = private$QuestStep(quest_idx)[[1]]
+    #takes either quest_id or session id as a parameter
+    QuestSummary = function(quest_idx = NULL, quest_session_idx = NULL){
+      if (is.null(quest_idx)){
+        quest = private$QuestStep(quest_idx)
+      }
+      if (is.null(quest_session_idx)){
+        quest = private$QuestStep(quest_idx, quest_types = c("learn","trial"))[[1]]
+        #for each list member - checking if there are two
+      }
       quest_times = private$get_quest_timewindow(quest_idx, include_teleport = F)
       ls[["Time"]] =  diff(c(quest_times$start,quest_times$finish))
       #distance
       positions = c(private$PlayerLog(quest_idx)[Time > quest_times$start, .SD[1,cumulative_distance]],private$PlayerLog(quest_idx)[Time > quest_times$finish, .SD[1,cumulative_distance]])
       ls[["Distance"]] = diff(positions)
       return(ls)
+    },
+    PublicQuestStep = function(quest_idx, quest_types = NULL){
+      private$QuestStep(quest_idx, quest_types)
     }
     ),
     
@@ -203,10 +208,28 @@ UnityEyetrackerAnalysis <- R6Class("UnityEyetrackerAnalysis",
         }
         return(quest$data$TimeFromStart[quest$data$StepType == step_name & quest$data$Action == step_action])
       },
-      QuestStep = function(quest_idx){
-        quest_line = self$quest_set[quest_idx]
-        quest = self$trial_sets[[quest_line$id_of_set]]$quest_logs[quest_line$set_id]
-        return(quest)
+      QuestStep = function(quest_idx, quest_types = NULL){
+        ls = list()
+        #if the length is 0, we assume that the quest_idx is quest_session_idx
+        if (length(quest_types) == 0){
+          quest_lines = filter(self$quest_set, session_id %in% quest_idx)
+          #foreach
+          for(i in 1:nrow(quest_lines)){
+            quest_line = quest_lines[i]
+            quest = self$trial_sets[[quest_line$id_of_set]]$quest_logs[quest_line$set_id]
+            ls = c(ls,quest)
+          }
+        } 
+        if(length(quest_types) > 0){
+          quest_session_id  = filter(self$quest_set, id == quest_idx & type %in% quest_types) %>% select(session_id)
+          quest_lines = filter(self$quest_set, session_id %in% quest_session_id[[1]])
+          #foreach
+          for(i in 1:nrow(quest_lines)){
+            quest_line = quest_lines[i]
+            ls[[quest_types[i]]] = self$trial_sets[[quest_line$id_of_set]]$quest_logs[quest_line$set_id][[1]]
+          }
+        }
+        return(ls)
       },
       PlayerLog = function(quest_idx = 0){
         if (quest_idx == 0){
