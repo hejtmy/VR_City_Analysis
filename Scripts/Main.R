@@ -14,6 +14,8 @@ UnityAnal$MakePathImage(7)
 UnityAnal$QuestSummary(7)
 UnityAnal$QuestsSummary()
 
+UnityAnal$QuestSummary(quest_session_idx = 7)
+
 #choose participants
 participants = c("HCE_1_E_1","HCE_1_E_2","HCE_1_E_3","HCE_1_E_4","HCE_1_E_5")
 

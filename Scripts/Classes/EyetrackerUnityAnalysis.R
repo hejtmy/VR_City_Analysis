@@ -47,7 +47,7 @@ UnityEyetrackerAnalysis <- R6Class("UnityEyetrackerAnalysis",
         map_img_location = "Maps/megamap5.png"
       }
       if (quest_idx == 0){
-        path_table = private$PlayerLog()
+        path_table = private$PlayerLogForQuest()
         return(make_path_image(img_location = map_img_location, position_table = path_table))
       } else {
         time_window = private$get_quest_timewindow(quest_idx)
@@ -89,25 +89,37 @@ UnityEyetrackerAnalysis <- R6Class("UnityEyetrackerAnalysis",
     },
     #takes either quest_id or session id as a parameter
     QuestSummary = function(quest_idx = NULL, quest_session_idx = NULL){
+      ls = list()
       if (is.null(quest_idx)){
-        quest = private$QuestStep(quest_idx)
-      }
+        quest = private$QuestStep(quest_session_idx)[[1]]
+        quest_times = private$get_quest_timewindow(quest, include_teleport = F)
+        ls$Time =  diff(c(quest_times$start,quest_times$finish))
+        player_log = private$PlayerLogForQuest(quest)
+        #needs to find the first place after the teleport
+        positions = c(player_log[Time > quest_times$start, .SD[1,cumulative_distance]],tail(player_log,1)$cumulative_distance)
+        ls$Distance = diff(positions)
+      } 
       if (is.null(quest_session_idx)){
-        quest = private$QuestStep(quest_idx, quest_types = c("learn","trial"))[[1]]
+        quest_types = c("learn","trial")
+        quests = private$QuestStep(quest_idx, quest_types)
         #for each list member - checking if there are two
+        for(type in quest_types){
+          quest = quests[[type]]
+          print(quest)
+          quest_times = private$get_quest_timewindow(quest, include_teleport = F)
+          ls[[type]]$Time = diff(c(quest_times$start, quest_times$finish))
+          player_log = private$PlayerLogForQuest(quest)
+          #needs to find the first place after the teleport
+          positions = c(player_log[Time > quest_times$start, .SD[1,cumulative_distance]],tail(player_log,1)$cumulative_distance)
+          ls[[type]]$Distace = diff(positions)
+        }
       }
-      quest_times = private$get_quest_timewindow(quest_idx, include_teleport = F)
-      ls[["Time"]] =  diff(c(quest_times$start,quest_times$finish))
-      #distance
-      positions = c(private$PlayerLog(quest_idx)[Time > quest_times$start, .SD[1,cumulative_distance]],private$PlayerLog(quest_idx)[Time > quest_times$finish, .SD[1,cumulative_distance]])
-      ls[["Distance"]] = diff(positions)
       return(ls)
     },
     PublicQuestStep = function(quest_idx, quest_types = NULL){
       private$QuestStep(quest_idx, quest_types)
-    }
+      }
     ),
-    
     private = list(
       is_valid = function(){
         if (is.null(self$experiment_log)) return(FALSE)
@@ -148,18 +160,13 @@ UnityEyetrackerAnalysis <- R6Class("UnityEyetrackerAnalysis",
         position_table = self$trial_sets[[self$quest_set[quest_idx]$id_of_set]]$player_log
         return(position_table[Time>time_window$start & Time < time_window$finish])
       },
-      get_quest_timewindow = function(quest_idx, include_teleport = T){
-        if(missing(quest_idx)){
-          stop("Need to specify the quest index")
-        }
-        quest = private$QuestStep(quest_idx)[[1]]
-        if(is.null(quest)){
-          stop("Quest log not reachable")
-        }
-        if (include_teleport){
+      get_quest_timewindow = function(quest = NULL, quest_idx = NULL, include_teleport = T){
+        if(is.null(quest)) quest = private$QuestStep(quest_idx)[[1]]
+        if(is.null(quest)) stop("Quest log not reachable")
+        if(include_teleport){
           start_time = quest$data$TimeFromStart[quest$data$Action == "Quest started"]
-        } else{
-          start_time = private$get_teleport_times(quest_idx)$finish
+        }else{
+          start_time = private$get_teleport_times(quest)$finish
         }
         end_time = quest$data$TimeFromStart[quest$data$Action == "Quest finished"]
         ls = list()
@@ -167,11 +174,9 @@ UnityEyetrackerAnalysis <- R6Class("UnityEyetrackerAnalysis",
         ls[["finish"]] = end_time
         return(ls)
       },
-      get_teleport_times = function(quest_idx){
-        quest = private$QuestStep(quest_idx)[[1]]
-        if(is.null(quest)){
-          stop("Quest log not reachable")
-        }
+      get_teleport_times = function(quest = NULL, quest_idx=NULL){
+        if(is.null(quest)) quest = private$QuestStep(quest_idx)[[1]]
+        if(is.null(quest)) stop("Quest log not reachable")
         teleport_start_time = quest$data$TimeFromStart[quest$data$StepType == "Teleport Player" & quest$data$Action =="StepActivated"]
         teleport_finish_time = quest$data$TimeFromStart[quest$data$StepType == "Teleport Player" & quest$data$Action == "StepFinished"]
         ls = list()
@@ -184,7 +189,7 @@ UnityEyetrackerAnalysis <- R6Class("UnityEyetrackerAnalysis",
         if(is.null(quest)) stop("Quest log not reachable")
         #gets finished time of the teleport
         teleport_finished = private$get_teleport_times(quest_idx)$finish
-        teleport_target_postition = private$PlayerLog(quest_idx)[Time > teleport_finished, .SD[1,c(Position.x,Position.z)]]
+        teleport_target_postition = private$PlayerLogForQuest(quest)[Time > teleport_finished, .SD[1,c(Position.x,Position.z)]]
         #goes step by step from the end until it gets end with transform
         for(i in nrow(quest$steps):1){
           quest_finish_position = text_to_vector3(quest$steps$Transform[i])
@@ -200,12 +205,8 @@ UnityEyetrackerAnalysis <- R6Class("UnityEyetrackerAnalysis",
       },
       get_step_time = function(quest_idx, step_name, step_action = "StepActivated", step_id = 0){
         quest = private$QuestStep(quest_idx)[[1]]
-        if(is.null(quest)){
-          stop("Quest log not reachable")
-        }
-        if(step_id != 0){
-          return(quest$data$TimeFromStart[quest$data$StepID == quest_idx & quest$data$Action == step_action])
-        }
+        if(is.null(quest))stop("Quest log not reachable")
+        if(step_id != 0) return(quest$data$TimeFromStart[quest$data$StepID == quest_idx & quest$data$Action == step_action])
         return(quest$data$TimeFromStart[quest$data$StepType == step_name & quest$data$Action == step_action])
       },
       QuestStep = function(quest_idx, quest_types = NULL){
@@ -217,6 +218,7 @@ UnityEyetrackerAnalysis <- R6Class("UnityEyetrackerAnalysis",
           for(i in 1:nrow(quest_lines)){
             quest_line = quest_lines[i]
             quest = self$trial_sets[[quest_line$id_of_set]]$quest_logs[quest_line$set_id]
+            quest[[1]]$name = select(quest_line,name)[[1]]
             ls = c(ls,quest)
           }
         } 
@@ -227,20 +229,22 @@ UnityEyetrackerAnalysis <- R6Class("UnityEyetrackerAnalysis",
           for(i in 1:nrow(quest_lines)){
             quest_line = quest_lines[i]
             ls[[quest_types[i]]] = self$trial_sets[[quest_line$id_of_set]]$quest_logs[quest_line$set_id][[1]]
+            ls[[quest_types[i]]]$name = select(quest_line,name)[[1]]
           }
         }
         return(ls)
       },
-      PlayerLog = function(quest_idx = 0){
-        if (quest_idx == 0){
-          player_log = data.table()
-          for(i in 1:length(self$trial_sets)){
-            pos_tab =  self$trial_sets[[i]]$player_log
-            player_log = rbindlist(list(player_log,pos_tab))
-          }
-        } else {
-          player_log = self$trial_sets[[self$quest_set[quest_idx]$id_of_set]]$player_log
+      PlayerLog=function(){
+        player_log = data.table()
+        for(i in 1:length(self$trial_sets)){
+          pos_tab =  self$trial_sets[[i]]$player_log
+          player_log = rbindlist(list(player_log,pos_tab))
         }
+      },
+      PlayerLogForQuest = function(quest){
+        quest_line = filter(self$quest_set, name == quest$name)
+        quest_times = private$get_quest_timewindow(quest, include_teleport = T)
+        player_log = self$trial_sets[[quest_line$id_of_set]]$player_log[Time > quest_times$start & Time <quest_times$finish,]
         return(player_log)
       },
       MapSize = function(quest_idx = 0){
@@ -256,8 +260,7 @@ UnityEyetrackerAnalysis <- R6Class("UnityEyetrackerAnalysis",
     )
 )
 
-
-### Reading thye data in 
+### Reading the data in 
 OpenExperimentLogs = function(directory = ""){
   ls = list()
   #needs to check if we got only one file out
