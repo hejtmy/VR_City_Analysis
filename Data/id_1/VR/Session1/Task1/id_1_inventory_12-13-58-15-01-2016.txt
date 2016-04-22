@@ -1,5 +1,0 @@
-*****
-Patient: *id_1*
-Time: *12-13-58-15-01-2016*
------
-Time;What;Item;
