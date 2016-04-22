@@ -14,16 +14,14 @@ UnityEyetrackerAnalysis <- R6Class("UnityEyetrackerAnalysis",
     public = list(
         #basic definitions
         session = NULL,
-        task= NULL,
         session_dir = NULL,
         
         trial_sets = NULL,
         quest_set = NULL,
-    initialize = function(dir=data_path, id="", session=NULL, task=NULL){
+    initialize = function(dir=data_path, id="", session=NULL){
        self$dir = dir
        self$SetParticipant(id)
        self$SetSession(session)
-       self$SetTask(task)
        
        #TODO - check the data
        if(nargs() >= 4) {
@@ -34,9 +32,6 @@ UnityEyetrackerAnalysis <- R6Class("UnityEyetrackerAnalysis",
     #define what is valid in the current context
     SetSession = function(number=1){
      self$session = paste("Session",number,sep="")
-    },
-    SetTask = function(number=1){
-     self$task = paste("Task",number,sep="")
     },
     ReadData = function(override = F, save = T){
       private$read_data_private(override, save)
@@ -72,6 +67,18 @@ UnityEyetrackerAnalysis <- R6Class("UnityEyetrackerAnalysis",
         }
       }
     },
+    DrawQuestParth = function(quest_id, types = c("learn","trial")){
+      
+      special_paths = list()
+      for(type in types){
+        #get the session quest_idx
+        
+        special_paths[[type]]= private$get_teleport_times(quest_idx)
+        quest_start_and_stop = private$get_start_and_finish_positions(quest_idx)
+      }
+      
+      
+    }
     QuestsSummary = function(){
       df = self$quest_set
       trail_times = numeric(nrow(df))
@@ -105,7 +112,7 @@ UnityEyetrackerAnalysis <- R6Class("UnityEyetrackerAnalysis",
         self$session_dir <- paste(self$dir,self$id,"VR",self$session,sep="/")
       },
       read_data_private = function(override, save){
-        #session/task folder
+        #session folder
         private$set_session_directory()
         
         #open experiment_logs to see how many do we have
@@ -205,7 +212,7 @@ UnityEyetrackerAnalysis <- R6Class("UnityEyetrackerAnalysis",
         if (quest_idx == 0){
           player_log = data.table()
           for(i in 1:length(self$trial_sets)){
-            pos_tab =  self$trial_sets[[self$quest_set[quest_idx]$id_of_set]]$player_log
+            pos_tab =  self$trial_sets[[i]]$player_log
             player_log = rbindlist(list(player_log,pos_tab))
           }
         } else {
@@ -213,8 +220,9 @@ UnityEyetrackerAnalysis <- R6Class("UnityEyetrackerAnalysis",
         }
         return(player_log)
       },
-      MapSize = function(quest_idx){
+      MapSize = function(quest_idx = 0){
         ls = list()
+        if (quest_idx == 0) quest_idx = 1
         terrain_info = self$trial_sets[[self$quest_set[quest_idx]$id_of_set]]$experiment_log$terrain
         size = text_to_vector3(terrain_info$Size)
         pivot = text_to_vector3(terrain_info$Pivot)
@@ -358,7 +366,6 @@ OpenQuestLogs = function(experiment_log,scenario_log = NULL){
     if (nrow(table_steps_activated)>nrow(table_steps_finished)) use_finished = F else use_finished = T
     for_interations = if (use_finished) nrow(table_steps_finished) else nrow(table_steps_activated) 
     for(i in 1:for_interations){
-      ##MIGHT HAVE TO CHANGE IT A BIT BECAUSE OF TASK GROUPS
       if (use_finished){
         step = table_steps_finished[i,]
         timestamp = ""
