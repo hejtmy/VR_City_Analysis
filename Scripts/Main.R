@@ -1,7 +1,3 @@
-#setwd("C:/Users/hejtmy/Documents/NUDZ/AnalysisR")
-#NUDZ settings
-#setwd("D:/VR/VRcity/VR_City_Analysis")
-
 source("Scripts/Classes/EyetrackerUnityAnalysis.R")
 source("Scripts/Classes/MultiParticipantUnityAnalysis.R")
 source("Scripts/Classes/VUZIX_analysis.R")
@@ -28,11 +24,3 @@ t.test(tab$time~tab$type)
 #anova model
 summary(aov(time~id, ab))
 summary(aov(time~type*participant_id, ab))
-
-#eytracker stuff
-result <- parse.asc.file(filepath)
-data = result$data
-data <- data[X < 1920 & X > 0]
-data <- data[Y < 1280 & Y > 0]
-gg = ggplot(data[5000:50000],aes(X,Y))
-gg + geom_path()
