@@ -1,5 +1,6 @@
 library('R6')
 library('data.table')
+library('dplyr')
 source(paste(getwd(),"Scripts/Classes/UnityTrialSet.R",sep="/"))
 source(paste(getwd(),"Scripts/Classes/BaseUnityAnalysis.R",sep="/"))
 source(paste(getwd(),"Scripts/HelperFunctions/helper_functions.R",sep="/"))
@@ -13,16 +14,14 @@ UnityEyetrackerAnalysis <- R6Class("UnityEyetrackerAnalysis",
     public = list(
         #basic definitions
         session = NULL,
-        task= NULL,
         session_dir = NULL,
         
         trial_sets = NULL,
         quest_set = NULL,
-    initialize = function(dir=data_path, id="", session=NULL, task=NULL){
+    initialize = function(dir=data_path, id="", session=NULL){
        self$dir = dir
        self$SetParticipant(id)
        self$SetSession(session)
-       self$SetTask(task)
        
        #TODO - check the data
        if(nargs() >= 4) {
@@ -33,9 +32,6 @@ UnityEyetrackerAnalysis <- R6Class("UnityEyetrackerAnalysis",
     #define what is valid in the current context
     SetSession = function(number=1){
      self$session = paste("Session",number,sep="")
-    },
-    SetTask = function(number=1){
-     self$task = paste("Task",number,sep="")
     },
     ReadData = function(override = F, save = T){
       private$read_data_private(override, save)
@@ -71,10 +67,21 @@ UnityEyetrackerAnalysis <- R6Class("UnityEyetrackerAnalysis",
         }
       }
     },
+    QuestsSummary = function(){
+      df = self$quest_set
+      trail_times = numeric(nrow(df))
+      trail_distances = numeric(nrow(df))
+      for(i in 1:nrow(df)){
+        quest_summary = self$QuestSummary(i)
+        trail_times[i] = quest_summary$Time
+        trail_distances[i] = quest_summary$Distance
+      }
+      df = mutate(df, time = trail_times, distance = trail_distances)
+      return(df)
+    },
     QuestSummary = function(quest_idx = 0){
       ls = list()
       quest = private$QuestStep(quest_idx)[[1]]
-      
       quest_times = private$get_quest_timewindow(quest_idx, include_teleport = F)
       ls[["Time"]] =  diff(c(quest_times$start,quest_times$finish))
       #distance
@@ -93,7 +100,7 @@ UnityEyetrackerAnalysis <- R6Class("UnityEyetrackerAnalysis",
         self$session_dir <- paste(self$dir,self$id,"VR",self$session,sep="/")
       },
       read_data_private = function(override, save){
-        #session/task folder
+        #session folder
         private$set_session_directory()
         
         #open experiment_logs to see how many do we have
@@ -346,7 +353,6 @@ OpenQuestLogs = function(experiment_log,scenario_log = NULL){
     if (nrow(table_steps_activated)>nrow(table_steps_finished)) use_finished = F else use_finished = T
     for_interations = if (use_finished) nrow(table_steps_finished) else nrow(table_steps_activated) 
     for(i in 1:for_interations){
-      ##MIGHT HAVE TO CHANGE IT A BIT BECAUSE OF TASK GROUPS
       if (use_finished){
         step = table_steps_finished[i,]
         timestamp = ""
