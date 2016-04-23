@@ -95,7 +95,6 @@ BaseUnityAnalysis <- R6Class("BaseUnityAnalysis",
         quest_path_table = private$selectQuestPositionData(quest,time_window)
         path_table = rbindlist(list(path_table,quest_path_table))
       }
-      
       make_path_image(img_location = img_path, position_table = path_table, map_size = map_size,special_paths = special_paths, special_points = quest_start_and_stop)
     }
   ),

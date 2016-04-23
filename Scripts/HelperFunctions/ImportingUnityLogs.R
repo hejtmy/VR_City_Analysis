@@ -1,4 +1,3 @@
-
 ### Reading the data in 
 OpenExperimentLogs = function(directory = ""){
   ls = list()
@@ -113,7 +112,7 @@ OpenScenarioLog = function(experiment_log){
   log = list.files(directory, pattern = ptr, full.names = T)[1]
   #if the file does not exists returning NULL and exiting
   if(!file.exists(log)){
-    print(paste("Could not find the file for given quest log", ptr, sep = " "))
+    print(paste("Could not find the file for scenario log", ptr, sep = " "))
     print(ptr)
     return(NULL)
   }
@@ -147,7 +146,8 @@ OpenQuestLogs = function(experiment_log,scenario_log = NULL){
         #get the name of the quest activated from the name of the atctivation step
         quest_name <- GetActivatedQuestName(activated_step_name)
       }
-      if (!is.null(quest_name)){
+      if(is.na(quest_name)) next
+      if (!is.null(quest_name) ){
         ptr <- paste("_", escapeRegex(quest_name), "_", timestamp, sep="")
         #needs to check if we got only one file out
         log = list.files(directory, pattern = ptr, full.names = T)[1]
