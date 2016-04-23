@@ -1,6 +1,3 @@
-require(stringr)
-require(plyr)
-
 #the header files ar writen in this format
 ## PROPERTY NAME: *VALUE*
 ## PROPERTY NAME 2: *VALUE 2*
@@ -37,7 +34,6 @@ vector3_to_columns <- function(tab, column_name){
      }
      return(tab)
 }
-
 text_to_vector3 = function(text){
   splitted = strsplit(substring(text,2,nchar(text)-1),",")
   if(length(splitted[[1]])>2) return(sapply(splitted[[1]], as.numeric, warning = F, USE.NAMES = F))
@@ -48,7 +44,6 @@ escapeRegex <- function(string){
      
      return(gsub("([.|()\\^{}+$*?]|\\[|\\])", "\\\\\\1", string))
 }
-
 #calculates the distance walked between each two points of the position table and returns the table
 AddDistanceWalked = function(position_table){
   distances = numeric(0)
