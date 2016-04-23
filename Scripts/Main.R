@@ -11,6 +11,8 @@ UnityAnal$MakePathImage(7)
 UnityAnal$QuestSummary(7)
 UnityAnal$QuestsSummary()
 
+UnityAnal$DrawQuestParth(2)
+
 UnityAnal$QuestSummary(quest_session_idx = 7)
 
 #choose participants

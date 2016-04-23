@@ -31,20 +31,14 @@ UnityEyetrackerAnalysis <- R6Class("UnityEyetrackerAnalysis",
     },
     
     # Makes a graph with a path from start to finish
-    MakePathImage = function(quest_session_idx = NULL, path = "Maps/megamap5.png"){
-      quest = private$QuestStep(quest_session_idx)
-      map_img_location = ""
-      if (!missing(path)){
-        map_img_location = path
-      } else {
-        #map_img_location = self$experiment_log$terrain$Map_image_path
-        map_img_location = "Maps/megamap5.png"
-      }
+    MakePathImage = function(quest_session_idx = NULL, img_path = "Maps/megamap5.png"){
+      #Hmakes the path for the entire thing
       if (is.null(quest_session_idx)){
         path_table = private$PlayerLog()
         map_size = private$MapSize()
-        return(make_path_image(img_location = map_img_location, position_table = path_table, map_size = map_size))
+        return(make_path_image(img_location = img_path, position_table = path_table, map_size = map_size))
       } else {
+        quest = private$QuestStep(quest_session_idx)
         time_window = private$get_quest_timewindow(quest)
         if(!is.null(time_window)){
           path_table = private$select_position_data(quest,time_window)
@@ -54,19 +48,35 @@ UnityEyetrackerAnalysis <- R6Class("UnityEyetrackerAnalysis",
         quest_start_and_stop = private$get_start_and_finish_positions(quest)
         map_size = private$MapSize(quest)
         if (!is.null(special_paths)){
-          make_path_image(img_location = map_img_location, position_table = path_table, map_size = map_size, special_paths = special_paths, special_points = quest_start_and_stop)
+          make_path_image(img_location = img_path, position_table = path_table, map_size = map_size, special_paths = special_paths, special_points = quest_start_and_stop)
         } else {
-          make_path_image(img_location = map_img_location, position_table = path_table, map_size = map_size)
+          make_path_image(img_location = img_path, position_table = path_table, map_size = map_size)
         }
       }
     },
-    DrawQuestParth = function(quest_id, types = c("learn","trial")){
+    DrawQuestParth = function(quest_id, types = c("learn","trial"), img_path = "Maps/megamap5.png"){
       special_paths = list()
-      for(type in types){
+      quest_start_and_Stop = NULL
+      path_table = data.table()
+      
+      for(i in 1:length(types)){
+        type = types[i]
         #get the session quest_idx
-        special_paths[[type]]= private$get_teleport_times(quest_idx)
-        quest_start_and_stop = private$get_start_and_finish_positions(quest_idx)
+        quest_session_id = private$getQuestSessionId(quest_id, type)
+        quest = private$QuestStep(quest_session_id)
+        
+        if (i == 1){
+          quest_start_and_stop = private$get_start_and_finish_positions(quest)
+          map_size = private$MapSize(quest)
+        }
+        time_window = private$get_quest_timewindow(quest, include_teleport = F)
+        special_paths[[type]] = time_window
+        #adds path_table to the 
+        quest_path_table = private$select_position_data(quest,time_window)
+        path_table = rbindlist(list(path_table,quest_path_table))
       }
+      
+      make_path_image(img_location = img_path, position_table = path_table, map_size = map_size,special_paths = special_paths, special_points = quest_start_and_stop)
     },
     QuestsSummary = function(){
       df = self$quest_set
@@ -145,6 +155,11 @@ UnityEyetrackerAnalysis <- R6Class("UnityEyetrackerAnalysis",
         }
         self$quest_set = MakeQuestTable(self$trial_sets)
         private$is_valid()
+      },
+      getQuestSessionId = function(quest_id, quest_type){
+        quest_session_id = (filter(self$quest_set,id == quest_id & type == quest_type) %>% select(session_id))[[1]]
+        if (length(quest_session_id) > 1) stop("There are more quests with this id. Do you have correct logs in the directory?")
+        return(quest_session_id)
       },
       select_position_data = function(quest,time_window){
         if(missing(time_window)) stop("Need to specify time window")
