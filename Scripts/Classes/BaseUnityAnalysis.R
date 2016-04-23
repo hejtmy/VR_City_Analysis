@@ -49,6 +49,54 @@ BaseUnityAnalysis <- R6Class("BaseUnityAnalysis",
     },
     PublicQuestStep = function(quest_idx, quest_types = NULL){
       private$questStep(quest_idx, quest_types)
+    },
+    # Makes a graph with a path from start to finish
+    MakePathImage = function(quest_session_idx = NULL, img_path = "Maps/megamap5.png"){
+      #Hmakes the path for the entire thing
+      if (is.null(quest_session_idx)){
+        path_table = private$wholePlayerLog()
+        map_size = private$mapSize()
+        return(make_path_image(img_location = img_path, position_table = path_table, map_size = map_size))
+      } else {
+        quest = private$questStep(quest_session_idx)
+        time_window = private$getQuestTimewindow(quest)
+        if(!is.null(time_window)){
+          path_table = private$selectQuestPositionData(quest,time_window)
+        }
+        special_paths = list()
+        special_paths[["teleport"]]= private$getTeleportTimes(quest)
+        quest_start_and_stop = private$getQuestStartAndFinishPositions(quest)
+        map_size = private$mapSize(quest)
+        if (!is.null(special_paths)){
+          make_path_image(img_location = img_path, position_table = path_table, map_size = map_size, special_paths = special_paths, special_points = quest_start_and_stop)
+        } else {
+          make_path_image(img_location = img_path, position_table = path_table, map_size = map_size)
+        }
+      }
+    },
+    DrawQuestParth = function(quest_id, types = c("learn","trial"), img_path = "Maps/megamap5.png"){
+      special_paths = list()
+      quest_start_and_Stop = NULL
+      path_table = data.table()
+      
+      for(i in 1:length(types)){
+        type = types[i]
+        #get the session quest_idx
+        quest_session_id = private$getQuestSessionId(quest_id, type)
+        quest = private$questStep(quest_session_id)
+        
+        if (i == 1){
+          quest_start_and_stop = private$getQuestStartAndFinishPositions(quest)
+          map_size = private$mapSize(quest)
+        }
+        time_window = private$getQuestTimewindow(quest, include_teleport = F)
+        special_paths[[type]] = time_window
+        #adds path_table to the 
+        quest_path_table = private$selectQuestPositionData(quest,time_window)
+        path_table = rbindlist(list(path_table,quest_path_table))
+      }
+      
+      make_path_image(img_location = img_path, position_table = path_table, map_size = map_size,special_paths = special_paths, special_points = quest_start_and_stop)
     }
   ),
   private = list(
@@ -109,11 +157,9 @@ BaseUnityAnalysis <- R6Class("BaseUnityAnalysis",
     getTeleportTimes = function(quest = NULL, quest_idx=NULL){
       if(is.null(quest)) quest = private$questStep(quest_idx)
       if(is.null(quest)) stop("Quest log not reachable")
-      teleport_start_time = quest$data$TimeFromStart[quest$data$StepType == "Teleport Player" & quest$data$Action =="StepActivated"]
-      teleport_finish_time = quest$data$TimeFromStart[quest$data$StepType == "Teleport Player" & quest$data$Action == "StepFinished"]
       ls = list()
-      ls[["start"]] = teleport_start_time
-      ls[["finish"]] = teleport_finish_time
+      ls[["start"]] = private$getStepTime(quest, "Teleport Player")
+      ls[["finish"]] = private$getStepTime(quest, "Teleport Player", "StepFinished")
       return(ls)
     },
     getQuestStartAndFinishPositions = function(quest, include_teleport = T){
@@ -134,7 +180,7 @@ BaseUnityAnalysis <- R6Class("BaseUnityAnalysis",
       ls[["finish"]] = quest_finish_position
       return(ls)
     },
-    PlayerLog=function(){
+    wholePlayerLog = function(){
       player_log = data.table()
       for(i in 1:length(self$trial_sets)){
         pos_tab =  self$trial_sets[[i]]$player_log
@@ -148,13 +194,14 @@ BaseUnityAnalysis <- R6Class("BaseUnityAnalysis",
       player_log = self$trial_sets[[quest_line$id_of_set]]$player_log[Time > quest_times$start & Time <quest_times$finish,]
       return(player_log)
     },
-    getStepTime = function(quest_idx, step_name, step_action = "StepActivated", step_id = 0){
-      quest = private$questStep(quest_idx)
+    getStepTime = function(quest, step_name, step_action = "StepActivated", step_id = NULL){
       if(is.null(quest))stop("Quest log not reachable")
-      if(step_id != 0) return(quest$data$TimeFromStart[quest$data$StepID == quest_idx & quest$data$Action == step_action])
-      return(quest$data$TimeFromStart[quest$data$StepType == step_name & quest$data$Action == step_action])
+      if(!is.null(step_id)) return(quest$data$TimeFromStart[quest$data$StepID == step_id & quest$data$Action == step_action])
+      steps = quest$data$TimeFromStart[quest$data$StepType == step_name & quest$data$Action == step_action]
+      if(length(steps) > 1) stop ("There is more steps of the same parameters. Specify please")
+      return(steps)
     },
-    MapSize = function(quest = NULL){
+    mapSize = function(quest = NULL){
       ls = list()
       if (is.null(quest)) quest = private$questStep(1)
       quest_line = filter(self$quest_set, name == quest$name)

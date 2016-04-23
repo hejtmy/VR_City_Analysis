@@ -4,7 +4,7 @@ OpenExperimentLogs = function(directory = ""){
   ls = list()
   #needs to check if we got only one file out
   logs = list.files(directory, pattern = "_experiment_",full.names = T)
-  if(!file.exists(logs)){
+  if(length(logs) < 1){
     print("Could not find the file for experiment log")
     return(NULL)
   }
@@ -41,30 +41,31 @@ OpenPlayerLog = function(experiment_log, override = F){
   directory = dirname(experiment_log$filename)
   ptr = paste("_player_", experiment_log$header$Time, sep="", collapse="")
   logs = list.files(directory, pattern = ptr, full.names = T)
+  log_columns_types = c(Time="character",Position="numeric",Rotation.X="numeric",Rotation.Y="numeric", Focus = "character", FPS = "numeric", Input="character")
+  preprocessed_log_column_types = c(log_columns_types, Position.x="numeric", Position.y="numeric", Position.z="numeric",distance="numeric",cumulative_distance="numeric")
+  if(length(logs)<1){
+    print("Could not find the file for player log")
+    return(NULL)
+  }
   if (length(logs)>1){
     #check if there is a preprocessed player file
     preprocessed_index = grep("*_preprocessed",logs)
-    if(length(preprocessed_index)>0){
+    if(length(preprocessed_index) >0){
       if(override){
         log = logs[1]
         file.remove(logs[preprocessed_index])
       } else {
         log = logs[preprocessed_index]
-        return(fread(log, header=T, sep=";",dec=".", stringsAsFactors = F))
+        return(fread(log, header=T, sep=";",dec=".", stringsAsFactors = F, colClasses = preprocessed_log_column_types))
       }
-    }else{
+    } else{
       print("There is more player logs with appropriate timestamp in the same folder. Have you named and stored everything appropriately?")
       return(NULL)
     }
   } else {
     log = logs[1]
   }
-  
-  if(!file.exists(log)){
-    print("Could not find the file for player log")
-    return(NULL)
-  }
-  
+
   #reads into a text file at first
   text = readLines(log,warn=F)
   
@@ -76,7 +77,7 @@ OpenPlayerLog = function(experiment_log, override = F){
   #todo
   
   #reads the data without the header file
-  pos_tab <- fread(log, header=T, sep=";", dec=".", skip=idxBottom, stringsAsFactors=F)
+  pos_tab <- fread(log, header=T, sep=";", dec=".", skip=idxBottom, stringsAsFactors=F, colClasses = log_columns_types)
   #deletes the last column - it's there for the easier logging from unity 
   # - its here because of how preprocessing works
   pos_tab[,ncol(pos_tab):=NULL]
