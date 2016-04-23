@@ -40,7 +40,7 @@ OpenPlayerLog = function(experiment_log, override = F){
   directory = dirname(experiment_log$filename)
   ptr = paste("_player_", experiment_log$header$Time, sep="", collapse="")
   logs = list.files(directory, pattern = ptr, full.names = T)
-  log_columns_types = c(Time="character",Position="numeric",Rotation.X="numeric",Rotation.Y="numeric", Focus = "character", FPS = "numeric", Input="character")
+  log_columns_types = c(Time="numeric",Position="numeric",Rotation.X="numeric",Rotation.Y="numeric", Focus = "character", FPS = "numeric", Input="character")
   preprocessed_log_column_types = c(log_columns_types, Position.x="numeric", Position.y="numeric", Position.z="numeric",distance="numeric",cumulative_distance="numeric")
   if(length(logs)<1){
     print("Could not find the file for player log")

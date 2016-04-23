@@ -14,7 +14,7 @@ BaseUnityAnalysis <- R6Class("BaseUnityAnalysis",
       for(i in 1:nrow(df)){
         quest_summary = self$QuestSummary(quest_session_idx = i)
         trail_times[i] = quest_summary$Time
-        trail_distances[i] = quest_summary$Distance
+        trail_distances[i] = ifelse(length(quest_summary$Distance)<1,NA,quest_summary$Distance)
       }
       df = mutate(df, time = trail_times, distance = trail_distances)
       return(df)
