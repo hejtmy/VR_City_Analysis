@@ -1,4 +1,3 @@
-library('R6')
 BaseAnalysis <- R6Class("BaseAnalysis",
    #define variables
    public = list(

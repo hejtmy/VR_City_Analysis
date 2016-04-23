@@ -1,4 +1,3 @@
-library('R6')
 MultiParticipantUnityAnalysis <- R6Class("MultiParticipantUnityAnalysis",
                                          
  #define variables
