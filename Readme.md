@@ -10,15 +10,13 @@ Open .Rproject
 
 ```r
 #loading dependencies
-source("Scripts/Classes/EyetrackerUnityAnalysis.R")
-source("Scripts/Classes/MultiParticipantUnityAnalysis.R")
+source("Scripts/LoadingScript.R")
 
 #sets the working dirrectory where the logs are
 data_dir <- "../Data"
 
 #loads either one patient
 Analysis = UnityEyetrackerAnalysis$new(data_dir,id="HCE_1_E_3",session=1)
-Analysis$ReadData()
 
 #or multiple
 #choose participants
@@ -43,8 +41,8 @@ Basic analysis
 ```°r
 t.test(tab$time~tab$type)
 #anova model
-summary(aov(time~id, ab))
-summary(aov(time~type*participant_id, ab))
+summary(aov(time~id, tab))
+summary(aov(time~type*participant_id, tab))
 ```
 
 ##Classes
