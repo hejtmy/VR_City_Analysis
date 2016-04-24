@@ -28,8 +28,9 @@ BaseUnityAnalysis <- R6Class("BaseUnityAnalysis",
         ls$Time =  diff(c(quest_times$start,quest_times$finish))
         player_log = private$playerLogForQuest(quest)
         #needs to find the first place after the teleport
-        positions = c(player_log[Time > quest_times$start, .SD[1,cumulative_distance]],tail(player_log,1)$cumulative_distance)
+        positions = c(head(player_log,1)$cumulative_distance, tail(player_log,1)$cumulative_distance)
         ls$Distance = diff(positions)
+        ls$Finished = private$questFinished(quest)
       } 
       if (is.null(quest_session_idx)){
         quest_types = c("learn","trial")
@@ -43,6 +44,7 @@ BaseUnityAnalysis <- R6Class("BaseUnityAnalysis",
           #needs to find the first place after the teleport
           positions = c(player_log[Time > quest_times$start, .SD[1,cumulative_distance]],tail(player_log,1)$cumulative_distance)
           ls[[type]]$Distace = diff(positions)
+          ls[[type]]$Finished = private$questFinished(quest)
         }
       }
       return(ls)
@@ -141,10 +143,15 @@ BaseUnityAnalysis <- R6Class("BaseUnityAnalysis",
         start_time = private$getTeleportTimes(quest)$finish
       }
       end_time = quest$data$TimeFromStart[quest$data$Action == "Quest finished"]
+      #if there never was end of the quest
+      if (length(end_time) < 1)end_time = tail(quest$data,1)$TimeFromStart
       ls = list()
       ls[["start"]] = start_time
       ls[["finish"]] = end_time
       return(ls)
+    },
+    questFinished = function(quest){
+      return(nrow(quest$data[quest$data$Action == "Quest finished",]) > 0)
     },
     selectQuestPositionData = function(quest,time_window){
       if(missing(time_window)) stop("Need to specify time window")
@@ -189,8 +196,9 @@ BaseUnityAnalysis <- R6Class("BaseUnityAnalysis",
     },
     playerLogForQuest = function(quest){
       quest_line = filter(self$quest_set, name == quest$name)
+      if(nrow(quest_line) >1) stop("Multiple quests have the same name")
       quest_times = private$getQuestTimewindow(quest, include_teleport = T)
-      player_log = self$trial_sets[[quest_line$id_of_set]]$player_log[Time > quest_times$start & Time <quest_times$finish,]
+      player_log = self$trial_sets[[quest_line$id_of_set]]$player_log[Time > quest_times$start & Time < quest_times$finish,]
       return(player_log)
     },
     getStepTime = function(quest, step_name, step_action = "StepActivated", step_id = NULL){

@@ -7,8 +7,8 @@ MultiParticipantUnityAnalysis <- R6Class("MultiParticipantUnityAnalysis",
       Analyses = list()
       for(i in 1:length(participants)){
         participant_code = participants[i]
+        SmartPrint(c("Loading",participant_code))
         analysis = UnityEyetrackerAnalysis$new(dir,participant_code,session)
-        analysis$ReadData()
         self$Analyses[[participant_code]] = analysis
       }
    },
@@ -16,6 +16,7 @@ MultiParticipantUnityAnalysis <- R6Class("MultiParticipantUnityAnalysis",
      if (!force & !is.null(private$quest_summary_tab)) return (private$quest_summary_tab)
      final = data.frame()
      for(i in 1:length(self$Analyses)){
+       print(i)
        ana = self$Analyses[[i]]
        df = ana$QuestsSummary()
        df = mutate(df, participant_id = rep(ana$id,nrow(df)))

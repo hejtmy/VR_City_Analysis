@@ -45,9 +45,7 @@ UnityEyetrackerAnalysis <- R6Class("UnityEyetrackerAnalysis",
           #preprocesses player log
           #checks if there is everything we need and if not, recomputes the stuff
           changed = PreprocessPlayerLog(player_log)
-          if (changed & save) {
-            SavePreprocessedPlayer(experiment_log, player_log)
-          }
+          if (changed & save) SavePreprocessedPlayer(experiment_log, player_log)
           scenario_log = OpenScenarioLog(experiment_log)
           quests_logs = OpenQuestLogs(experiment_log, scenario_log)
           

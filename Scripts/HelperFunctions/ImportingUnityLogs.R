@@ -38,12 +38,12 @@ OpenExperimentLog = function(filepath){
 }
 OpenPlayerLog = function(experiment_log, override = F){
   directory = dirname(experiment_log$filename)
-  ptr = paste("_player_", experiment_log$header$Time, sep="", collapse="")
+  ptr = paste(experiment_log$header$Patient, "_player_", experiment_log$header$Time, sep="", collapse="")
   logs = list.files(directory, pattern = ptr, full.names = T)
   log_columns_types = c(Time="numeric",Position="numeric",Rotation.X="numeric",Rotation.Y="numeric", Focus = "character", FPS = "numeric", Input="character")
   preprocessed_log_column_types = c(log_columns_types, Position.x="numeric", Position.y="numeric", Position.z="numeric",distance="numeric",cumulative_distance="numeric")
   if(length(logs)<1){
-    print("Could not find the file for player log")
+    SmartPrint(c("Could not find the file for player log", ptr))
     return(NULL)
   }
   if (length(logs)>1){
@@ -51,9 +51,11 @@ OpenPlayerLog = function(experiment_log, override = F){
     preprocessed_index = grep("*_preprocessed",logs)
     if(length(preprocessed_index) >0){
       if(override){
+        SmartPrint(c("Removing preprocessed log", ptr))
         log = logs[1]
         file.remove(logs[preprocessed_index])
       } else {
+        SmartPrint(c("Loading preprocessed player log", ptr))
         log = logs[preprocessed_index]
         return(fread(log, header=T, sep=";",dec=".", stringsAsFactors = F, colClasses = preprocessed_log_column_types))
       }
@@ -64,7 +66,8 @@ OpenPlayerLog = function(experiment_log, override = F){
   } else {
     log = logs[1]
   }
-
+  SmartPrint(c("Loading unprocessed player log", ptr))
+  
   #reads into a text file at first
   text = readLines(log,warn=F)
   
@@ -84,6 +87,7 @@ OpenPlayerLog = function(experiment_log, override = F){
   return(pos_tab)
 }
 PreprocessPlayerLog = function(pos_tab){
+  
   #check_stuff
   #check columns
   changed = F
@@ -94,7 +98,8 @@ PreprocessPlayerLog = function(pos_tab){
   if (!ColumnPresent(colnames(pos_tab),"cumulative_distance")){
     pos_tab = AddDistanceWalked (pos_tab)
     changed = T
-  }
+  } 
+  if (changed) print("Log modified") else print("Log ok")
   return(changed)
 }
 SavePreprocessedPlayer = function(experiment_log, pos_tab){
@@ -103,6 +108,7 @@ SavePreprocessedPlayer = function(experiment_log, pos_tab){
   log = list.files(directory, pattern = ptr ,full.names = T)[1]
   #writes preprocessed file
   preprocessed_filename = gsub(".txt","_preprocessed.txt",log)
+  SmartPrint(c("Saving processed player log as", preprocessed_filename))
   write.table(pos_tab, preprocessed_filename, sep=";", dec=".", quote=F, row.names = F)
 }
 OpenScenarioLog = function(experiment_log){
@@ -119,7 +125,7 @@ OpenScenarioLog = function(experiment_log){
   scenario_log = OpenQuestLog(log)
   return(scenario_log)
 }
-OpenQuestLogs = function(experiment_log,scenario_log = NULL){
+OpenQuestLogs = function(experiment_log, scenario_log = NULL){
   if(!is.null(scenario_log)){
     directory = dirname(experiment_log$filename)
     #prepares list
@@ -128,7 +134,7 @@ OpenQuestLogs = function(experiment_log,scenario_log = NULL){
     #it looks for steps finished because for some weird reason of bad logging
     table_steps_activated <- scenario_log$data[scenario_log$data$Action=="StepActivated",]
     table_steps_finished <- scenario_log$data[scenario_log$data$Action=="StepFinished",]
-    if (nrow(table_steps_activated)>nrow(table_steps_finished)) use_finished = F else use_finished = T
+    if (nrow(table_steps_activated) >= nrow(table_steps_finished)) use_finished = F else use_finished = T
     for_interations = if (use_finished) nrow(table_steps_finished) else nrow(table_steps_activated) 
     for(i in 1:for_interations){
       if (use_finished){
@@ -177,10 +183,12 @@ OpenQuestLog = function(filepath){
   idxStepTop <- which(grepl('\\*\\*\\*Quest step data\\*\\*\\*',text))
   idxStepBottom <- which(grepl('\\-\\-\\-Quest step data\\-\\-\\-',text))
   #puts everyting from the quest header to the steps list
-  ls[["steps"]]  <- read.table(textConnection(text[(idxStepTop+1):(idxStepBottom-1)]),header=T,sep=";",stringsAsFactors=F)
+  file = textConnection(text[(idxStepTop+1):(idxStepBottom-1)])
+  ls[["steps"]]  <- read.table(file,header=T,sep=";",stringsAsFactors=F)
+  close(file)
   #and the timestamps and other the the data list
-  ls[["data"]] <- read.table(textConnection(text), header=T, sep=";",dec=".", skip=idxStepBottom, stringsAsFactors=F)
-  return(ls)     
+  ls[["data"]] <- read.table(filepath, header=T, sep=";",dec=".", skip=idxStepBottom, stringsAsFactors=F)
+  return(ls)
 }
 #helper function to figure out the name of the activated quest as is saved in the steps
 #list in the scenario quest
