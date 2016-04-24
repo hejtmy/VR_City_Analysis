@@ -1,4 +1,3 @@
-require(stringr)
 source_folder = function(path){
   sapply(list.files(pattern="[.]R$", path=path, full.names=TRUE), source);
 }
@@ -15,4 +14,8 @@ EuclidDistanceColumns = function(x_values,y_values){
 
 ColumnPresent = function(names,name){
   return(name %in% names)
+}
+
+SmartPrint = function(characters){
+  print(paste(characters, sep="", collapse = " "))
 }

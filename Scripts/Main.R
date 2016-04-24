@@ -1,26 +1,33 @@
-source("Scripts/Classes/EyetrackerUnityAnalysis.R")
-source("Scripts/Classes/MultiParticipantUnityAnalysis.R")
-source("Scripts/Classes/VUZIX_analysis.R")
-source("Scripts/Eyetracker/importing.R")
+source("Scripts/LoadingScript.R")
 
 #sets the working dirrectory where the logs are
-data_dir <- "../Data"
+data_dir <- "../Data/"
+
+subject_table = read.table("../Data/ListOfSubjects.csv", sep = ";", header=T, stringsAsFactors = F, na.strings = c(""))
 
 #instantiates VR_analysis class with the name and project directory 
 #it loads appropriate log files and allows for immediate analysis
-UnityAnal = UnityEyetrackerAnalysis$new(data_dir,id="HCE_1_E_3",session=1)
-UnityAnal$ReadData()
-UnityAnal$MakePathImage(7)
-UnityAnal$QuestSummary(7)
-UnityAnal$QuestsSummary()
+Analysis = UnityEyetrackerAnalysis$new(data_dir,id="HCE_1_E_3",session=1)
+Analysis$MakePathImage(8)
+Analysis$QuestSummary(7)
+Analysis$QuestsSummary()
+Analysis$DrawQuestPath(2)
 
-#choose participants
-participants = c("HCE_1_E_1","HCE_1_E_2","HCE_1_E_3","HCE_1_E_4","HCE_1_E_5")
+#MRI analysis
+Analysis =  UnityMRIAnalysis$new(data_dir,id="HCE_1_E_2")
+Analysis$MakePathImage(8)
+Analysis$QuestSummary(2)
+Analysis$QuestsSummary()
+Analysis$DrawQuestPath(1)
 
-anal = MultiParticipantUnityAnalysis$new(data_dir,participants,1)
-tab = anal$QuestsSummary()
+#loads from the subjectList table
+Analyses = MultiParticipantUnityAnalysis$new(data_dir,subject_table,1)
+tab = Analyses$EyetrackerQuestsSummary()
+tabMRI = Analyses$MRIQuestSummary()
+
+GetNumberOfPulses(Analyses)
 
 t.test(tab$time~tab$type)
 #anova model
-summary(aov(time~id, ab))
-summary(aov(time~type*participant_id, ab))
+summary(aov(time~id, tab))
+summary(aov(time~type*participant_id, tab))
