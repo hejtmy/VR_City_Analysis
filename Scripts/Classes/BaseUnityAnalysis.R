@@ -133,7 +133,8 @@ BaseUnityAnalysis <- R6Class("BaseUnityAnalysis",
         if(nrow(quest_lines) == 0) return(NULL);
         #foreach
         for(i in 1:nrow(quest_lines)){
-          quest_line = quest_lines[i]
+          quest_line = filter(quest_lines,session_id = i)
+          if(is.null(quest_line)) stop(quest_line)
           quest = self$trial_sets[[quest_line$id_of_set]]$quest_logs[quest_line$set_id]
           quest[[1]]$name = select(quest_line,name)[[1]]
           ls = c(ls,quest)
@@ -142,8 +143,7 @@ BaseUnityAnalysis <- R6Class("BaseUnityAnalysis",
         ls = ls[[1]]
       } 
       if(length(quest_types) > 0){
-        quest_session_id  = filter(self$quest_set, id == quest_idx & type %in% quest_types) %>% select(session_id)
-        quest_lines = filter(self$quest_set, session_id %in% quest_session_id[[1]])
+        quest_lines  = filter(self$quest_set, id == quest_idx & type %in% quest_types)
         #foreach
         for(i in 1:nrow(quest_lines)){
           quest_line = quest_lines[i]
