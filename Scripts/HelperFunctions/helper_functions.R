@@ -15,3 +15,7 @@ EuclidDistanceColumns = function(x_values,y_values){
 ColumnPresent = function(names,name){
   return(name %in% names)
 }
+
+SmartPrint = function(characters){
+  print(paste(characters, sep="", collapse = " "))
+}
