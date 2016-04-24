@@ -8,7 +8,7 @@ BaseUnityAnalysis <- R6Class("BaseUnityAnalysis",
     ReadData = function(override = F, save = T){
       private$readDataPrivate(override, save)
     },
-    QuestsSummary = function(){
+    QuestsSummary = function(force = F){
       df = self$quest_set
       trail_times = numeric(nrow(df))
       trail_distances = numeric(nrow(df))
@@ -101,6 +101,7 @@ BaseUnityAnalysis <- R6Class("BaseUnityAnalysis",
     }
   ),
   private = list(
+    quests_summary = NULL,
     #uses a lot of functions from ImportinUnityLogs.R in helperFunctions
     readDataPrivate = function(override, save){
       #session folder
@@ -160,6 +161,9 @@ BaseUnityAnalysis <- R6Class("BaseUnityAnalysis",
       if (length(quest_session_id) > 1) stop("There are more quests with this id. Do you have correct logs in the directory?")
       return(quest_session_id)
     },
+    #returns list with start and finish fields
+    #include teleport = T, the starting point is calculate from the beginning of the quest
+    #include teleport = F, the starting point is calculate from the end of the first teleport
     getQuestTimewindow = function(quest = NULL, quest_idx = NULL, include_teleport = T){
       if(is.null(quest)) quest = private$questStep(quest_idx)
       if(is.null(quest)) stop("Quest log not reachable")

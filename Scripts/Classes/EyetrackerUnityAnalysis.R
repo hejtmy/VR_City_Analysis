@@ -16,6 +16,12 @@ UnityEyetrackerAnalysis <- R6Class("UnityEyetrackerAnalysis",
     #define what is valid in the current context
     SetSession = function(number=1){
      self$session = paste("Session",number,sep="")
+    },
+    QuestsSummary = function(force = F){
+      if (!force & !is.null(private$quests_summary)) return (private$quests_summary)
+      df = super$QuestsSummary()
+      private$quests_summary = df
+      return(df)
     }
     ),
     private = list(

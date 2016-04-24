@@ -28,28 +28,50 @@ MultiParticipantUnityAnalysis <- R6Class("MultiParticipantUnityAnalysis",
         self$Data[[participant_code]]$MRI = analysis
       }
     },
-    QuestsSummary = function(force = F){
-     if (!force & !is.null(private$quest_summary_tab)) return (private$quest_summary_tab)
+    EyetrackerQuestsSummary = function(force = F){
+     if (!force & !is.null(private$eyetracker_quest_summary_tab)) return (private$eyetracker_quest_summary_tab)
      final = data.frame()
      for(i in 1:length(self$Data)){
        print(i)
-       ana = self$Data[[i]]$UnityEyetracker
-       df = ana$QuestsSummary()
-       df = mutate(df, participant_id = rep(ana$id,nrow(df)))
+       analysis = self$Data[[i]]$UnityEyetracker
+       if(is.null(analysis)) next
+       df = analysis$QuestsSummary()
+       df = mutate(df, participant_id = rep(analysis$id,nrow(df)))
        final = rbindlist(list(final,df))
      }
-     private$quest_summary_tab = final
+     private$eyetracker_quest_summary_tab = final
      return(final)
     },
-    WorstPeople = function(){
-     if(is.null(private$quest_summary_tab)) self$QuestsSummary()
-     tab = private$quest_summary_tab
-     tab2 = tab[,.(max_distance = max(distance)), by=id]
-     comparison_tab = merge(tab,tab2, by.x="distance",by.y="max_distance")
-     return(comparison_tab)
+    MRIQuestSummary = function(force = F){
+      if (!force & !is.null(private$mri_quest_summary_tab)) return (private$mri_quest_summary_tab)
+      final = data.frame()
+      for(i in 1:length(self$Data)){
+        print(i)
+        analysis = self$Data[[i]]$MRI
+        if(is.null(analysis)) next
+        df = analysis$QuestsSummary()
+        df = mutate(df, participant_id = rep(analysis$id,nrow(df)))
+        final = rbindlist(list(final,df))
+      }
+      private$mri_quest_summary_tab = final
+      return(final)
     }
  ),
  private = list(
-   quest_summary_tab = NULL
+   eyetracker_quest_summary_tab = NULL,
+   mri_quest_summary_tab = NULL
  )
 )
+
+WorstPeopleEyetracker = function(MultiParticipantUnityAnalysis){
+  tab = MultiParticipantUnityAnalysis$EyetrackerQuestsSummary()
+  tab2 = tab[,.(max_distance = max(distance)), by=id]
+  comparison_tab = merge(tab,tab2, by.x="distance",by.y="max_distance")
+  return(comparison_tab)
+}
+WorstPeopleMRI = function(MultiParticipantUnityAnalysis){
+  tab = MultiParticipantUnityAnalysis$MRIQuestSummary()
+  tab2 = tab[,.(max_distance = max(distance)), by=id]
+  comparison_tab = merge(tab,tab2, by.x="distance",by.y="max_distance")
+  return(comparison_tab)
+}
