@@ -5,8 +5,9 @@ SaveAllUnityEyetrackerGraphs = function(MultiParticipantUnityAnalysis){
     for(n in unique(eyetrackerAnalysis$quest_set$id)){
       if(is.null(MultiParticipantUnityAnalysis$Data[[i]]$UnityEyetracker)) next
       plot = eyetrackerAnalysis$DrawQuestPath(n)
-      print(n)
-      SavePlot(plot,participants[i],eyetrackerAnalysis$quest_set$name[n])
+      name = paste(participants[i],"_",eyetrackerAnalysis$quest_set$name[n],".png",sep="")
+      SmartPrint(c("Saving ", name))
+      SavePlot(plot, name)
     }
   }
 }
@@ -53,8 +54,8 @@ AddSpecialPaths = function(position_table, ls){
   }
   return(position_table)
 }
-SavePlot = function(inputPlot,participant_id, quest_name){
-  mypath <- paste(getwd(),"../images/", quest_name, "_", participant_id, ".png", sep = "")
+SavePlot = function(inputPlot,name){
+  mypath <- paste("../images/", name, sep = "")
     file = png(mypath, width = 1200, height = 800, units = "px")
     plot(inputPlot)
   dev.off()
