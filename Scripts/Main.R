@@ -15,11 +15,11 @@ UnityAnal$QuestSummary(7)
 UnityAnal$QuestsSummary()
 UnityAnal$DrawQuestParth(2)
 
-UnityMRI = UnityMRIAnalysis$new(data_dir,id=participants[7])
+UnityMRI = UnityMRIAnalysis$new(data_dir,id=participants[1])
 UnityMRI$QuestsSummary()
 UnityMRI$MakePathImage(6)
 
-Analyses = MultiParticipantUnityAnalysis$new(data_dir,subject_table,1)
+Analyses = MultiParticipantUnityAnalysis$new(data_dir,subject_table[c(1:3),],1)
 tab = Analyses$QuestsSummary()
 Analyses$WorstPeople()
 
