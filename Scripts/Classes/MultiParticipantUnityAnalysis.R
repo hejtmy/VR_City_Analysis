@@ -1,5 +1,4 @@
 MultiParticipantUnityAnalysis <- R6Class("MultiParticipantUnityAnalysis",
-                                         
  #define variables
  public = list(
     Data = NULL,

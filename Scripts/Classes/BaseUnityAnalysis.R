@@ -4,6 +4,7 @@ BaseUnityAnalysis <- R6Class("BaseUnityAnalysis",
   public = list(
     trial_sets = NULL,
     quest_set = NULL,
+    data_directory = NULL,
     ReadData = function(override = F, save = T){
       private$readDataPrivate(override, save)
     },
@@ -12,39 +13,38 @@ BaseUnityAnalysis <- R6Class("BaseUnityAnalysis",
       trail_times = numeric(nrow(df))
       trail_distances = numeric(nrow(df))
       for(i in 1:nrow(df)){
-        quest_summary = self$QuestSummary(quest_session_idx = i)
-        trail_times[i] = quest_summary$Time
-        trail_distances[i] = ifelse(length(quest_summary$Distance)<1,NA,quest_summary$Distance)
+        quest_summary = self$QuestSummary(quest_session_id = i)
+        trail_times[i] = ifelse(length(quest_summary$Time)<1, NA, quest_summary$Time)
+        trail_distances[i] = ifelse(length(quest_summary$Distance)<1, NA, quest_summary$Distance)
       }
       df = mutate(df, time = trail_times, distance = trail_distances)
       return(df)
     },
     #takes either quest_id or session id as a parameter
-    QuestSummary = function(quest_idx = NULL, quest_session_idx = NULL){
+    QuestSummary = function(quest_idx = NULL, quest_session_id = NULL){
       ls = list()
       if (is.null(quest_idx)){
-        quest = private$questStep(quest_session_idx)
+        quest = private$questStep(quest_session_id)
         quest_times = private$getQuestTimewindow(quest, include_teleport = F)
-        ls$Time =  diff(c(quest_times$start,quest_times$finish))
+        ls$Time = diff(c(quest_times$start,quest_times$finish))
         player_log = private$playerLogForQuest(quest)
         #needs to find the first place after the teleport
         positions = c(head(player_log,1)$cumulative_distance, tail(player_log,1)$cumulative_distance)
         ls$Distance = diff(positions)
         ls$Finished = private$questFinished(quest)
-      } 
-      if (is.null(quest_session_idx)){
+      }
+      if (is.null(quest_session_id)){
         quest_types = c("learn","trial")
         quests = private$questStep(quest_idx, quest_types)
+        if(!length(quests) > 0) stop("no quests were found")
         #for each list member - checking if there are two
         for(type in quest_types){
           quest = quests[[type]]
-          quest_times = private$getQuestTimewindow(quest, include_teleport = F)
-          ls[[type]]$Time = diff(c(quest_times$start, quest_times$finish))
-          player_log = private$playerLogForQuest(quest)
-          #needs to find the first place after the teleport
-          positions = c(player_log[Time > quest_times$start, .SD[1,cumulative_distance]],tail(player_log,1)$cumulative_distance)
-          ls[[type]]$Distace = diff(positions)
-          ls[[type]]$Finished = private$questFinished(quest)
+          quest_session_id = private$getQuestSessionId(quest)
+          summary = self$QuestSummary(quest_session_id = quest_session_id)
+          ls[[type]]$Time = summary$Time
+          ls[[type]]$Distace = summary$Distance
+          ls[[type]]$Finished = summary$Finished
         }
       }
       return(ls)
@@ -53,14 +53,14 @@ BaseUnityAnalysis <- R6Class("BaseUnityAnalysis",
       private$questStep(quest_idx, quest_types)
     },
     # Makes a graph with a path from start to finish
-    MakePathImage = function(quest_session_idx = NULL, img_path = "Maps/megamap5.png"){
+    MakePathImage = function(quest_session_id = NULL, img_path = "Maps/megamap5.png"){
       #Hmakes the path for the entire thing
-      if (is.null(quest_session_idx)){
+      if (is.null(quest_session_id)){
         path_table = private$wholePlayerLog()
         map_size = private$mapSize()
         return(make_path_image(img_location = img_path, position_table = path_table, map_size = map_size))
       } else {
-        quest = private$questStep(quest_session_idx)
+        quest = private$questStep(quest_session_id)
         time_window = private$getQuestTimewindow(quest)
         if(!is.null(time_window)){
           path_table = private$selectQuestPositionData(quest,time_window)
@@ -101,9 +101,35 @@ BaseUnityAnalysis <- R6Class("BaseUnityAnalysis",
     }
   ),
   private = list(
+    #uses a lot of functions from ImportinUnityLogs.R in helperFunctions
+    readDataPrivate = function(override, save){
+      #session folder
+      private$setDataDirectory()
+      
+      #open experiment_logs to see how many do we have
+      experiment_logs = OpenExperimentLogs(self$data_directory)
+      
+      #for each experiment_log, we open player log, scenario log and appropriate quest logs
+      self$trial_sets = list()
+      for (i in 1:length(experiment_logs)){
+        experiment_log = experiment_logs[[i]]
+        player_log = OpenPlayerLog(experiment_log, override)
+        #preprocesses player log
+        #checks if there is everything we need and if not, recomputes the stuff
+        if(is.null(player_log)) next
+        changed = PreprocessPlayerLog(player_log)
+        if (changed & save) SavePreprocessedPlayer(experiment_log, player_log)
+        scenario_log = OpenScenarioLog(experiment_log)
+        quests_logs = OpenQuestLogs(experiment_log, scenario_log)
+        
+        self$trial_sets[[i]] = UnityTrialSet$new(experiment_log, player_log, scenario_log, quests_logs)
+      }
+      self$quest_set = MakeQuestTable(self$trial_sets)
+      private$isValid()
+    },
     questStep = function(quest_idx, quest_types = NULL){
       ls = list()
-      #if the length is 0, we assume that the quest_idx is quest_session_idx
+      #if the length is 0, we assume that the quest_idx is quest_session_id
       if (length(quest_types) == 0){
         quest_lines = filter(self$quest_set, session_id %in% quest_idx)
         if(nrow(quest_lines) == 0) return(NULL);
@@ -129,8 +155,8 @@ BaseUnityAnalysis <- R6Class("BaseUnityAnalysis",
       }
       return(ls)
     },      
-    getQuestSessionId = function(quest_id, quest_type){
-      quest_session_id = (filter(self$quest_set,id == quest_id & type == quest_type) %>% select(session_id))[[1]]
+    getQuestSessionId = function(quest){
+      quest_session_id = (filter(self$quest_set,name == quest$name) %>% select(session_id))[[1]]
       if (length(quest_session_id) > 1) stop("There are more quests with this id. Do you have correct logs in the directory?")
       return(quest_session_id)
     },

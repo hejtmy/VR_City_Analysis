@@ -32,8 +32,9 @@ OpenExperimentLog = function(filepath){
   #todo - so far it only reads one
   idxSceneTop <- which(grepl('\\*\\*\\*Scenario information\\*\\*\\*',text))
   idxSceneBottom <- which(grepl('\\-\\-\\-Scenario information\\-\\-\\-',text))
-  ls[["scenario"]]  <- into_list(text[(idxSceneTop+1):(idxSceneBottom-1)])
-  
+  if (length(idxSceneTop) > 0 & length(idxSceneBottom) > 0){
+    ls[["scenario"]]  <- into_list(text[(idxSceneTop+1):(idxSceneBottom-1)])
+  }
   return(ls)     
 }
 OpenPlayerLog = function(experiment_log, override = F){
@@ -42,7 +43,7 @@ OpenPlayerLog = function(experiment_log, override = F){
   logs = list.files(directory, pattern = ptr, full.names = T)
   log_columns_types = c(Time="numeric",Position="numeric",Rotation.X="numeric",Rotation.Y="numeric", Focus = "character", FPS = "numeric", Input="character")
   preprocessed_log_column_types = c(log_columns_types, Position.x="numeric", Position.y="numeric", Position.z="numeric",distance="numeric",cumulative_distance="numeric")
-  if(length(logs)<1){
+  if(length(logs) < 1){
     SmartPrint(c("Could not find the file for player log", ptr))
     return(NULL)
   }
@@ -112,6 +113,7 @@ SavePreprocessedPlayer = function(experiment_log, pos_tab){
   write.table(pos_tab, preprocessed_filename, sep=";", dec=".", quote=F, row.names = F)
 }
 OpenScenarioLog = function(experiment_log){
+  if(is.null(experiment_log$scenario$Name)) return (NULL)
   directory = dirname(experiment_log$filename)
   ptr <- paste("_", escapeRegex(experiment_log$scenario$Name), "_", experiment_log$scenario$Timestamp, "*.txt$", sep="")
   #needs to check if we got only one file out
@@ -126,48 +128,47 @@ OpenScenarioLog = function(experiment_log){
   return(scenario_log)
 }
 OpenQuestLogs = function(experiment_log, scenario_log = NULL){
-  if(!is.null(scenario_log)){
-    directory = dirname(experiment_log$filename)
-    #prepares list
-    ls = list()
-    #list of activated logs from the scenario process
-    #it looks for steps finished because for some weird reason of bad logging
-    table_steps_activated <- scenario_log$data[scenario_log$data$Action=="StepActivated",]
-    table_steps_finished <- scenario_log$data[scenario_log$data$Action=="StepFinished",]
-    if (nrow(table_steps_activated) >= nrow(table_steps_finished)) use_finished = F else use_finished = T
-    for_interations = if (use_finished) nrow(table_steps_finished) else nrow(table_steps_activated) 
-    for(i in 1:for_interations){
-      if (use_finished){
-        step = table_steps_finished[i,]
-        timestamp = ""
-        #name of the step that activated the quest
-        finished_step_name = scenario_log$steps[scenario_log$steps$ID == step$StepID,"Name"]
-        #get the name of the quest activated from the name of the atctivation step
-        quest_name <- GetActivatedQuestName(finished_step_name)
-      } else {
-        step = table_steps_activated[i,]
-        timestamp = step$Timestamp
-        #name of the step that activated the quest
-        activated_step_name = scenario_log$steps[scenario_log$steps$ID == step$StepID,"Name"]
-        #get the name of the quest activated from the name of the atctivation step
-        quest_name <- GetActivatedQuestName(activated_step_name)
-      }
-      if(is.na(quest_name)) next
-      if (!is.null(quest_name) ){
-        ptr <- paste("_", escapeRegex(quest_name), "_", timestamp, sep="")
-        #needs to check if we got only one file out
-        log = list.files(directory, pattern = ptr, full.names = T)[1]
-        if(!file.exists(log)){
-          print(paste("Could not find the file for given quest log", ptr, sep = " "))
-          print(ptr)
-          next
-        }
-        #might change this 
-        ls[[quest_name]] = OpenQuestLog(log)
-      }
+  if (is.null(scenario_log)) return (NULL)
+  directory = dirname(experiment_log$filename)
+  #prepares list
+  ls = list()
+  #list of activated logs from the scenario process
+  #it looks for steps finished because for some weird reason of bad logging
+  table_steps_activated <- scenario_log$data[scenario_log$data$Action=="StepActivated",]
+  table_steps_finished <- scenario_log$data[scenario_log$data$Action=="StepFinished",]
+  if (nrow(table_steps_activated) >= nrow(table_steps_finished)) use_finished = F else use_finished = T
+  for_interations = if (use_finished) nrow(table_steps_finished) else nrow(table_steps_activated) 
+  for(i in 1:for_interations){
+    if (use_finished){
+      step = table_steps_finished[i,]
+      timestamp = ""
+      #name of the step that activated the quest
+      finished_step_name = scenario_log$steps[scenario_log$steps$ID == step$StepID,"Name"]
+      #get the name of the quest activated from the name of the atctivation step
+      quest_name <- GetActivatedQuestName(finished_step_name)
+    } else {
+      step = table_steps_activated[i,]
+      timestamp = step$Timestamp
+      #name of the step that activated the quest
+      activated_step_name = scenario_log$steps[scenario_log$steps$ID == step$StepID,"Name"]
+      #get the name of the quest activated from the name of the atctivation step
+      quest_name <- GetActivatedQuestName(activated_step_name)
     }
-    return(ls)
+    if(is.na(quest_name)) next
+    if (!is.null(quest_name) ){
+      ptr <- paste("_", escapeRegex(quest_name), "_", timestamp, sep="")
+      #needs to check if we got only one file out
+      log = list.files(directory, pattern = ptr, full.names = T)[1]
+      if(!file.exists(log)){
+        print(paste("Could not find the file for given quest log", ptr, sep = " "))
+        print(ptr)
+        next
+      }
+      #might change this 
+      ls[[quest_name]] = OpenQuestLog(log)
+    }
   }
+  return(ls)
 }
 OpenQuestLog = function(filepath){
   ls = list()
@@ -226,11 +227,18 @@ GetQuestInfo = function(quest_log){
   #first is E in VR experiments, second the quest index and then the a/b version
   id_pattern = "(.*?)-"
   id_part = str_match(ls[["name"]],id_pattern)[2]
+  if(is.na(id_part)) stop("not clear quest log naming")
   ls[["id"]] = str_match(id_part, "\\d+")[1]
-  if(is.na(id_part)){
-    print("sth")
-  }
-  ls[["type"]] = if (str_match(id_part, "[a-b]")[1]=="a") "learn" else "trial"
-  quest_log = quest_log[[1]]
+  
+  #getting type from the name of the log
+  learn = c("a", "A")
+  trial = c("b", "B")
+  type_pattern = "[aAbB]"
+  if(is.na(str_match(id_part, type_pattern)[1])) stop("not clear quest log naming")
+  type_string = str_match(id_part, type_pattern)[1]
+  type = NA
+  if (type_string %in% learn) type = "learn"
+  if (type_string %in% trial) type = "trial"
+  ls[["type"]] = type
   return(ls)
 }
