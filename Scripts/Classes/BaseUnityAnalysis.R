@@ -80,11 +80,12 @@ BaseUnityAnalysis <- R6Class("BaseUnityAnalysis",
       special_paths = list()
       quest_start_and_Stop = NULL
       path_table = data.table()
-      
+      first = TRUE
       for(i in 1:length(types)){
         type = types[i]
         quest = private$questStep(quest_id, type)
-        if (i == 1){
+        if(is.null(quest)) next
+        if (first){
           quest_start_and_stop = private$getQuestStartAndFinishPositions(quest)
           map_size = private$mapSize(quest)
         }
@@ -93,6 +94,7 @@ BaseUnityAnalysis <- R6Class("BaseUnityAnalysis",
         #adds path_table to the 
         quest_path_table = private$playerLogForQuest(quest, F)
         path_table = rbindlist(list(path_table,quest_path_table))
+        first = FALSE
       }
       make_path_image(img_location = img_path, position_table = path_table, map_size = map_size,special_paths = special_paths, special_points = quest_start_and_stop)
     }
@@ -128,12 +130,12 @@ BaseUnityAnalysis <- R6Class("BaseUnityAnalysis",
     questStep = function(quest_idx, quest_types = NULL){
       ls = list()
       #if the length is 0, we assume that the quest_idx is quest_session_id
-      if (length(quest_types) == 0){
+      if(length(quest_types) == 0){
         quest_lines = filter(self$quest_set, session_id %in% quest_idx)
-        if(nrow(quest_lines) == 0) return(NULL);
+        if(nrow(quest_lines) == 0) return(NULL)
         #foreach
         for(i in 1:nrow(quest_lines)){
-          quest_line = filter(quest_lines,session_id = i)
+          quest_line = quest_lines[i]
           if(is.null(quest_line)) stop(quest_line)
           quest = self$trial_sets[[quest_line$id_of_set]]$quest_logs[quest_line$set_id]
           quest[[1]]$name = select(quest_line,name)[[1]]
@@ -143,8 +145,8 @@ BaseUnityAnalysis <- R6Class("BaseUnityAnalysis",
         ls = ls[[1]]
       } 
       if(length(quest_types) > 0){
-        quest_lines  = filter(self$quest_set, id == quest_idx & type %in% quest_types)
-        #foreach
+        quest_lines = filter(self$quest_set, id == quest_idx & type %in% quest_types)
+        if(!(nrow(quest_lines) > 0)) return(NULL) 
         for(i in 1:nrow(quest_lines)){
           quest_line = quest_lines[i]
           ls[[quest_types[i]]] = self$trial_sets[[quest_line$id_of_set]]$quest_logs[quest_line$set_id][[1]]

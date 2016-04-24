@@ -21,7 +21,7 @@ Analysis$QuestsSummary()
 Analysis$DrawQuestPath(1)
 
 #loads from the subjectList table
-Analyses = MultiParticipantUnityAnalysis$new(data_dir,subject_table[c(1:2),],1)
+Analyses = MultiParticipantUnityAnalysis$new(data_dir,subject_table[2,],1)
 tab = Analyses$EyetrackerQuestsSummary()
 tabMRI = Analyses$MRIQuestSummary()
 

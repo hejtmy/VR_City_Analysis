@@ -234,7 +234,8 @@ GetQuestInfo = function(quest_log){
   if (MRILog){
     #boreing complicated stuff because the naming of quests conventions don't make sense
     ls$id = as.numeric(str_match(id_part, "[AB](\\d+)")[2])
-    if(!is.na(str_match(id_part, "[A]")[1])) ls[["id"]] = ls[["id"]]+1
+    if(!is.na(str_match(id_part, "[A]")[1])) ls[["id"]] = ls[["id"]]*2
+    if(!is.na(str_match(id_part, "[B]")[1])) ls[["id"]] = ls[["id"]]*2-1
   } else {
     ls$id = as.numeric(str_match(id_part, "[E](\\d+)")[2])
   }
