@@ -13,15 +13,17 @@ UnityAnal = UnityEyetrackerAnalysis$new(data_dir,id=participants[7],session=1)
 UnityAnal$MakePathImage(8)
 UnityAnal$QuestSummary(7)
 UnityAnal$QuestsSummary()
-UnityAnal$DrawQuestParth(2)
+UnityAnal$DrawQuestPath(2)
 
-UnityMRI = UnityMRIAnalysis$new(data_dir,id=participants[1])
+UnityMRI = UnityMRIAnalysis$new(data_dir,id="HCE_1_E_2")
 UnityMRI$QuestsSummary()
 UnityMRI$MakePathImage(6)
 
-Analyses = MultiParticipantUnityAnalysis$new(data_dir,subject_table[c(1:3),],1)
-tab = Analyses$QuestsSummary()
-Analyses$WorstPeople()
+Analyses = MultiParticipantUnityAnalysis$new(data_dir,subject_table,1)
+tab = Analyses$EyetrackerQuestsSummary()
+tabMRI = Analyses$MRIQuestSummary()
+
+GetNumberOfPulses(Analyses)
 
 t.test(tab$time~tab$type)
 #anova model
