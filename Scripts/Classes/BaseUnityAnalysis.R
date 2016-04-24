@@ -76,17 +76,14 @@ BaseUnityAnalysis <- R6Class("BaseUnityAnalysis",
         }
       }
     },
-    DrawQuestParth = function(quest_id, types = c("learn","trial"), img_path = "Maps/megamap5.png"){
+    DrawQuestPath = function(quest_id, types = c("learn","trial"), img_path = "Maps/megamap5.png"){
       special_paths = list()
       quest_start_and_Stop = NULL
       path_table = data.table()
       
       for(i in 1:length(types)){
         type = types[i]
-        #get the session quest_idx
-        quest_session_id = private$getQuestSessionId(quest_id, type)
-        quest = private$questStep(quest_session_id)
-        
+        quest = private$questStep(quest_id, type)
         if (i == 1){
           quest_start_and_stop = private$getQuestStartAndFinishPositions(quest)
           map_size = private$mapSize(quest)
@@ -94,7 +91,7 @@ BaseUnityAnalysis <- R6Class("BaseUnityAnalysis",
         time_window = private$getQuestTimewindow(quest, include_teleport = F)
         special_paths[[type]] = time_window
         #adds path_table to the 
-        quest_path_table = private$selectQuestPositionData(quest,time_window)
+        quest_path_table = private$playerLogForQuest(quest, F)
         path_table = rbindlist(list(path_table,quest_path_table))
       }
       make_path_image(img_location = img_path, position_table = path_table, map_size = map_size,special_paths = special_paths, special_points = quest_start_and_stop)
@@ -153,6 +150,8 @@ BaseUnityAnalysis <- R6Class("BaseUnityAnalysis",
           ls[[quest_types[i]]] = self$trial_sets[[quest_line$id_of_set]]$quest_logs[quest_line$set_id][[1]]
           ls[[quest_types[i]]]$name = select(quest_line,name)[[1]]
         }
+        #if we only searched for a signle quest
+        if(length(quest_types)==1) ls = ls[[1]]
       }
       return(ls)
     },      
@@ -224,10 +223,10 @@ BaseUnityAnalysis <- R6Class("BaseUnityAnalysis",
       }
       return(player_log)
     },
-    playerLogForQuest = function(quest){
+    playerLogForQuest = function(quest,include_teleport = T){
       quest_line = filter(self$quest_set, name == quest$name)
       if(nrow(quest_line) >1) stop("Multiple quests have the same name")
-      quest_times = private$getQuestTimewindow(quest, include_teleport = T)
+      quest_times = private$getQuestTimewindow(quest, include_teleport = include_teleport)
       player_log = self$trial_sets[[quest_line$id_of_set]]$player_log[Time > quest_times$start & Time < quest_times$finish,]
       return(player_log)
     },

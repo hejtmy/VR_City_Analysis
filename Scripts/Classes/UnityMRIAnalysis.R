@@ -47,3 +47,11 @@ UnityMRIAnalysis <- R6Class("UnityMRIAnalysis",
   )
 )
 
+GetNumberOfPulses = function(MultiParticipantUnityAnalysis){
+  for(i in 1:length(MultiParticipantUnityAnalysis$Data)){
+    MRI = MultiParticipantUnityAnalysis$Data[[i]]$MRI
+    if(is.null(MRI)) next
+    player_log = MRI$trial_sets[[1]]$player_log
+    SmartPrint(c(names(MultiParticipantUnityAnalysis$Data)[[i]],(nrow(player_log[Input == "fMRISynchro"]))))
+  }
+}
