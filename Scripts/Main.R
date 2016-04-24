@@ -18,6 +18,7 @@ UnityAnal$DrawQuestParth(2)
 
 Analyses = MultiParticipantUnityAnalysis$new(data_dir,subject_table,1)
 tab = Analyses$QuestsSummary()
+Analyses$WorstPeople()
 
 t.test(tab$time~tab$type)
 #anova model

@@ -2,9 +2,9 @@ MultiParticipantUnityAnalysis <- R6Class("MultiParticipantUnityAnalysis",
                                          
  #define variables
  public = list(
-    Analyses = NULL,
+    Data = NULL,
     initialize = function(dir, subject_table,session){
-      Analyses = list()
+      Data = list()
       for(i in 1:nrow(subject_table)){
         participant_code = subject_table$Code[i]
         unity_code = subject_table$UnityCode[i]
@@ -16,15 +16,15 @@ MultiParticipantUnityAnalysis <- R6Class("MultiParticipantUnityAnalysis",
         SmartPrint(c("------------ Loading", participant_code,"------------"))
         SmartPrint(c("Code for participant", participant_code, "is", unity_code))
         analysis = UnityEyetrackerAnalysis$new(dir,unity_code,session)
-        self$Analyses[[participant_code]] = analysis
+        self$Data[[participant_code]]$UnityEyetracker = analysis
       }
    },
    QuestsSummary = function(force = F){
      if (!force & !is.null(private$quest_summary_tab)) return (private$quest_summary_tab)
      final = data.frame()
-     for(i in 1:length(self$Analyses)){
+     for(i in 1:length(self$Data)){
        print(i)
-       ana = self$Analyses[[i]]
+       ana = self$Data[[i]]$UnityEyetracker
        df = ana$QuestsSummary()
        df = mutate(df, participant_id = rep(ana$id,nrow(df)))
        final = rbindlist(list(final,df))
@@ -33,7 +33,11 @@ MultiParticipantUnityAnalysis <- R6Class("MultiParticipantUnityAnalysis",
      return(final)
    },
    WorstPeople = function(){
-     
+     if(is.null(private$quest_summary_tab)) self$QuestsSummary()
+     tab = private$quest_summary_tab
+     tab2 = tab[,.(max_distance = max(distance)), by=id]
+     comparison_tab = merge(tab,tab2, by.x="distance",by.y="max_distance")
+     return(comparison_tab)
    }
  ),
  private = list(
