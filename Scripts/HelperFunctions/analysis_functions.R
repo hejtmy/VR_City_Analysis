@@ -1,7 +1,3 @@
-require(png)
-require(grid)
-require(ggplot2)
-
 make_path_image <- function (img_location, position_table, map_size, special_paths = NULL, special_points = NULL){
 
      img <- readPNG(img_location)

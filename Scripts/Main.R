@@ -3,7 +3,7 @@ source("Scripts/LoadingScript.R")
 #sets the working dirrectory where the logs are
 data_dir <- "../Data/"
 
-subject_list <- read.table("../Data/ListOfSubjects.csv", sep = ";", header=T, stringsAsFactors = F, na.strings = c(""))
+subject_table = read.table("../Data/ListOfSubjects.csv", sep = ";", header=T, stringsAsFactors = F, na.strings = c(""))
 #choose participants
 participants = subject_list$UnityCode[!is.na(subject_list$UnityCode)]
 
@@ -16,7 +16,7 @@ UnityAnal$QuestSummary(7)
 UnityAnal$QuestsSummary()
 UnityAnal$DrawQuestParth(2)
 
-Analyses = MultiParticipantUnityAnalysis$new(data_dir,participants,1)
+Analyses = MultiParticipantUnityAnalysis$new(data_dir,subject_table,1)
 tab = Analyses$QuestsSummary()
 
 t.test(tab$time~tab$type)

@@ -3,12 +3,19 @@ MultiParticipantUnityAnalysis <- R6Class("MultiParticipantUnityAnalysis",
  #define variables
  public = list(
     Analyses = NULL,
-    initialize = function(dir, participants,session){
+    initialize = function(dir, subject_table,session){
       Analyses = list()
-      for(i in 1:length(participants)){
-        participant_code = participants[i]
-        SmartPrint(c("Loading",participant_code))
-        analysis = UnityEyetrackerAnalysis$new(dir,participant_code,session)
+      for(i in 1:nrow(subject_table)){
+        participant_code = subject_table$Code[i]
+        unity_code = subject_table$UnityCode[i]
+        if(is.na(unity_code)){
+          print("------------")
+          SmartPrint(c("There is no unity log for participant", participant_code))
+          next
+        }
+        SmartPrint(c("------------ Loading", participant_code,"------------"))
+        SmartPrint(c("Code for participant", participant_code, "is", unity_code))
+        analysis = UnityEyetrackerAnalysis$new(dir,unity_code,session)
         self$Analyses[[participant_code]] = analysis
       }
    },
@@ -24,6 +31,9 @@ MultiParticipantUnityAnalysis <- R6Class("MultiParticipantUnityAnalysis",
      }
      private$quest_summary_tab = final
      return(final)
+   },
+   WorstPeople = function(){
+     
    }
  ),
  private = list(

@@ -4,6 +4,9 @@ library('data.table')
 library('plyr')
 library('dplyr')
 library('stringr')
+library('png')
+library('grid')
+library('ggplot2')
 
 #custom items
 
