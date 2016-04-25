@@ -188,7 +188,10 @@ OpenQuestLog = function(filepath){
   ls[["steps"]]  <- read.table(file,header=T,sep=";",stringsAsFactors=F)
   close(file)
   #and the timestamps and other the the data list
-  ls[["data"]] <- read.table(filepath, header=T, sep=";",dec=".", skip=idxStepBottom, stringsAsFactors=F)
+  ls$data = read.table(filepath, header=T, sep=";",dec=".", skip=idxStepBottom, stringsAsFactors=F)
+  
+  #deletes last column
+  ls$data[ncol(ls$data)] = NULL
   return(ls)
 }
 #helper function to figure out the name of the activated quest as is saved in the steps
