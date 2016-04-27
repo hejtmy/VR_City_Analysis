@@ -25,7 +25,7 @@ Analyses = MultiParticipantUnityAnalysis$new(data_dir,subject_table,1)
 tab = Analyses$EyetrackerQuestsSummary()
 tabMRI = Analyses$MRIQuestSummary()
 
-GetNumberOfPulses(Analyses)
+MRIInformation(Analyses)
 
 t.test(tab$time~tab$type)
 #anova model
