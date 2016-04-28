@@ -47,19 +47,25 @@ Analysis$QuestsSummary()
 Analysis$DrawQuestPath(1)
 ```
 
-##Multi-participant analysis
+###Multi-participant analysis
 Loads all appropriate MRI and Eyetracker Unity files 
 ```r
 Analyses = MultiParticipantUnityAnalysis$new(data_dir,subject_table,1)
-tab = Analyses$EyetrackerQuestsSummary()
-tabMRI = Analyses$MRIQuestSummary()
+tabEyeQuests = Analyses$EyetrackerQuestsSummary()
+tabMRIQuests = Analyses$MRIQuestSummary()
 ```
+##Synchropulses analysis
+```r
+tabMRIPulses = Analyses$SynchropulsesTable()
+MRIInformation(tabMRIPulses)
+```
+
 ##Basic analysis
 ```r
-t.test(tab$time~tab$type)
+t.test(tabEyeQuests$time~tabEyeQuests$type)
 #anova model
-summary(aov(time~id, tab))
-summary(aov(time~type*participant_id, tab))
+summary(aov(time~id, tabEyeQuests))
+summary(aov(time~type*participant_id, tabEyeQuests))
 ```
 
 ## Saving data
@@ -72,7 +78,10 @@ tab = Analyses$EyetrackerQuestsSummary()
 tabMRI = Analyses$MRIQuestSummary()
 write.csv(tab,name)
 ```
-
+##Saving graphs
+```r
+SaveAllUnityEyetrackerGraphs(Analyses)
+```
 
 ##Classes
 Classes you shoudl be familiar with are:
