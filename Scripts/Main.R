@@ -22,16 +22,13 @@ Analysis$DrawQuestPath(1)
 
 #loads from the subjectList table
 Analyses = MultiParticipantUnityAnalysis$new(data_dir,subject_table,1)
-tabEye = Analyses$EyetrackerQuestsSummary()
-tabMRIquests = Analyses$MRIQuestSummary()
-tabMRI = Analyses$SynchropulsesTable()
+tabEyeQuests = Analyses$EyetrackerQuestsSummary()
+tabMRIQuests = Analyses$MRIQuestSummary()
+tabMRIPulses = Analyses$SynchropulsesTable()
 
-MRIInformation(tabMRI)
+MRIInformation(tabMRIPulses)
 
-t.test(tabEye$time~tabEye$type)
+t.test(tabEyeQuests$time~tabEyeQuests$type)
 #anova model
-summary(aov(time~id, tabEye))
-summary(aov(time~type*participant_id, tabEye))
-
-#Overkill graphing
-SaveAllUnityEyetrackerGraphs(Analyses)
+summary(aov(time~id, tabEyeQuests))
+summary(aov(time~type*participant_id, tabEyeQuests))
