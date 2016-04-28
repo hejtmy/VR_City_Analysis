@@ -188,7 +188,10 @@ OpenQuestLog = function(filepath){
   ls[["steps"]]  <- read.table(file,header=T,sep=";",stringsAsFactors=F)
   close(file)
   #and the timestamps and other the the data list
-  ls[["data"]] <- read.table(filepath, header=T, sep=";",dec=".", skip=idxStepBottom, stringsAsFactors=F)
+  ls$data = read.table(filepath, header=T, sep=";",dec=".", skip=idxStepBottom, stringsAsFactors=F)
+  
+  #deletes last column
+  ls$data[ncol(ls$data)] = NULL
   return(ls)
 }
 #helper function to figure out the name of the activated quest as is saved in the steps
@@ -214,7 +217,7 @@ MakeQuestTable = function(trial_sets){
       #needs to pass the whole thing
       quest_info = GetQuestInfo(quest_logs[i])
       dt_trial[i,] = list(as.numeric(quest_info$id), session_id, quest_info$name, quest_info$type, n, i)
-      session_id = session_id +1
+      session_id = session_id + 1
     }
     dt = rbindlist(list(dt,dt_trial))
   }
@@ -223,16 +226,28 @@ MakeQuestTable = function(trial_sets){
 GetQuestInfo = function(quest_log){
   ls = list()
   ls[["name"]] = names(quest_log)
+  
   #gets all the letters and numbers until the dash(-) symbol
   #first is E in VR experiments, second the quest index and then the a/b version
   id_pattern = "(.*?)-"
   id_part = str_match(ls[["name"]],id_pattern)[2]
   if(is.na(id_part)) stop("not clear quest log naming")
-  ls[["id"]] = str_match(id_part, "\\d+")[1]
-  
-  #getting type from the name of the log
-  learn = c("a", "A")
-  trial = c("b", "B")
+  #checks for MRI/Eyetracker
+  MRILog = if(is.na(str_match(id_part, "[AB]")[1])) FALSE else TRUE
+  if (MRILog){
+    #boreing complicated stuff because the naming of quests conventions don't make sense
+    ls$id = as.numeric(str_match(id_part, "[AB](\\d+)")[2])
+    if(!is.na(str_match(id_part, "[A]")[1])) ls[["id"]] = ls[["id"]]*2
+    if(!is.na(str_match(id_part, "[B]")[1])) ls[["id"]] = ls[["id"]]*2-1
+  } else {
+    ls$id = as.numeric(str_match(id_part, "[E](\\d+)")[2])
+  }
+  if(is.null(ls$id)) stop ("No appropriate id")
+  #getting type from the name of the log 
+  #MRI has B for trials with directions and A for trials
+  #Eyetracker has a for learning trials and "b" for trials
+  learn = c("a", "B")
+  trial = c("b", "A")
   type_pattern = "[aAbB]"
   if(is.na(str_match(id_part, type_pattern)[1])) stop("not clear quest log naming")
   type_string = str_match(id_part, type_pattern)[1]

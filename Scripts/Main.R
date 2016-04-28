@@ -22,12 +22,13 @@ Analysis$DrawQuestPath(1)
 
 #loads from the subjectList table
 Analyses = MultiParticipantUnityAnalysis$new(data_dir,subject_table,1)
-tab = Analyses$EyetrackerQuestsSummary()
-tabMRI = Analyses$MRIQuestSummary()
+tabEyeQuests = Analyses$EyetrackerQuestsSummary()
+tabMRIQuests = Analyses$MRIQuestSummary()
+tabMRIPulses = Analyses$SynchropulsesTable()
 
-GetNumberOfPulses(Analyses)
+MRIInformation(tabMRIPulses)
 
-t.test(tab$time~tab$type)
+t.test(tabEyeQuests$time~tabEyeQuests$type)
 #anova model
-summary(aov(time~id, tab))
-summary(aov(time~type*participant_id, tab))
+summary(aov(time~id, tabEyeQuests))
+summary(aov(time~type*participant_id, tabEyeQuests))
