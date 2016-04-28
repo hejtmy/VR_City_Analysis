@@ -18,6 +18,9 @@ MultiMRIPulsesTable=function(MultiParticipantUnityAnalysis){
 }
 EnhanceMRITable = function(MRIPulsesTable){
   MRIPulsesTable[,time.difference:=c(NA,diff(Time)),by=id]
+  MRIPulsesTable[,helper:=1]
+  MRIPulsesTable[,pulses.order:=cumsum(helper),by=id]
+  MRIPulsesTable[,helper:=NULL]
   return(MRIPulsesTable)
 }
 MRIInformation = function(MultiParticipantUnityAnalysis){
