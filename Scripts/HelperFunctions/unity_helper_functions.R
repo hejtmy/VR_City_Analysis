@@ -14,9 +14,17 @@ MultiMRIPulsesTable=function(MultiParticipantUnityAnalysis){
     ls[[name]] = pulsesTable
   }
   table = rbindlist(ls)
+  table = EnhanceMRITable(table)
   return(table)
 }
-GetNumberOfPulses = function(MultiParticipantUnityAnalysis){
-  table=MultiMRIPulsesTable(MultiParticipantUnityAnalysis)
-  table[,nrow(.SD),by=id]
+EnhanceMRITable = function(MRIPulsesTable){
+  MRIPulsesTable[,time.difference:=c(NA,diff(Time)),by=id]
+  MRIPulsesTable[,helper:=1]
+  MRIPulsesTable[,pulses.order:=cumsum(helper),by=id]
+  MRIPulsesTable[,helper:=NULL]
+  return(MRIPulsesTable)
+}
+MRIInformation = function(table){
+  tab = table[,list(min = min(time.difference,na.rm = T),max = max(time.difference,na.rm = T), pulses = nrow(.SD)),by=id]
+  return(tab)
 }

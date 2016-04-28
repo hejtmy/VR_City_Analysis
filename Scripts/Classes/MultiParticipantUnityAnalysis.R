@@ -55,14 +55,18 @@ MultiParticipantUnityAnalysis <- R6Class("MultiParticipantUnityAnalysis",
       }
       private$mri_quest_summary_tab = final
       return(final)
+    },
+    SynchropulsesTable = function(force = F){
+      if (!force & !is.null(private$synchro_table)) return (private$synchro_table)
+      private$synchro_table = MultiMRIPulsesTable(self)
     }
  ),
  private = list(
    eyetracker_quest_summary_tab = NULL,
-   mri_quest_summary_tab = NULL
+   mri_quest_summary_tab = NULL,
+   synchro_table =NULL
  )
 )
-
 WorstPeopleEyetracker = function(MultiParticipantUnityAnalysis){
   tab = MultiParticipantUnityAnalysis$EyetrackerQuestsSummary()
   tab2 = tab[,.(max_distance = max(distance)), by=id]
