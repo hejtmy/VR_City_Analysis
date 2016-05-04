@@ -4,7 +4,7 @@ OpenExperimentLogs = function(directory = ""){
   #needs to check if we got only one file out
   logs = list.files(directory, pattern = "_experiment_",full.names = T)
   if(length(logs) < 1){
-    print("Could not find the file for experiment log")
+    print("!!!Could not find the file for experiment log!!!")
     return(NULL)
   }
   for(i in 1:length(logs)){
@@ -44,7 +44,7 @@ OpenPlayerLog = function(experiment_log, override = F){
   log_columns_types = c(Time="numeric",Position="numeric",Rotation.X="numeric",Rotation.Y="numeric", Focus = "character", FPS = "numeric", Input="character")
   preprocessed_log_column_types = c(log_columns_types, Position.x="numeric", Position.y="numeric", Position.z="numeric",distance="numeric",cumulative_distance="numeric")
   if(length(logs) < 1){
-    SmartPrint(c("Could not find the file for player log", ptr))
+    SmartPrint(c("!!!Could not find the file for player log!!!", ptr))
     return(NULL)
   }
   if (length(logs)>1){
@@ -115,12 +115,12 @@ SavePreprocessedPlayer = function(experiment_log, pos_tab){
 OpenScenarioLog = function(experiment_log){
   if(is.null(experiment_log$scenario$Name)) return (NULL)
   directory = dirname(experiment_log$filename)
-  ptr <- paste("_", escapeRegex(experiment_log$scenario$Name), "_", experiment_log$scenario$Timestamp, "*.txt$", sep="")
+  ptr <- paste("_", escapeRegex(experiment_log$scenario$Name), "_", experiment_log$scenario$Timestamp, sep="")
   #needs to check if we got only one file out
   log = list.files(directory, pattern = ptr, full.names = T)[1]
   #if the file does not exists returning NULL and exiting
   if(!file.exists(log)){
-    print(paste("Could not find the file for scenario log", ptr, sep = " "))
+    print(paste("!!!Could not find the file for scenario log!!!", ptr, sep = " "))
     print(ptr)
     return(NULL)
   }
@@ -160,7 +160,7 @@ OpenQuestLogs = function(experiment_log, scenario_log = NULL){
       #needs to check if we got only one file out
       log = list.files(directory, pattern = ptr, full.names = T)[1]
       if(!file.exists(log)){
-        print(paste("Could not find the file for given quest log", ptr, sep = " "))
+        print(paste("!!!Could not find the file for given quest log!!!", ptr, sep = " "))
         print(ptr)
         next
       }
