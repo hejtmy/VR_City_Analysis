@@ -3,19 +3,20 @@ source("Scripts/LoadingScript.R")
 #sets the working dirrectory where the logs are
 data_dir <- "../Data/"
 data_dir = "C:/Users/hejtmy/OneDrive/NUDZ/HCENAT/Data/"
+data_dir= "U:/OneDrive/NUDZ/HCENAT/Data/"
 
 subject_table = read.table(paste(data_dir, "ListOfSubjects.csv",sep=""), sep = ",", header=T, stringsAsFactors = F, na.strings = c(""))
 
 #instantiates VR_analysis class with the name and project directory 
 #it loads appropriate log files and allows for immediate analysis
-Analysis = UnityEyetrackerAnalysis$new(data_dir,id="HCE_1_E_3",session=1)
+Analysis = UnityEyetrackerAnalysis$new(data_dir, id="HCE_E_3",session=1)
 Analysis$MakePathImage(8)
 Analysis$QuestSummary(7)
 Analysis$QuestsSummary()
 Analysis$DrawQuestPath(2)
 
 #MRI analysis
-Analysis =  UnityMRIAnalysis$new(data_dir,id="HCE_1_E_2")
+Analysis =  UnityMRIAnalysis$new(data_dir,id="HCE_E_2")
 Analysis$MakePathImage(8)
 Analysis$QuestSummary(2)
 Analysis$QuestsSummary()

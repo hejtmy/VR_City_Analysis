@@ -1,10 +1,16 @@
 MultiParticipantUnityAnalysis <- R6Class("MultiParticipantUnityAnalysis",
- #define variables
- public = list(
+  #define variables
+  public = list(
     Data = NULL,
-    initialize = function(dir, subject_table, session){
+    initialize = function(dir = NULL, subject_table = NULL, session = NULL, data=NULL){
+      #allows to preloade data
+      if(!is.null(data)){
+        self$Data = data
+        return(self) 
+      }
+      self$Data = list()
       for(i in 1:nrow(subject_table)){
-        participant_code = subject_table$ID.NUDZ[i]
+        participant_code = subject_table$ID[i]
         unity_code = subject_table$VR_EYE_1[i]
         if(is.na(unity_code)){
           print("------------")
@@ -13,7 +19,7 @@ MultiParticipantUnityAnalysis <- R6Class("MultiParticipantUnityAnalysis",
           SmartPrint(c("------------ Loading", participant_code,"------------"))
           SmartPrint(c("Code for Eyetracker log for participant", participant_code, "is", unity_code))
           analysis = UnityEyetrackerAnalysis$new(dir, participant_code, session)
-          self$Data[[participant_code]]$UnityEyetracker = analysis
+          if (!is.null(analysis)) self$Data[[participant_code]]$UnityEyetracker = analysis
         }
         mri_code = subject_table$VR_MRI_1[i]
         if(is.na(mri_code)){
@@ -21,7 +27,7 @@ MultiParticipantUnityAnalysis <- R6Class("MultiParticipantUnityAnalysis",
           SmartPrint(c("There is no MRI log for participant", participant_code))
         } else {
           SmartPrint(c("Code for MRI log for participant", participant_code, "is", mri_code))
-          analysis = UnityMRIAnalysis$new(dir,participant_code)
+          analysis = UnityMRIAnalysis$new(dir,participant_code, session)
           self$Data[[participant_code]]$MRI = analysis
         }
         ##eyetracker loading
@@ -59,12 +65,12 @@ MultiParticipantUnityAnalysis <- R6Class("MultiParticipantUnityAnalysis",
       if (!force & !is.null(private$synchro_table)) return (private$synchro_table)
       private$synchro_table = MultiMRIPulsesTable(self)
     }
- ),
- private = list(
-   eyetracker_quest_summary_tab = NULL,
-   mri_quest_summary_tab = NULL,
-   synchro_table =NULL
- )
+  ),
+  private = list(
+    eyetracker_quest_summary_tab = NULL,
+    mri_quest_summary_tab = NULL,
+    synchro_table =NULL
+  )
 )
 WorstPeopleEyetracker = function(MultiParticipantUnityAnalysis){
   tab = MultiParticipantUnityAnalysis$EyetrackerQuestsSummary()

@@ -20,32 +20,39 @@ BaseUnityAnalysis <- R6Class("BaseUnityAnalysis",
     },
     #define what is valid in the current context
     SetSession = function(number=1){
-      self$session = paste("Session",number,sep="")
+      self$session = paste("Session", number, sep="")
     },
     QuestsSummary = function(force = F){
       df = self$quest_set
       trail_times = numeric(nrow(df))
       trail_distances = numeric(nrow(df))
       for(i in 1:nrow(df)){
-        quest_summary = self$QuestSummary(quest_session_id = i)
-        trail_times[i] = ifelse(length(quest_summary$Time)<1, NA, quest_summary$Time)
-        trail_distances[i] = ifelse(length(quest_summary$Distance)<1, NA, quest_summary$Distance)
+        quest_summary = self$QuestSummary(quest_session_id = i) #possble to get NULL
+        trail_times[i] = ifelse(length(quest_summary$Time) < 1, NA, quest_summary$Time)
+        trail_distances[i] = ifelse(length(quest_summary$Distance) < 1, NA, quest_summary$Distance)
       }
       df = mutate(df, time = trail_times, distance = trail_distances)
       return(df)
     },
     #takes either quest_id or session id as a parameter
+    #session_id = 
     QuestSummary = function(quest_idx = NULL, quest_session_id = NULL){
       ls = list()
       if (is.null(quest_idx)){
         quest = private$questStep(quest_session_id)
-        quest_times = private$getQuestTimewindow(quest, include_teleport = F)
-        ls$Time = diff(c(quest_times$start,quest_times$finish))
+        quest_times = private$getQuestTimewindow(quest, include_teleport = F) #can be null
+        ls$Time = ifelse(is.null(quest_times), NA, diff(c(quest_times$start,quest_times$finish)))
+        
         player_log = private$playerLogForQuest(quest)
-        #needs to find the first place after the teleport
-        positions = c(head(player_log,1)$cumulative_distance, tail(player_log,1)$cumulative_distance)
-        ls$Distance = diff(positions)
-        ls$Finished = private$questFinished(quest)
+        if(is.null(player_log)){
+          ls$Distance = NA
+          ls$Finished = NA
+        } else {
+          #needs to find the first place after the teleport
+          positions = c(head(player_log,1)$cumulative_distance, tail(player_log,1)$cumulative_distance)
+          ls$Distance = diff(positions)
+          ls$Finished = private$questFinished(quest)
+        }
       }
       if (is.null(quest_session_id)){
         quest_types = c("learn","trial")
@@ -101,7 +108,7 @@ BaseUnityAnalysis <- R6Class("BaseUnityAnalysis",
       #open experiment_logs to see how many do we have
       experiment_logs = OpenExperimentLogs(self$data_directory)
       if(is.null(experiment_logs)){
-        SmartPrint(c("Cannot find any experiment logs in ", self$directory))
+        SmartPrint(c("Cannot find any experiment logs in ", self$data_directory))
         return(NULL)
       }
       #for each experiment_log, we open player log, scenario log and appropriate quest logs
@@ -220,7 +227,7 @@ BaseUnityAnalysis <- R6Class("BaseUnityAnalysis",
       }
       return(player_log)
     },
-    playerLogForQuest = function(quest,include_teleport = T){
+    playerLogForQuest = function(quest, include_teleport = T){
       quest_line = filter(self$quest_set, name == quest$name)
       if(nrow(quest_line) >1) stop("Multiple quests have the same name")
       quest_times = private$getQuestTimewindow(quest, include_teleport = include_teleport)
@@ -228,10 +235,16 @@ BaseUnityAnalysis <- R6Class("BaseUnityAnalysis",
       return(player_log)
     },
     getStepTime = function(quest, step_name, step_action = "StepActivated", step_id = NULL){
-      if(is.null(quest))stop("Quest log not reachable")
+      if(is.null(quest)){
+        print("Quest log not reachable")
+        return(NULL)
+      } 
       if(!is.null(step_id)) return(quest$data$TimeFromStart[quest$data$StepID == step_id & quest$data$Action == step_action])
       steps = quest$data$TimeFromStart[quest$data$StepType == step_name & quest$data$Action == step_action]
-      if(length(steps) > 1) stop ("There is more steps of the same parameters. Specify please")
+      if(length(steps) > 1){ 
+        SmartPrint(c("ERROR:getStepTime", quest$name, "TYPE:", "There is more steps of the same parameters: ", step_action))
+        return(NULL)
+      }
       return(steps)
     },
     mapSize = function(quest = NULL){

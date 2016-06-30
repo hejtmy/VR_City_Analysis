@@ -37,7 +37,7 @@ UnityEyetrackerAnalysis <- R6Class("UnityEyetrackerAnalysis",
         if (is.null(self$position_table)) return(FALSE)
       },
       setDataDirectory = function(){
-        self$data_directory <- paste(self$dir,self$id,"VR", self$session, sep="/")
+        self$data_directory = paste(self$dir, self$id, "VR", self$session, sep="/")
       }
     )
 )
