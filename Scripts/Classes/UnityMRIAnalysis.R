@@ -2,15 +2,6 @@ UnityMRIAnalysis <- R6Class("UnityMRIAnalysis",
   inherit = BaseUnityAnalysis,
   #define variables
   public = list(
-    initialize = function(dir=data_path, id="", session=NULL){
-      self$dir = dir
-      self$SetParticipant(id)
-      self$SetSession(session)
-      #TODO - check the data
-      if(nargs() >= 3) {
-        self$ReadData()
-      }
-    },
    QuestsSummary = function(force = F){
      if (!force & !is.null(private$quests_summary)) return (private$quests_summary)
      df = super$QuestsSummary()
@@ -31,7 +22,7 @@ UnityMRIAnalysis <- R6Class("UnityMRIAnalysis",
     isValid = function(){
     },
     setDataDirectory = function(){
-      self$data_directory = paste(self$dir,self$id,"MRI",sep="/")
+      self$data_directory = paste(self$dir, self$id, "MRI", self$session, sep="/")
     },
     #calculates order and number of fMRI pulses
     calculateMRIPulses = function(quest){

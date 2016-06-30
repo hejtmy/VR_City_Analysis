@@ -6,6 +6,15 @@ BaseUnityAnalysis <- R6Class("BaseUnityAnalysis",
     quest_set = NULL,
     data_directory = NULL,
     session = NULL,
+    initialize = function(dir=data_path, id="", session=NULL){
+      self$dir = dir
+      self$SetParticipant(id)
+      self$SetSession(session)
+      #TODO - check the data
+      if(nargs() >= 3) {
+        self$ReadData()
+      }
+    },
     ReadData = function(override = F, save = T){
       private$readDataPrivate(override, save)
     },
@@ -91,7 +100,10 @@ BaseUnityAnalysis <- R6Class("BaseUnityAnalysis",
       
       #open experiment_logs to see how many do we have
       experiment_logs = OpenExperimentLogs(self$data_directory)
-      
+      if(is.null(experiment_logs)){
+        SmartPrint(c("Cannot find any experiment logs in ", self$directory))
+        return(NULL)
+      }
       #for each experiment_log, we open player log, scenario log and appropriate quest logs
       self$trial_sets = list()
       for (i in 1:length(experiment_logs)){

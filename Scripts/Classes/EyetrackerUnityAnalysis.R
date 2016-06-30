@@ -2,15 +2,6 @@ UnityEyetrackerAnalysis <- R6Class("UnityEyetrackerAnalysis",
     inherit = BaseUnityAnalysis,
     #define variables
     public = list(
-    initialize = function(dir=data_path, id="", session=NULL){
-       self$dir = dir
-       self$SetParticipant(id)
-       self$SetSession(session)
-       #TODO - check the data
-       if(nargs() >= 3) {
-          self$ReadData()
-       }
-    },
     QuestsSummary = function(force = F){
       if (!force & !is.null(private$quests_summary)) return (private$quests_summary)
       df = super$QuestsSummary()
@@ -46,7 +37,7 @@ UnityEyetrackerAnalysis <- R6Class("UnityEyetrackerAnalysis",
         if (is.null(self$position_table)) return(FALSE)
       },
       setDataDirectory = function(){
-        self$data_directory <- paste(self$dir,self$id,"VR",self$session,sep="/")
+        self$data_directory <- paste(self$dir,self$id,"VR", self$session, sep="/")
       }
     )
 )
