@@ -2,8 +2,9 @@ source("Scripts/LoadingScript.R")
 
 #sets the working dirrectory where the logs are
 data_dir <- "../Data/"
+data_dir = "C:/Users/hejtmy/OneDrive/NUDZ/HCENAT/Data/"
 
-subject_table = read.table("../Data/ListOfSubjects.csv", sep = ";", header=T, stringsAsFactors = F, na.strings = c(""))
+subject_table = read.table(paste(data_dir, "ListOfSubjects.csv",sep=""), sep = ",", header=T, stringsAsFactors = F, na.strings = c(""))
 
 #instantiates VR_analysis class with the name and project directory 
 #it loads appropriate log files and allows for immediate analysis
@@ -21,7 +22,7 @@ Analysis$QuestsSummary()
 Analysis$DrawQuestPath(1)
 
 #loads from the subjectList table
-Analyses = MultiParticipantUnityAnalysis$new(data_dir,subject_table,1)
+Analyses = MultiParticipantUnityAnalysis$new(data_dir, subject_table, 1)
 tabEyeQuests = Analyses$EyetrackerQuestsSummary()
 tabMRIQuests = Analyses$MRIQuestSummary()
 tabMRIPulses = Analyses$SynchropulsesTable()

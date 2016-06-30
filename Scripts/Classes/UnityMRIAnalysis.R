@@ -2,14 +2,15 @@ UnityMRIAnalysis <- R6Class("UnityMRIAnalysis",
   inherit = BaseUnityAnalysis,
   #define variables
   public = list(
-   initialize = function(dir=data_path, id=""){
-     self$dir = dir
-     self$SetParticipant(id)
-     #TODO - check the data
-     if(nargs() >= 2) {
-       self$ReadData()
-     }
-   },
+    initialize = function(dir=data_path, id="", session=NULL){
+      self$dir = dir
+      self$SetParticipant(id)
+      self$SetSession(session)
+      #TODO - check the data
+      if(nargs() >= 3) {
+        self$ReadData()
+      }
+    },
    QuestsSummary = function(force = F){
      if (!force & !is.null(private$quests_summary)) return (private$quests_summary)
      df = super$QuestsSummary()

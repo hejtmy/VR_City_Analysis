@@ -3,26 +3,22 @@ MultiParticipantUnityAnalysis <- R6Class("MultiParticipantUnityAnalysis",
  public = list(
     Data = NULL,
     initialize = function(dir, subject_table, session){
-      Data = list()
       for(i in 1:nrow(subject_table)){
-        participant_code = subject_table$Code[i]
-        ##Unity eyetracker loeading
-        unity_code = subject_table$UnityCode[i]
+        participant_code = subject_table$ID.NUDZ[i]
+        unity_code = subject_table$VR_EYE_1[i]
         if(is.na(unity_code)){
           print("------------")
           SmartPrint(c("There is no unity log for participant", participant_code))
         } else {
           SmartPrint(c("------------ Loading", participant_code,"------------"))
           SmartPrint(c("Code for Eyetracker log for participant", participant_code, "is", unity_code))
-          analysis = UnityEyetrackerAnalysis$new(dir,participant_code,session)
+          analysis = UnityEyetrackerAnalysis$new(dir, participant_code, session)
           self$Data[[participant_code]]$UnityEyetracker = analysis
         }
-        ##MRI loading
-        mri_code = subject_table$MRICode[i]
+        mri_code = subject_table$VR_MRI_1[i]
         if(is.na(mri_code)){
           print("------------")
           SmartPrint(c("There is no MRI log for participant", participant_code))
-          next
         } else {
           SmartPrint(c("Code for MRI log for participant", participant_code, "is", mri_code))
           analysis = UnityMRIAnalysis$new(dir,participant_code)

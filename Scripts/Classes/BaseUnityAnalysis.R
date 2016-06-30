@@ -5,8 +5,13 @@ BaseUnityAnalysis <- R6Class("BaseUnityAnalysis",
     trial_sets = NULL,
     quest_set = NULL,
     data_directory = NULL,
+    session = NULL,
     ReadData = function(override = F, save = T){
       private$readDataPrivate(override, save)
+    },
+    #define what is valid in the current context
+    SetSession = function(number=1){
+      self$session = paste("Session",number,sep="")
     },
     QuestsSummary = function(force = F){
       df = self$quest_set

@@ -2,8 +2,6 @@ UnityEyetrackerAnalysis <- R6Class("UnityEyetrackerAnalysis",
     inherit = BaseUnityAnalysis,
     #define variables
     public = list(
-        #basic definitions
-        session = NULL,
     initialize = function(dir=data_path, id="", session=NULL){
        self$dir = dir
        self$SetParticipant(id)
@@ -12,10 +10,6 @@ UnityEyetrackerAnalysis <- R6Class("UnityEyetrackerAnalysis",
        if(nargs() >= 3) {
           self$ReadData()
        }
-    },
-    #define what is valid in the current context
-    SetSession = function(number=1){
-     self$session = paste("Session",number,sep="")
     },
     QuestsSummary = function(force = F){
       if (!force & !is.null(private$quests_summary)) return (private$quests_summary)
