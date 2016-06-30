@@ -24,6 +24,7 @@ BaseUnityAnalysis <- R6Class("BaseUnityAnalysis",
     },
     QuestsSummary = function(force = F){
       df = self$quest_set
+      if(is.null(df)) return(NULL)
       trail_times = numeric(nrow(df))
       trail_distances = numeric(nrow(df))
       for(i in 1:nrow(df)){
@@ -38,12 +39,12 @@ BaseUnityAnalysis <- R6Class("BaseUnityAnalysis",
     #session_id = 
     QuestSummary = function(quest_idx = NULL, quest_session_id = NULL){
       ls = list()
-      if (is.null(quest_idx)){
+      if (!is.null(quest_session_id)){
         quest = private$questStep(quest_session_id)
         quest_times = private$getQuestTimewindow(quest, include_teleport = F) #can be null
         ls$Time = ifelse(is.null(quest_times), NA, diff(c(quest_times$start,quest_times$finish)))
         
-        player_log = private$playerLogForQuest(quest)
+        player_log = private$playerLogForQuest(quest, quest_session_id)
         if(is.null(player_log)){
           ls$Distance = NA
           ls$Finished = NA
@@ -54,7 +55,7 @@ BaseUnityAnalysis <- R6Class("BaseUnityAnalysis",
           ls$Finished = private$questFinished(quest)
         }
       }
-      if (is.null(quest_session_id)){
+      if (!is.null(quest_idx)){
         quest_types = c("learn","trial")
         quests = private$questStep(quest_idx, quest_types)
         if(!length(quests) > 0) stop("no quests were found")
@@ -169,7 +170,10 @@ BaseUnityAnalysis <- R6Class("BaseUnityAnalysis",
     #include teleport = F, the starting point is calculate from the end of the first teleport
     getQuestTimewindow = function(quest = NULL, quest_idx = NULL, include_teleport = T){
       if(is.null(quest)) quest = private$questStep(quest_idx)
-      if(is.null(quest)) stop("Quest log not reachable")
+      if(is.null(quest)){
+        SmartPrint(c("ERROR:qetQUestTimewindow", "Quest log not reachable"))
+        return(NULL)
+      }
       if(include_teleport){
         start_time = quest$data$TimeFromStart[quest$data$Action == "Quest started"]
       }else{
@@ -195,7 +199,10 @@ BaseUnityAnalysis <- R6Class("BaseUnityAnalysis",
     },
     getTeleportTimes = function(quest = NULL, quest_idx=NULL){
       if(is.null(quest)) quest = private$questStep(quest_idx)
-      if(is.null(quest)) stop("Quest log not reachable")
+      if(is.null(quest)){
+        SmartPrint(c("ERROR:getTeleportTimes", "Quest log not reachable"))
+        return(NULL)
+      } 
       ls = list()
       ls[["start"]] = private$getStepTime(quest, "Teleport Player")
       ls[["finish"]] = private$getStepTime(quest, "Teleport Player", "StepFinished")
@@ -223,13 +230,17 @@ BaseUnityAnalysis <- R6Class("BaseUnityAnalysis",
       player_log = data.table()
       for(i in 1:length(self$trial_sets)){
         pos_tab =  self$trial_sets[[i]]$player_log
-        player_log = rbindlist(list(player_log,pos_tab))
+        player_log = rbindlist(list(player_log, pos_tab))
       }
       return(player_log)
     },
-    playerLogForQuest = function(quest, include_teleport = T){
-      quest_line = filter(self$quest_set, name == quest$name)
-      if(nrow(quest_line) >1) stop("Multiple quests have the same name")
+    playerLogForQuest = function(quest = NULL, quest_session_id = NULL, include_teleport = T){
+      if(!is.null(quest)) quest_line = filter(self$quest_set, name == quest$name)
+      if(!is.null(quest_session_id)) quest_line = filter(self$quest_set, session_id == quest_session_id)
+      if(nrow(quest_line) > 1){
+        print("Multiple quests have the same name")
+        return(NULL)
+      }
       quest_times = private$getQuestTimewindow(quest, include_teleport = include_teleport)
       player_log = self$trial_sets[[quest_line$id_of_set]]$player_log[Time > quest_times$start & Time < quest_times$finish,]
       return(player_log)

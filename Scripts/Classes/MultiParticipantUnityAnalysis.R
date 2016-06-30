@@ -8,6 +8,7 @@ MultiParticipantUnityAnalysis <- R6Class("MultiParticipantUnityAnalysis",
         self$Data = data
         return(self) 
       }
+      #if saved
       self$Data = list()
       for(i in 1:nrow(subject_table)){
         participant_code = subject_table$ID[i]
@@ -37,10 +38,11 @@ MultiParticipantUnityAnalysis <- R6Class("MultiParticipantUnityAnalysis",
      if (!force & !is.null(private$eyetracker_quest_summary_tab)) return (private$eyetracker_quest_summary_tab)
      final = data.frame()
      for(i in 1:length(self$Data)){
-       print(i)
+       print(self$Data[[i]]$UnityEyetracker$data_directory)
        analysis = self$Data[[i]]$UnityEyetracker
        if(is.null(analysis)) next
        df = analysis$QuestsSummary()
+       if(is.null(df)) next
        df = mutate(df, participant_id = rep(analysis$id,nrow(df)))
        final = rbindlist(list(final,df))
      }
@@ -51,10 +53,11 @@ MultiParticipantUnityAnalysis <- R6Class("MultiParticipantUnityAnalysis",
       if (!force & !is.null(private$mri_quest_summary_tab)) return (private$mri_quest_summary_tab)
       final = data.frame()
       for(i in 1:length(self$Data)){
-        print(i)
+        print(self$Data[[i]]$MRI$data_directory)
         analysis = self$Data[[i]]$MRI
         if(is.null(analysis)) next
         df = analysis$QuestsSummary()
+        if(is.null(df)) next
         df = mutate(df, participant_id = rep(analysis$id,nrow(df)))
         final = rbindlist(list(final,df))
       }
