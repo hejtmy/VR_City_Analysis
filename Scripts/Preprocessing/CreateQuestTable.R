@@ -1,7 +1,0 @@
-CreateQuestTable = function(){
-  
-}
-
-QuestSummary = function(){
-  
-}

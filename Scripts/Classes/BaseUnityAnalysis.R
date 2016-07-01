@@ -23,53 +23,12 @@ BaseUnityAnalysis <- R6Class("BaseUnityAnalysis",
       self$session = paste("Session", number, sep="")
     },
     QuestsSummary = function(force = F){
-      df = self$quest_set
-      if(is.null(df)) return(NULL)
-      trail_times = numeric(nrow(df))
-      trail_distances = numeric(nrow(df))
-      for(i in 1:nrow(df)){
-        quest_summary = self$QuestSummary(quest_session_id = i) #possble to get NULL
-        trail_times[i] = ifelse(length(quest_summary$Time) < 1, NA, quest_summary$Time)
-        trail_distances[i] = ifelse(length(quest_summary$Distance) < 1, NA, quest_summary$Distance)
-      }
-      df = mutate(df, time = trail_times, distance = trail_distances)
-      return(df)
+      return(MakeQuestsSummary(self$quest_set, self$trial_sets))
     },
     #takes either quest_id or session id as a parameter
     #session_id = 
     QuestSummary = function(quest_idx = NULL, quest_session_id = NULL){
-      ls = list()
-      if (!is.null(quest_session_id)){
-        quest = private$questStep(quest_session_id)
-        quest_times = private$getQuestTimewindow(quest, include_teleport = F) #can be null
-        ls$Time = ifelse(is.null(quest_times), NA, diff(c(quest_times$start,quest_times$finish)))
-        
-        player_log = private$playerLogForQuest(quest, quest_session_id)
-        if(is.null(player_log)){
-          ls$Distance = NA
-          ls$Finished = NA
-        } else {
-          #needs to find the first place after the teleport
-          positions = c(head(player_log,1)$cumulative_distance, tail(player_log,1)$cumulative_distance)
-          ls$Distance = diff(positions)
-          ls$Finished = private$questFinished(quest)
-        }
-      }
-      if (!is.null(quest_idx)){
-        quest_types = c("learn","trial")
-        quests = private$questStep(quest_idx, quest_types)
-        if(!length(quests) > 0) stop("no quests were found")
-        #for each list member - checking if there are two
-        for(type in quest_types){
-          quest = quests[[type]]
-          quest_session_id = private$getQuestSessionId(quest)
-          summary = self$QuestSummary(quest_session_id = quest_session_id)
-          ls[[type]]$Time = summary$Time
-          ls[[type]]$Distace = summary$Distance
-          ls[[type]]$Finished = summary$Finished
-        }
-      }
-      return(ls)
+      return(MakeQuestSummary(self$quest_set, self$trial_sets, quest_idx, quest_session_id))
     },
     PublicQuestStep = function(quest_idx, quest_types = NULL){
       private$questStep(quest_idx, quest_types)
@@ -131,66 +90,21 @@ BaseUnityAnalysis <- R6Class("BaseUnityAnalysis",
       private$isValid()
     },
     questStep = function(quest_idx, quest_types = NULL){
-      ls = list()
-      #if the length is 0, we assume that the quest_idx is quest_session_id
-      if(length(quest_types) == 0){
-        quest_lines = filter(self$quest_set, session_id %in% quest_idx)
-        if(nrow(quest_lines) == 0) return(NULL)
-        #foreach
-        for(i in 1:nrow(quest_lines)){
-          quest_line = quest_lines[i]
-          if(is.null(quest_line)) stop(quest_line)
-          quest = self$trial_sets[[quest_line$id_of_set]]$quest_logs[quest_line$set_id]
-          quest[[1]]$name = select(quest_line,name)[[1]]
-          ls = c(ls,quest)
-        }
-        #$removes redundant header - we can resave it
-        ls = ls[[1]]
-      } 
-      if(length(quest_types) > 0){
-        quest_lines = filter(self$quest_set, id == quest_idx & type %in% quest_types)
-        if(!(nrow(quest_lines) > 0)) return(NULL) 
-        for(i in 1:nrow(quest_lines)){
-          quest_line = quest_lines[i]
-          ls[[quest_types[i]]] = self$trial_sets[[quest_line$id_of_set]]$quest_logs[quest_line$set_id][[1]]
-          ls[[quest_types[i]]]$name = select(quest_line,name)[[1]]
-        }
-        #if we only searched for a signle quest
-        if(length(quest_types)==1) ls = ls[[1]]
-      }
-      return(ls)
+      return(QuestStep(self$quest_set, self$trial_sets, quest_idx, quest_types = NULL))
     },      
     getQuestSessionId = function(quest){
-      quest_session_id = (filter(self$quest_set,name == quest$name) %>% select(session_id))[[1]]
-      if (length(quest_session_id) > 1) stop("There are more quests with this id. Do you have correct logs in the directory?")
-      return(quest_session_id)
+      return(GetQuestSessionId(quest))
     },
     #returns list with start and finish fields
     #include teleport = T, the starting point is calculate from the beginning of the quest
     #include teleport = F, the starting point is calculate from the end of the first teleport
-    getQuestTimewindow = function(quest = NULL, quest_idx = NULL, include_teleport = T){
-      if(is.null(quest)) quest = private$questStep(quest_idx)
-      if(is.null(quest)){
-        SmartPrint(c("ERROR:getQUestTimewindow", "Quest log not reachable"))
-        return(NULL)
-      }
-      if(include_teleport){
-        start_time = quest$data$TimeFromStart[quest$data$Action == "Quest started"]
-      }else{
-        start_time = private$getTeleportTimes(quest)$finish
-      }
-      end_time = quest$data$TimeFromStart[quest$data$Action == "Quest finished"]
-      #if there never was end of the quest
-      if (length(end_time) < 1)end_time = tail(quest$data,1)$TimeFromStart
-      ls = list()
-      ls[["start"]] = start_time
-      ls[["finish"]] = end_time
-      return(ls)
+    getQuestTimewindow = function(quest = NULL, include_teleport = T){
+      return(GetQuestTimewindow(quest, include_teleport))
     },
     questFinished = function(quest){
       return(nrow(quest$data[quest$data$Action == "Quest finished",]) > 0)
     },
-    selectQuestPositionData = function(quest,time_window){
+    selectQuestPositionData = function(quest, time_window){
       if(missing(time_window)) stop("Need to specify time window")
       if (length(time_window)!=2) stop("Time window needs to have only two times inside")
       id_of_set = (filter(self$quest_set, name == quest$name) %>% select(id_of_set))[[1]]
@@ -198,15 +112,7 @@ BaseUnityAnalysis <- R6Class("BaseUnityAnalysis",
       return(position_table[Time > time_window$start & Time < time_window$finish])
     },
     getTeleportTimes = function(quest = NULL, quest_idx=NULL){
-      if(is.null(quest)) quest = private$questStep(quest_idx)
-      if(is.null(quest)){
-        SmartPrint(c("ERROR:getTeleportTimes", "Quest log not reachable"))
-        return(NULL)
-      } 
-      ls = list()
-      ls[["start"]] = private$getStepTime(quest, "Teleport Player")
-      ls[["finish"]] = private$getStepTime(quest, "Teleport Player", "StepFinished")
-      return(ls)
+      return(GetQuestTimewindow(quest))
     },
     getQuestStartAndFinishPositions = function(quest, include_teleport = T){
       if(is.null(quest)) stop("Quest log not reachable")
@@ -235,28 +141,10 @@ BaseUnityAnalysis <- R6Class("BaseUnityAnalysis",
       return(player_log)
     },
     playerLogForQuest = function(quest = NULL, quest_session_id = NULL, include_teleport = T){
-      if(!is.null(quest)) quest_line = filter(self$quest_set, name == quest$name)
-      if(!is.null(quest_session_id)) quest_line = filter(self$quest_set, session_id == quest_session_id)
-      if(nrow(quest_line) > 1){
-        print("Multiple quests have the same name")
-        return(NULL)
-      }
-      quest_times = private$getQuestTimewindow(quest, include_teleport = include_teleport)
-      player_log = self$trial_sets[[quest_line$id_of_set]]$player_log[Time > quest_times$start & Time < quest_times$finish,]
-      return(player_log)
+      return(PlayerLogForQuest(quest, quest_session_id,include_teleport))
     },
     getStepTime = function(quest, step_name, step_action = "StepActivated", step_id = NULL){
-      if(is.null(quest)){
-        print("Quest log not reachable")
-        return(NULL)
-      } 
-      if(!is.null(step_id)) return(quest$data$TimeFromStart[quest$data$StepID == step_id & quest$data$Action == step_action])
-      steps = quest$data$TimeFromStart[quest$data$StepType == step_name & quest$data$Action == step_action]
-      if(length(steps) > 1){ 
-        SmartPrint(c("ERROR:getStepTime", quest$name, "TYPE:", "There is more steps of the same parameters: ", step_action))
-        return(NULL)
-      }
-      return(steps)
+      return(GetStepTime(quest, step_name, step_action, step_id))
     },
     mapSize = function(quest = NULL){
       ls = list()
