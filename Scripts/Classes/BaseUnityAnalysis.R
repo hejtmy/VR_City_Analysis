@@ -171,7 +171,7 @@ BaseUnityAnalysis <- R6Class("BaseUnityAnalysis",
     getQuestTimewindow = function(quest = NULL, quest_idx = NULL, include_teleport = T){
       if(is.null(quest)) quest = private$questStep(quest_idx)
       if(is.null(quest)){
-        SmartPrint(c("ERROR:qetQUestTimewindow", "Quest log not reachable"))
+        SmartPrint(c("ERROR:getQUestTimewindow", "Quest log not reachable"))
         return(NULL)
       }
       if(include_teleport){

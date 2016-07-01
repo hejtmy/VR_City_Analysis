@@ -1,0 +1,7 @@
+CreateQuestTable = function(){
+  
+}
+
+QuestSummary = function(){
+  
+}

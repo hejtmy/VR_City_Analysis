@@ -6,6 +6,7 @@ UnityMRIAnalysis <- R6Class("UnityMRIAnalysis",
      if (!force & !is.null(private$quests_summary)) return (private$quests_summary)
      df = super$QuestsSummary()
      if(is.null(df)) return(NULL)
+     #adds pulses
      firstPulses = integer(nrow(df))
      numberOfPulses = integer(nrow(df))
      for(i in 1:nrow(df)){
