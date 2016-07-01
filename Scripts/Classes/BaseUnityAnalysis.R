@@ -133,12 +133,7 @@ BaseUnityAnalysis <- R6Class("BaseUnityAnalysis",
       return(ls)
     },
     wholePlayerLog = function(){
-      player_log = data.table()
-      for(i in 1:length(self$trial_sets)){
-        pos_tab =  self$trial_sets[[i]]$player_log
-        player_log = rbindlist(list(player_log, pos_tab))
-      }
-      return(player_log)
+      return(wholePlayerLog(trial_sets))
     },
     playerLogForQuest = function(quest = NULL, quest_session_id = NULL, include_teleport = T){
       return(PlayerLogForQuest(quest, quest_session_id,include_teleport))

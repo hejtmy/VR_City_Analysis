@@ -10,3 +10,12 @@ PlayerLogForQuest = function(quest_set, quest = NULL, trial_sets = NULL, quest_s
   player_log = trial_sets[[quest_line$id_of_set]]$player_log[Time > quest_times$start & Time < quest_times$finish,]
   return(player_log)
 }
+
+WholePlayerLog = function(trial_sets){
+  player_log = data.table()
+  for(i in 1:length(self$trial_sets)){
+    pos_tab =  self$trial_sets[[i]]$player_log
+    player_log = rbindlist(list(player_log, pos_tab))
+  }
+  return(player_log)
+}
