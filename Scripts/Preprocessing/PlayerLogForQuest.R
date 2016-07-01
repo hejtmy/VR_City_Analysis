@@ -13,8 +13,8 @@ PlayerLogForQuest = function(quest_set, quest = NULL, trial_sets = NULL, quest_s
 
 WholePlayerLog = function(trial_sets){
   player_log = data.table()
-  for(i in 1:length(self$trial_sets)){
-    pos_tab =  self$trial_sets[[i]]$player_log
+  for(i in 1:length(trial_sets)){
+    pos_tab =  trial_sets[[i]]$player_log
     player_log = rbindlist(list(player_log, pos_tab))
   }
   return(player_log)

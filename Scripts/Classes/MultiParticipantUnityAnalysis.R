@@ -41,7 +41,7 @@ MultiParticipantUnityAnalysis <- R6Class("MultiParticipantUnityAnalysis",
        print(self$Data[[i]]$UnityEyetracker$data_directory)
        analysis = self$Data[[i]]$UnityEyetracker
        if(is.null(analysis)) next
-       df = analysis$QuestsSummary()
+       df = analysis$QuestsSummary(force)
        if(is.null(df)) next
        df = mutate(df, participant_id = rep(analysis$id,nrow(df)))
        final = rbindlist(list(final,df))
@@ -56,7 +56,7 @@ MultiParticipantUnityAnalysis <- R6Class("MultiParticipantUnityAnalysis",
         print(self$Data[[i]]$MRI$data_directory)
         analysis = self$Data[[i]]$MRI
         if(is.null(analysis)) next
-        df = analysis$QuestsSummary()
+        df = analysis$QuestsSummary(force)
         if(is.null(df)) next
         df = mutate(df, participant_id = rep(analysis$id,nrow(df)))
         final = rbindlist(list(final,df))

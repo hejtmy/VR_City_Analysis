@@ -2,6 +2,7 @@ MakeQuestSummary = function(quest_set, trial_sets, quest_session_id = NULL, ques
   ls = list()
   if (!is.null(quest_session_id)){
     quest = QuestStep(quest_set, trial_sets, quest_session_id)
+    if(is.null(quest)) return(NULL)
     quest_times = GetQuestTimewindow(quest, include_teleport = F) #can be null
     ls$Time = ifelse(is.null(quest_times), NA, diff(c(quest_times$start,quest_times$finish)))
     

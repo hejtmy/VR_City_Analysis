@@ -9,6 +9,7 @@ QuestStep = function(quest_set, trial_sets, quest_idx, quest_types = NULL){
       quest_line = quest_lines[i]
       if(is.null(quest_line)) stop(quest_line)
       quest = trial_sets[[quest_line$id_of_set]]$quest_logs[quest_line$set_id]
+      if(is.null(quest)) return(NULL)
       quest[[1]]$name = select(quest_line,name)[[1]]
       ls = c(ls,quest)
     }

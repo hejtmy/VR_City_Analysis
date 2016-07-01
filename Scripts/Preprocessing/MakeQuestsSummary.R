@@ -36,7 +36,7 @@ AddPulsesToSummary = function(df, quest_set, trial_sets){
   return(df)
 }
 #calculates order and number of fMRI pulses
-calculateMRIPulses = function(trial_sets, quest){
+CalculateMRIPulses = function(trial_sets, quest){
   ls = list()
   player_log = WholePlayerLog(trial_sets)
   timeWindow = GetQuestTimewindow(quest, include_teleport = T)

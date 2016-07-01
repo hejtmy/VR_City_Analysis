@@ -4,7 +4,7 @@ UnityMRIAnalysis <- R6Class("UnityMRIAnalysis",
   public = list(
    QuestsSummary = function(force = F){
      if (!force & !is.null(private$quests_summary)) return (private$quests_summary)
-     df = MakeMRIQuestsSummary(self$quest_set, self$trial_set)
+     df = MakeMRIQuestsSummary(self$quest_set, self$trial_sets)
      private$quests_summary = df
      return(df)
    }

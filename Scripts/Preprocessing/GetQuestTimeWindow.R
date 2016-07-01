@@ -3,7 +3,7 @@ getQuestTimewindow = function(quest = NULL, quest_idx = NULL, include_teleport =
 }
 GetQuestTimewindow = function(quest = NULL, quest_idx = NULL, include_teleport = T){
   if(is.null(quest)){
-    SmartPrint(c("ERROR:getQUestTimewindow", "Quest log not reachable"))
+    SmartPrint(c("ERROR:getQuestTimewindow", "Quest log not reachable"))
     return(NULL)
   }
   if(include_teleport){
