@@ -28,6 +28,9 @@ tabEyeQuests = Analyses$EyetrackerQuestsSummary()
 tabMRIQuests = Analyses$MRIQuestSummary()
 tabMRIPulses = Analyses$SynchropulsesTable()
 
+write.table(tabEyeQuests,"tabEyeQuests.csv", sep=";", row.names = F, quote = F)
+write.table(tabMRIQuests,"tabMRIQuests.csv", sep=";", row.names = F, quote = F)
+
 MRIInformation(tabMRIPulses)
 
 t.test(tabEyeQuests$time~tabEyeQuests$type)

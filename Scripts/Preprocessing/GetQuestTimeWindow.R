@@ -13,13 +13,12 @@ GetQuestTimewindow = function(quest = NULL, quest_idx = NULL, include_teleport =
   }
   end_time = quest$data$TimeFromStart[quest$data$Action == "Quest finished"]
   #if there never was end of the quest
-  if (length(end_time) < 1)end_time = tail(quest$data,1)$TimeFromStart
+  if (length(end_time) < 1) end_time = tail(quest$data,1)$TimeFromStart
   ls = list()
   ls[["start"]] = start_time
   ls[["finish"]] = end_time
   return(ls)
 }
-
 GetTeleportTimes = function(quest = NULL){
   if(is.null(quest)){
     SmartPrint(c("ERROR:getTeleportTimes", "Quest log not reachable"))

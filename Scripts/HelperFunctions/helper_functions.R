@@ -4,9 +4,18 @@ source_folder = function(path){
 is_between = function(numbers, between_low, between_high){
   return(sapply(numbers, function(x) (x > between_low && x < between_high)))
 }
+#X_value are in a format
 EuclidDistanceColumns = function(x_values,y_values){
-  x = c(x_values[[1]][1],y_values[[1]][1])
-  y = c(x_values[[1]][2],y_values[[1]][2])
+  if(is.list(x_values)){
+    x = c(x_values[[1]][1], y_values[[1]][1])
+    y = c(x_values[[1]][2], y_values[[1]][2])
+  }
+  #TODO - this is rubbish-basically it depends on which fnction it calls it and what input it passes
+  if (is.numeric(x_values) && is.numeric(y_values)){ 
+    x = c(x_values[1], x_values[2])
+    y = c(y_values[1], y_values[2])
+  }
+  if(is.null(x) || is.null(y)) return(NA)
   return(sqrt(sum((x-y)^2)))
 }
 ColumnPresent = function(names,name){

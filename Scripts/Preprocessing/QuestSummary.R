@@ -15,6 +15,7 @@ MakeQuestSummary = function(quest_set, trial_sets, quest_session_id = NULL, ques
       positions = c(head(player_log,1)$cumulative_distance, tail(player_log,1)$cumulative_distance)
       ls$Distance = diff(positions)
       ls$Finished = QuestFinished(quest)
+      ls$DistanceToLastStep = DistanceToLastStep(quest_set, quest, trial_sets);
     }
   }
   if (!is.null(quest_id)){
@@ -29,17 +30,17 @@ MakeQuestSummary = function(quest_set, trial_sets, quest_session_id = NULL, ques
       ls[[type]]$Time = summary$Time
       ls[[type]]$Distace = summary$Distance
       ls[[type]]$Finished = summary$Finished
+      ls$DistanceToLastStep = DistanceToLastStep(quest, trial_sets);
     }
   }
   return(ls)
 }
-
 GetQuestSessionId = function(quest){
   quest_session_id = (filter(self$quest_set,name == quest$name) %>% select(session_id))[[1]]
   if (length(quest_session_id) > 1) stop("There are more quests with this id. Do you have correct logs in the directory?")
   return(quest_session_id)
 }
-
+###TODO - can be NULL/NA under some circumstances
 QuestFinished = function(quest){
   return(nrow(quest$data[quest$data$Action == "Quest finished",]) > 0)
 }
