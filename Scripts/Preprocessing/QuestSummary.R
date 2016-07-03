@@ -42,5 +42,6 @@ GetQuestSessionId = function(quest){
 }
 ###TODO - can be NULL/NA under some circumstances
 QuestFinished = function(quest){
+  return (ifelse(is.null(GetLastStepTime(quest)),FALSE,TRUE))
   return(nrow(quest$data[quest$data$Action == "Quest finished",]) > 0)
 }
