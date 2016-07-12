@@ -38,7 +38,7 @@ BaseUnityAnalysis <- R6Class("BaseUnityAnalysis",
       #Hmakes the path for the entire thing
       if (is.null(quest_session_id)){
         path_table = private$wholePlayerLog()
-        map_size = private$mapSize()
+        map_size = private$map_size()
         return(make_path_image(img_location = img_path, position_table = path_table, map_size = map_size))
       } else {
         quest = private$questStep(quest_session_id)
@@ -49,7 +49,7 @@ BaseUnityAnalysis <- R6Class("BaseUnityAnalysis",
         special_paths = list()
         special_paths[["teleport"]]= private$getTeleportTimes(quest)
         quest_start_and_stop = private$getQuestStartAndFinishPositions(quest)
-        map_size = private$mapSize(quest)
+        map_size = private$map_size(quest)
         if (!is.null(special_paths)){
           make_path_image(img_location = img_path, position_table = path_table, map_size = map_size, special_paths = special_paths, special_points = quest_start_and_stop)
         } else {
@@ -115,22 +115,7 @@ BaseUnityAnalysis <- R6Class("BaseUnityAnalysis",
       return(GetQuestTimewindow(quest))
     },
     getQuestStartAndFinishPositions = function(quest, include_teleport = T){
-      if(is.null(quest)) stop("Quest log not reachable")
-      #gets finished time of the teleport
-      teleport_finished = private$getTeleportTimes(quest)$finish
-      teleport_target_postition = private$playerLogForQuest(quest)[Time > teleport_finished, .SD[1,c(Position.x,Position.z)]]
-      #goes step by step from the end until it gets end with transform
-      for(i in nrow(quest$steps):1){
-        quest_finish_position = text_to_vector3(quest$steps$Transform[i])
-        if(!is.null(quest_finish_position)){
-          quest_finish_position = quest_finish_position[c(1,3)]
-          break
-        }
-      }
-      ls = list()
-      ls[["start"]] = teleport_target_postition
-      ls[["finish"]] = quest_finish_position
-      return(ls)
+      return(quest_start_finish_positions(self$quest_set, self$trial_sets, quest, include_teleport))
     },
     wholePlayerLog = function(){
       return(wholePlayerLog(trial_sets))
@@ -141,16 +126,8 @@ BaseUnityAnalysis <- R6Class("BaseUnityAnalysis",
     getStepTime = function(quest, step_name, step_action = "StepActivated", step_id = NULL){
       return(GetStepTime(quest, step_name, step_action, step_id))
     },
-    mapSize = function(quest = NULL){
-      ls = list()
-      if (is.null(quest)) quest = private$questStep(1)
-      quest_line = filter(self$quest_set, name == quest$name)
-      terrain_info = self$trial_sets[[quest_line$id_of_set]]$experiment_log$terrain
-      size = text_to_vector3(terrain_info$Size)
-      pivot = text_to_vector3(terrain_info$Pivot)
-      ls[["x"]] = c(pivot[1],pivot[1] + size[1])
-      ls[["y"]] = c(pivot[3],pivot[3] + size[3])
-      return(ls)
+    map_size = function(){
+      map_size(self$quest_set, self$trial_sets)
     }
   )
 )
