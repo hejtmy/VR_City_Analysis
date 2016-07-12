@@ -18,7 +18,11 @@ LastPlayerPositionInQuest = function(quest_set, quest, trial_sets){
   return(c(lastPosition$Position.x,lastPosition$Position.z))
 }
 LastQuestPosition = function(quest){
-  transforms = quest$steps$Transform[quest$steps$Transform!="NO transform"]
-  lastTransform = tail(transforms,1)
-  return(text_to_vector3(lastTransform)[c(1,3)])
+  transformsIDs = quest$steps$ID[quest$steps$Transform!="NO transform"]
+  if(length(transformsIDs) == 0){
+    SmartPrint(c("ERROR:LastQuestPosition:NoTransforms", "Quest: ", quest$name, "DESCRIPTION:", "There is no quest steps with transforms"))
+    return(NULL)
+  }
+  lastID = tail(transformsIDs,1)
+  return(quest_step_position(quest, lastID))
 }

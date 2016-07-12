@@ -136,7 +136,7 @@ BaseUnityAnalysis <- R6Class("BaseUnityAnalysis",
       return(wholePlayerLog(trial_sets))
     },
     playerLogForQuest = function(quest = NULL, quest_session_id = NULL, include_teleport = T){
-      return(PlayerLogForQuest(quest, quest_session_id,include_teleport))
+      return(PlayerLogForQuest(quest, quest_session_id, include_teleport))
     },
     getStepTime = function(quest, step_name, step_action = "StepActivated", step_id = NULL){
       return(GetStepTime(quest, step_name, step_action, step_id))

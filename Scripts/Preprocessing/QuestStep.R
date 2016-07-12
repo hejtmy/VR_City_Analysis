@@ -1,3 +1,9 @@
+quest = function(quest_set, trial_sets, quest_idx, quest_types = NULL){
+  return(quest_step(quest_set, trial_sets, quest_idx, quest_types))
+}
+quest_step = function(quest_set, trial_sets, quest_idx, quest_types = NULL){
+  return(QuestStep(quest_set, trial_sets, quest_idx, quest_types))
+}
 QuestStep = function(quest_set, trial_sets, quest_idx, quest_types = NULL){
   ls = list()
   #if the length is 0, we assume that the quest_idx is quest_session_id
@@ -21,7 +27,7 @@ QuestStep = function(quest_set, trial_sets, quest_idx, quest_types = NULL){
     if(!(nrow(quest_lines) > 0)) return(NULL) 
     for(i in 1:nrow(quest_lines)){
       quest_line = quest_lines[i]
-      ls[[quest_types[i]]] = self$trial_sets[[quest_line$id_of_set]]$quest_logs[quest_line$set_id][[1]]
+      ls[[quest_types[i]]] = trial_sets[[quest_line$id_of_set]]$quest_logs[quest_line$set_id][[1]]
       ls[[quest_types[i]]]$name = select(quest_line,name)[[1]]
     }
     #if we only searched for a signle quest

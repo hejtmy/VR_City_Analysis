@@ -1,5 +1,6 @@
-getQuestTimewindow = function(quest = NULL, quest_idx = NULL, include_teleport = T){
-  return(GetQuestTimewindow(quest,quest_idx, include_teleport))
+quest_timewindow = function(quest = NULL, quest_idx = NULL, include_teleport = T){
+  ls = GetQuestTimewindow(quest, quest_idx, include_teleport)
+  return(ls)
 }
 GetQuestTimewindow = function(quest = NULL, quest_idx = NULL, include_teleport = T){
   if(is.null(quest)){
