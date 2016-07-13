@@ -5,6 +5,15 @@ quest_step = function(quest_set, trial_sets, quest_idx, quest_types = NULL){
   return(QuestStep(quest_set, trial_sets, quest_idx, quest_types))
 }
 QuestStep = function(quest_set, trial_sets, quest_idx, quest_types = NULL){
+  #validations
+  if(is.null(quest_set)){
+    SmartPrint(c("ERROR:QuestStep:MissingParameter", "TYPE:quest_set", "DESCRIPTION:", "Missing parameter"))
+    return()
+  }
+  if(is.null(trial_sets)){
+    SmartPrint(c("ERROR:QuestStep:MissingParameter", "TYPE:trial_sets", "DESCRIPTION:", "Missing parameter"))
+    return()
+  }
   ls = list()
   #if the length is 0, we assume that the quest_idx is quest_session_id
   if(length(quest_types) == 0){
