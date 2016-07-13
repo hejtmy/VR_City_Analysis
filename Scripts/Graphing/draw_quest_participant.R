@@ -5,7 +5,7 @@
 #' @param quest_id ID of the quest - not session id, but the order of a quest
 #' @param img_path path to the image that will be overwrote
 #' @return graph of the learned and trial path
-draw_quest_path = function(quest_set, trial_sets, quest_id, types = c("learn","trial"), img_path = NULL){
+draw_quest_participant = function(quest_set, trial_sets, quest_id, types = c("learn","trial"), img_path = NULL){
   #validation
   if(is.null(img_path)){
     SmartPrint(c("ERROR:draw_quest_path:MissingParameter", "TYPE:img_path ", "DESCRIPTION:", "Missing parameter"))
