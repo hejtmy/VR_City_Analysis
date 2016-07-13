@@ -8,10 +8,9 @@
 draw_quest_participant = function(quest_set, trial_sets, quest_id, types = c("learn","trial"), img_path = NULL){
   #validation
   if(is.null(img_path)){
-    SmartPrint(c("ERROR:draw_quest_path:MissingParameter", "TYPE:img_path ", "DESCRIPTION:", "Missing parameter"))
+    SmartPrint(c("ERROR:draw_quest_participant:MissingParameter", "TYPE:img_path ", "DESCRIPTION:", "Missing parameter"))
     stop()
   }
-  special_paths = list()
   quest_start_and_stop = NULL
   path_table = data.table()
   first = TRUE
@@ -26,8 +25,9 @@ draw_quest_participant = function(quest_set, trial_sets, quest_id, types = c("le
       map_size = map_size(quest_set, trial_sets, quest)
     }
     special_paths[[type]] = ls[["time"]]
-    #adds path_table to the 
-    quest_path_table = ls[["player_log"]]
+    #TODO - checks for the log to be present
+    quest_player_table = ls[["player_log"]]
+    modified_log = add_special_path_column(quest_player_table, participant_name)
     path_table = rbindlist(list(path_table, quest_path_table))
     first = FALSE
   }
