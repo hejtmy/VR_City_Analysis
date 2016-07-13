@@ -38,7 +38,7 @@ BaseUnityAnalysis <- R6Class("BaseUnityAnalysis",
       #Hmakes the path for the entire thing
       if (is.null(quest_session_id)){
         path_table = private$wholePlayerLog()
-        map_size = private$map_size()
+        map_size = self$map_size()
         return(make_path_image(img_location = img_path, position_table = path_table, map_size = map_size))
       } else {
         quest = private$questStep(quest_session_id)
@@ -49,13 +49,19 @@ BaseUnityAnalysis <- R6Class("BaseUnityAnalysis",
         special_paths = list()
         special_paths[["teleport"]]= private$getTeleportTimes(quest)
         quest_start_and_stop = private$getQuestStartAndFinishPositions(quest)
-        map_size = private$map_size(quest)
+        map_size = self$map_size(quest)
         if (!is.null(special_paths)){
           make_path_image(img_location = img_path, position_table = path_table, map_size = map_size, special_paths = special_paths, special_points = quest_start_and_stop)
         } else {
           make_path_image(img_location = img_path, position_table = path_table, map_size = map_size)
         }
       }
+    },
+    quest_path = function(quest){
+      return(quest_path(self$quest_set, self$trial_sets, quest))
+    },
+    map_size = function(){
+      map_size(self$quest_set, self$trial_sets)
     }
   ),
   private = list(
@@ -125,9 +131,6 @@ BaseUnityAnalysis <- R6Class("BaseUnityAnalysis",
     },
     getStepTime = function(quest, step_name, step_action = "StepActivated", step_id = NULL){
       return(GetStepTime(quest, step_name, step_action, step_id))
-    },
-    map_size = function(){
-      map_size(self$quest_set, self$trial_sets)
     }
   )
 )
