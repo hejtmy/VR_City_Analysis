@@ -67,6 +67,18 @@ MultiParticipantUnityAnalysis <- R6Class("MultiParticipantUnityAnalysis",
     SynchropulsesTable = function(force = F){
       if (!force & !is.null(private$synchro_table)) return (private$synchro_table)
       private$synchro_table = MultiMRIPulsesTable(self)
+    },
+    draw_quest_participants = function(experiment = NULL, quest_id, types = c("trial"), map_img_path = NULL){
+      data = select_experiment(self$Data, experiment)
+      draw_quest_participants(data, quest_id, types, map_img_path)
+    },
+    select_experiment = function(experiment = NULL){
+      allowed_types = c("UnityEyetracker", "MRI")
+      if(!(experiment %in% allowed_types)){
+        SmartPrint(c("ERROR: experiment can be of following types", allowed_types))
+        stop()
+      }
+      return(select_experiment(self$Data, experiment))
     }
   ),
   private = list(
