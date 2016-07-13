@@ -96,7 +96,7 @@ BaseUnityAnalysis <- R6Class("BaseUnityAnalysis",
       private$isValid()
     },
     questStep = function(quest_idx, quest_types = NULL){
-      return(QuestStep(self$quest_set, self$trial_sets, quest_idx, quest_types = NULL))
+      return(QuestStep(self$quest_set, self$trial_sets, quest_idx, quest_types))
     },      
     getQuestSessionId = function(quest){
       return(GetQuestSessionId(quest))
