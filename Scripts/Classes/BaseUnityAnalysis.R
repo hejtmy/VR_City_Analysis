@@ -60,8 +60,8 @@ BaseUnityAnalysis <- R6Class("BaseUnityAnalysis",
     quest_path = function(quest){
       return(quest_path(self$quest_set, self$trial_sets, quest))
     },
-    map_size = function(){
-      map_size(self$quest_set, self$trial_sets)
+    map_size = function(quest = NULL){
+      map_size(self$quest_set, self$trial_sets, quest)
     }
   ),
   private = list(
