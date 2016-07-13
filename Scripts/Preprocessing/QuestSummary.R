@@ -35,8 +35,8 @@ MakeQuestSummary = function(quest_set, trial_sets, quest_session_id = NULL, ques
   }
   return(ls)
 }
-GetQuestSessionId = function(quest){
-  quest_session_id = (filter(self$quest_set,name == quest$name) %>% select(session_id))[[1]]
+GetQuestSessionId = function(quest_set, quest){
+  quest_session_id = (filter(quest_set, name == quest$name) %>% select(session_id))[[1]]
   if (length(quest_session_id) > 1) stop("There are more quests with this id. Do you have correct logs in the directory?")
   return(quest_session_id)
 }
