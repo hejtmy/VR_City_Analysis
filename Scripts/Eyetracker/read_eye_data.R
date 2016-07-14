@@ -4,7 +4,7 @@ read_eye_data = function(filepath){
   #finds indexes that start with MSG
   events = read_eye_events(text)
   # calibrations = ReadCalibrations(lines[CAL_indexes],length(CAL_indexes))
-  fixations = read_eye_fixataions(text)
+  fixations = read_eye_fixations(text)
   return_list = list("events" = events, "fixations" = fixations)
   return(return_list)
 }
