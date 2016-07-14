@@ -24,12 +24,11 @@ draw_quest_participant = function(quest_set, trial_sets, quest_id, types = c("le
       quest_start_and_stop = ls[["start_stop"]]
       map_size = map_size(quest_set, trial_sets, quest)
     }
-    special_paths[[type]] = ls[["time"]]
     #TODO - checks for the log to be present
     quest_player_table = ls[["player_log"]]
-    modified_log = add_special_path_column(quest_player_table, participant_name)
-    path_table = rbindlist(list(path_table, quest_path_table))
+    modified_log = add_special_path_column(quest_player_table, type)
+    path_table = rbindlist(list(path_table, modified_log))
     first = FALSE
   }
-  make_path_image(img_location = img_path, position_table = path_table, map_size = map_size, special_paths = special_paths, special_points = quest_start_and_stop)
+  make_path_image(img_location = img_path, position_table = path_table, map_size = map_size, special_points = quest_start_and_stop)
 }
