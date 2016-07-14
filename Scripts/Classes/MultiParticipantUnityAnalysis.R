@@ -2,7 +2,9 @@ MultiParticipantUnityAnalysis <- R6Class("MultiParticipantUnityAnalysis",
   #define variables
   public = list(
     Data = NULL,
-    initialize = function(dir = NULL, subject_table = NULL, session = NULL, data=NULL){
+    session = NULL,
+    initialize = function(dir = NULL, subject_table = NULL, session = NULL, data=NULL, override = F, save = T){
+      self$session = session
       #allows to preloade data
       if(!is.null(data)){
         self$Data = data
@@ -32,6 +34,15 @@ MultiParticipantUnityAnalysis <- R6Class("MultiParticipantUnityAnalysis",
           self$Data[[participant_code]]$MRI = analysis
         }
         ##eyetracker loading
+        edf_code = subject_table$EDF_EYE_1[i]
+        if(is.na(edf_code)){
+          print("------------")
+          SmartPrint(c("There is no edf file for participant", participant_code))
+        } else {
+          SmartPrint(c("Code for edf log for participant", participant_code, "is", edf_code))
+          analysis = EyetrackerBase$new(dir, participant_code, edf_code, override, save)
+          if (!is.null(analysis)) self$Data[[participant_code]]$Eyetracker = analysis
+        }
       }
     },
     EyetrackerQuestsSummary = function(force = F){

@@ -13,7 +13,7 @@ EyetrackerBase = R6Class('EyetrackerBase',
   ),
   private = list(
     set_directory = function(){
-      self$data_directory = paste(self$dir, self$id, "Eyetracker", self$session, sep="/")
+      self$data_directory = paste(self$dir, self$id, "Eyelink", self$session, sep="/")
     },
     read_data = function(override){
       
