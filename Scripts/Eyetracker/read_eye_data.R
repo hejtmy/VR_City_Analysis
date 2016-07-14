@@ -5,7 +5,6 @@ read_eye_data = function(filepath){
   events = read_eye_events(text)
   # calibrations = ReadCalibrations(lines[CAL_indexes],length(CAL_indexes))
   fixations = read_eye_fixataions(text)
-  movements = read_eye_movements(text)
-  return_list = list("events" = events, "data" = movements)
+  return_list = list("events" = events, "fixations" = fixations)
   return(return_list)
 }
