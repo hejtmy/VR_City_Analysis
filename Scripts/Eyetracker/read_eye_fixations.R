@@ -2,8 +2,9 @@ read_eye_fixations = function(text){
   FIX_idxs = grep('^EFIX.*', text)
   lines = text[FIX_idxs]
   
-  #Replaces all the EFIX R part up to the number
+  #Replaces all the EFIX R/L part up to the number
   lines = gsub('^EFIX R\\s+', '', lines, perl=T)
+  lines = gsub('^EFIX L\\s+', '', lines, perl=T)
   
   #creates one file with each char on a single line
   text = paste(lines, sep="", collapse="\n")
