@@ -4,9 +4,7 @@ BaseUnityAnalysis = R6Class("BaseUnityAnalysis",
   public = list(
     trial_sets = NULL,
     quest_set = NULL,
-    data_directory = NULL,
-    session = NULL,
-    initialize = function(dir=data_path, id="", session=NULL){
+    initialize = function(dir, id = "", session = NULL){
       self$dir = dir
       self$SetParticipant(id)
       self$SetSession(session)
@@ -19,7 +17,7 @@ BaseUnityAnalysis = R6Class("BaseUnityAnalysis",
       private$readDataPrivate(override, save)
     },
     #define what is valid in the current context
-    SetSession = function(number=1){
+    SetSession = function(number = 1){
       self$session = paste("Session", number, sep="")
     },
     QuestsSummary = function(force = F){
@@ -62,6 +60,9 @@ BaseUnityAnalysis = R6Class("BaseUnityAnalysis",
     },
     map_size = function(quest = NULL){
       map_size(self$quest_set, self$trial_sets, quest)
+    },
+    quests_timewindows = function(include_teleport = T){
+      return(quests_timewindows(quest_set = self$quest_set, trial_sets = self$trial_sets, include_teleport = include_teleport))
     }
   ),
   private = list(
