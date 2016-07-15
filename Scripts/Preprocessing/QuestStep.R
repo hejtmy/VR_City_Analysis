@@ -1,4 +1,4 @@
-quest = function(quest_set, trial_sets, quest_idx, quest_types = NULL){
+get_quest = function(quest_set, trial_sets, quest_idx, quest_types = NULL){
   return(quest_step(quest_set, trial_sets, quest_idx, quest_types))
 }
 quest_step = function(quest_set, trial_sets, quest_idx, quest_types = NULL){
@@ -21,7 +21,7 @@ QuestStep = function(quest_set, trial_sets, quest_idx, quest_types = NULL){
     if(nrow(quest_lines) == 0) return(NULL)
     #foreach - shouldn this be always single line?
     for(i in 1:nrow(quest_lines)){
-      quest_line = quest_lines[i]
+      quest_line = quest_lines[i,]
       if(is.null(quest_line)) stop(quest_line)
       quest = trial_sets[[quest_line$id_of_set]]$quest_logs[quest_line$set_id]
       if(is.null(quest)) return(NULL)
