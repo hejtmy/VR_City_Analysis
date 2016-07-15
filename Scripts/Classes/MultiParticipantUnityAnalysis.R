@@ -40,7 +40,7 @@ MultiParticipantUnityAnalysis <- R6Class("MultiParticipantUnityAnalysis",
           SmartPrint(c("There is no edf file for participant", participant_code))
         } else {
           SmartPrint(c("Code for edf log for participant", participant_code, "is", edf_code))
-          analysis = EyetrackerBase$new(dir, participant_code, edf_code, override, save)
+          analysis = EyetrackerAnalysis$new(dir, participant_code, edf_code, override, save)
           if (!is.null(analysis)) self$Data[[participant_code]]$Eyetracker = analysis
         }
       }
@@ -75,6 +75,26 @@ MultiParticipantUnityAnalysis <- R6Class("MultiParticipantUnityAnalysis",
       private$mri_quest_summary_tab = final
       return(final)
     },
+    EyetrackerSummary = function(force = F){
+      if (!force & !is.null(private$eyetracker_summary_tab)) return (private$eyetracker_summary_tab)
+      final = data.frame()
+      for(i in 1:length(self$Data)){
+        print(self$Data[[i]]$Eyetracker$data_directory)
+        eyetracker = self$Data[[i]]$Eyetracker
+        if(is.null(eyetracker)) next
+        quest_times = self$Data[[i]]$UnityEyetracker$quests_timewindows(include_teleport = T)
+        if(is.null(quest_times)){
+          SmartPrint(c("WARNING:MultiParticipantUnityAnalysis:EyetrackerSummary:NoQuestTimes", "ID:", eyetracker$id, "DESCRIPTION: You need to run EyetrackerQuestSummary first"))
+          return(NULL)
+        }
+        df = eyetracker$summary(force, quest_times)
+        if(is.null(df)) next
+        df = mutate(df, participant_id = rep(eyetracker$id, nrow(df)))
+        final = rbindlist(list(final, df))
+      }
+      private$eyetracker_summary_tab = final
+      return(final)
+    },
     SynchropulsesTable = function(force = F){
       if (!force & !is.null(private$synchro_table)) return (private$synchro_table)
       private$synchro_table = MultiMRIPulsesTable(self)
@@ -94,6 +114,7 @@ MultiParticipantUnityAnalysis <- R6Class("MultiParticipantUnityAnalysis",
   ),
   private = list(
     eyetracker_quest_summary_tab = NULL,
+    eyetracker_summary_tab = NULL,
     mri_quest_summary_tab = NULL,
     synchro_table =NULL
   )
