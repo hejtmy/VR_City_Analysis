@@ -8,7 +8,7 @@ prep_eye_events = function(tab){
     ls$changed = T
   }
   if(tab[type != 'l', .N] > 0){
-    ls$result = tab[type == 'l']
+    ls$result = tab[name == "KEY_UP" & type == 'l']
     ls$changed = T
   }
   return(ls)
