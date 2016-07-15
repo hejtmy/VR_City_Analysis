@@ -50,7 +50,7 @@ OpenPlayerLog = function(experiment_log, override = F){
   if (length(logs)>1){
     #check if there is a preprocessed player file
     preprocessed_index = grep("*_preprocessed",logs)
-    if(length(preprocessed_index) >0){
+    if(length(preprocessed_index) > 0){
       if(override){
         SmartPrint(c("Removing preprocessed log", ptr))
         log = logs[1]
@@ -87,8 +87,10 @@ OpenPlayerLog = function(experiment_log, override = F){
   
   return(pos_tab)
 }
+#' This can only be done with data table as it doesn't copy itself but modifies by reference
+#' it would break data.frame which by default copies itself 
+#' https://stackoverflow.com/questions/11207497/r-passing-a-data-frame-by-reference
 PreprocessPlayerLog = function(pos_tab){
-  
   #check_stuff
   #check columns
   changed = F
