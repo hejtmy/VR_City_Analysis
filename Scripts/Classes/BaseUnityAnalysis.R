@@ -35,6 +35,9 @@ BaseUnityAnalysis = R6Class("BaseUnityAnalysis",
     quest_path = function(quest){
       return(quest_path(self$quest_set, self$trial_sets, quest))
     },
+    event_times = function(event_name){
+      return(event_times(self$trial_sets, event_name))
+    },
     map_size = function(quest = NULL){
       map_size(self$quest_set, self$trial_sets, quest)
     },
@@ -81,9 +84,6 @@ BaseUnityAnalysis = R6Class("BaseUnityAnalysis",
     },      
     getQuestSessionId = function(quest){
       return(GetQuestSessionId(quest))
-    },
-    event_times = function(event_name){
-      return(event_times(trial_sets, event_name))
     },
     #returns list with start and finish fields
     #include teleport = T, the starting point is calculate from the beginning of the quest
