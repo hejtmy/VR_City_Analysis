@@ -16,7 +16,7 @@ draw_quest_participant = function(quest_set, trial_sets, quest_id, types = c("le
   first = TRUE
   for(i in 1:length(types)){
     type = types[i]
-    quest = quest(quest_set, trial_sets, quest_id, quest_types = type)
+    quest = get_quest(quest_set, trial_sets, quest_id, quest_types = type)
     if(is.null(quest)) next
     ls = quest_path(quest_set, trial_sets, quest)
     if(is.null(ls)) next
