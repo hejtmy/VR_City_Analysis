@@ -82,6 +82,9 @@ BaseUnityAnalysis = R6Class("BaseUnityAnalysis",
     getQuestSessionId = function(quest){
       return(GetQuestSessionId(quest))
     },
+    event_times = function(event_name){
+      return(event_times(trial_sets, event_name))
+    },
     #returns list with start and finish fields
     #include teleport = T, the starting point is calculate from the beginning of the quest
     #include teleport = F, the starting point is calculate from the end of the first teleport

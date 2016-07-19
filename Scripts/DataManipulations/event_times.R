@@ -5,5 +5,6 @@ event_times = function(trial_sets, event_name){
     events = data.table(time = times, set_id = i)
     event_t = rbind(event_t, events)
   }
+  if(nrow(event_t) == 0) return(NULL)
   return(event_t)
 }
