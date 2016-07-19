@@ -7,9 +7,6 @@ UnityEyetrackerAnalysis <- R6Class("UnityEyetrackerAnalysis",
         df = MakeEyetrackerQuestsSummary(self$quest_set, self$trial_sets)
         private$quests_summary = df
         return(df)
-      },
-      DrawQuestPath = function(quest_id, types = c("learn","trial"), img_path = "Maps/megamap5.png"){
-        draw_quest_participant(self$quest_set, self$trial_sets, quest_id, img_path = img_path)
       }
     ),
     private = list(

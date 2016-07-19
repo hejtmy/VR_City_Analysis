@@ -32,29 +32,6 @@ BaseUnityAnalysis = R6Class("BaseUnityAnalysis",
       private$questStep(quest_idx, quest_types)
     },
     # Makes a graph with a path from start to finish
-    MakePathImage = function(quest_session_id = NULL, img_path = "Maps/megamap5.png"){
-      #Hmakes the path for the entire thing
-      if (is.null(quest_session_id)){
-        path_table = private$wholePlayerLog()
-        map_size = self$map_size()
-        return(make_path_image(img_location = img_path, position_table = path_table, map_size = map_size))
-      } else {
-        quest = private$questStep(quest_session_id)
-        time_window = private$getQuestTimewindow(quest)
-        if(!is.null(time_window)){
-          path_table = private$selectQuestPositionData(quest,time_window)
-        }
-        special_paths = list()
-        special_paths[["teleport"]]= private$getTeleportTimes(quest)
-        quest_start_and_stop = private$getQuestStartAndFinishPositions(quest)
-        map_size = self$map_size(quest)
-        if (!is.null(special_paths)){
-          make_path_image(img_location = img_path, position_table = path_table, map_size = map_size, special_paths = special_paths, special_points = quest_start_and_stop)
-        } else {
-          make_path_image(img_location = img_path, position_table = path_table, map_size = map_size)
-        }
-      }
-    },
     quest_path = function(quest){
       return(quest_path(self$quest_set, self$trial_sets, quest))
     },
@@ -63,6 +40,9 @@ BaseUnityAnalysis = R6Class("BaseUnityAnalysis",
     },
     quests_timewindows = function(include_teleport = T){
       return(quests_timewindows(quest_set = self$quest_set, trial_sets = self$trial_sets, include_teleport = include_teleport))
+    },
+    DrawQuestPath = function(quest_id, types = c("learn","trial"), img_path = "Maps/megamap5.png"){
+      draw_quest_participant(self$quest_set, self$trial_sets, quest_id, img_path = img_path)
     }
   ),
   private = list(
