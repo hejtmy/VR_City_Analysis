@@ -13,15 +13,21 @@ EyetrackerAnalysis = R6Class('EyetrackerAnalysis',
     initialised = function(){
       return(!(is.null(self$events) || is.null(self$fixations)))
     },
-    summary = function(force = F, quest_times){
+    summary = function(force = F, quest_times, synchro_times){
+      valid = T
       if(!self$initialised()){
         SmartPrint(c("ERROR:EyetrackerAnalysis:summary:NotInitialised"))
-        return(NULL)
+        valid = F
       }
       if(is.null(quest_times)){
         SmartPrint(c("ERROR:EyetrackerAnalysis:summary:MissingParameter", "TYPE:quest_times"))
-        return(NULL)
+        valid = F
       }
+      if(is.null(quest_times)){
+        SmartPrint(c("ERROR:EyetrackerAnalysis:summary:MissingParameter", "TYPE:synchro_times"))
+        valid = F
+      }
+      if (!valid) return(NULL)
       return(eyetracker_summary(self$events, self$fixations, quest_times))
     }
   ),
