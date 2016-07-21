@@ -19,16 +19,12 @@ EyetrackerAnalysis = R6Class('EyetrackerAnalysis',
         SmartPrint(c("ERROR:EyetrackerAnalysis:summary:NotInitialised"))
         valid = F
       }
-      if(is.null(quest_times)){
-        SmartPrint(c("ERROR:EyetrackerAnalysis:summary:MissingParameter", "TYPE:quest_times"))
-        valid = F
-      }
-      if(is.null(quest_times)){
-        SmartPrint(c("ERROR:EyetrackerAnalysis:summary:MissingParameter", "TYPE:synchro_times"))
+      if(is.null(unity_class)){
+        SmartPrint(c("ERROR:EyetrackerAnalysis:summary:MissingParameter", "TYPE:unity_class"))
         valid = F
       }
       if (!valid) return(NULL)
-      return(eyetracker_summary(self$events, self$fixations, quest_times))
+      return(eyetracker_summary(self$events, self$fixations, unity_class$quests_timewindows(T), unity_class$event_times("EyetrackerSynchro")))
     }
   ),
   private = list(
