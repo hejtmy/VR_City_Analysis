@@ -41,7 +41,7 @@ MultiParticipantUnityAnalysis <- R6Class("MultiParticipantUnityAnalysis",
         } else {
           SmartPrint(c("Code for edf log for participant", participant_code, "is", edf_code))
           analysis = EyetrackerAnalysis$new(dir, participant_code, edf_code, override, save)
-          if (!is.null(analysis)) self$Data[[participant_code]]$Eyetracker = analysis
+          if (analysis$valid()) self$Data[[participant_code]]$Eyetracker = analysis
         }
       }
     },

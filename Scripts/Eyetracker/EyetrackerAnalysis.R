@@ -10,7 +10,7 @@ EyetrackerAnalysis = R6Class('EyetrackerAnalysis',
       private$read_data(override)
       private$preprocess_data(save)
     },
-    initialised = function(){
+    valid = function(){
       return(!(is.null(self$events) || is.null(self$fixations)))
     },
     summary = function(force = F, quest_times, synchro_times){
@@ -34,10 +34,10 @@ EyetrackerAnalysis = R6Class('EyetrackerAnalysis',
     read_data = function(override){
       private$set_directory()
       ls = read_eye_data(self$data_directory, self$file, override)
-      if(is.null(ls)) return()
+      if(is.null(ls)) return(F)
       self$fixations = ls$fixation
       self$events = ls$events
-
+      return(T)
     },
     preprocess_data = function(save){
       # Event handeling
