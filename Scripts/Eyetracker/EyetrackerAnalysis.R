@@ -13,9 +13,9 @@ EyetrackerAnalysis = R6Class('EyetrackerAnalysis',
     valid = function(){
       return(!(is.null(self$events) || is.null(self$fixations)))
     },
-    summary = function(force = F, quest_times, synchro_times){
+    summary = function(force = F, unity_class){
       valid = T
-      if(!self$initialised()){
+      if(!self$valid()){
         SmartPrint(c("ERROR:EyetrackerAnalysis:summary:NotInitialised"))
         valid = F
       }
