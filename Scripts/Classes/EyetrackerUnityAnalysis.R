@@ -2,11 +2,18 @@ UnityEyetrackerAnalysis <- R6Class("UnityEyetrackerAnalysis",
     inherit = BaseUnityAnalysis,
     #define variables
     public = list(
+      eyetracker = NULL,
       QuestsSummary = function(force = F){
         if (!force & !is.null(private$quests_summary)) return (private$quests_summary)
         df = MakeEyetrackerQuestsSummary(self$quest_set, self$trial_sets)
         private$quests_summary = df
         return(df)
+      },
+      eye_summary = function(force = F){
+        #checks eyetracker presence
+        if(!is.null(self$eyetracker)){
+          return(self$eyetracker$summary(force, self))
+        }
       }
     ),
     private = list(

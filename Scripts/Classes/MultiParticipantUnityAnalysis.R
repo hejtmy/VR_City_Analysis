@@ -24,6 +24,18 @@ MultiParticipantUnityAnalysis <- R6Class("MultiParticipantUnityAnalysis",
           analysis = UnityEyetrackerAnalysis$new(dir, participant_code, session)
           if (!is.null(analysis)) self$Data[[participant_code]]$UnityEyetracker = analysis
         }
+        ##eyetracker loading
+        edf_code = subject_table$EDF_EYE_1[i]
+        if(is.na(edf_code)){
+          print("------------")
+          SmartPrint(c("There is no edf file for participant", participant_code))
+        } else {
+          SmartPrint(c("Code for edf log for participant", participant_code, "is", edf_code))
+          if(!is.null(self$Data[[participant_code]]$UnityEyetracker)){
+            eye = EyetrackerAnalysis$new(dir, participant_code, edf_code, override, save)
+            if(eye$valid()) self$Data[[participant_code]]$UnityEyetracker$eyetracker = eye
+          }
+        }
         mri_code = subject_table$VR_MRI_1[i]
         if(is.na(mri_code)){
           print("------------")
@@ -32,16 +44,6 @@ MultiParticipantUnityAnalysis <- R6Class("MultiParticipantUnityAnalysis",
           SmartPrint(c("Code for MRI log for participant", participant_code, "is", mri_code))
           analysis = UnityMRIAnalysis$new(dir,participant_code, session)
           self$Data[[participant_code]]$MRI = analysis
-        }
-        ##eyetracker loading
-        edf_code = subject_table$EDF_EYE_1[i]
-        if(is.na(edf_code)){
-          print("------------")
-          SmartPrint(c("There is no edf file for participant", participant_code))
-        } else {
-          SmartPrint(c("Code for edf log for participant", participant_code, "is", edf_code))
-          analysis = EyetrackerAnalysis$new(dir, participant_code, edf_code, override, save)
-          if (analysis$valid()) self$Data[[participant_code]]$Eyetracker = analysis
         }
       }
     },

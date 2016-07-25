@@ -20,7 +20,7 @@ EyetrackerAnalysis = R6Class('EyetrackerAnalysis',
         valid = F
       }
       if(is.null(unity_class)){
-        SmartPrint(c("ERROR:EyetrackerAnalysis:summary:MissingParameter", "TYPE:unity_class"))
+        SmartPrint(c("ERROR:EyetrackerAnalysis:summary:NotInitialised", "TYPE:UnityAnalysis"))
         valid = F
       }
       if (!valid) return(NULL)
