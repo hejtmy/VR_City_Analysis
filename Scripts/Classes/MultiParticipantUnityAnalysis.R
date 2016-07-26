@@ -12,9 +12,12 @@ MultiParticipantUnityAnalysis <- R6Class("MultiParticipantUnityAnalysis",
       }
       #if saved
       self$Data = list()
+      ptr = paste("_", session, sep = "", collapse = "")
+      subject_table = select(subject_table, contains(ptr))
+      names(subject_table) = sapply(names(subject_table), function(x) gsub(x, pattern = ptr, replacement = "" ))
       for(i in 1:nrow(subject_table)){
         participant_code = subject_table$ID[i]
-        unity_code = subject_table$VR_EYE_1[i]
+        unity_code = sub_table$VR_EYE[i]
         if(is.na(unity_code)){
           print("------------")
           SmartPrint(c("There is no unity log for participant", participant_code))
@@ -25,7 +28,7 @@ MultiParticipantUnityAnalysis <- R6Class("MultiParticipantUnityAnalysis",
           if (!is.null(analysis)) self$Data[[participant_code]]$UnityEyetracker = analysis
         }
         ##eyetracker loading
-        edf_code = subject_table$EDF_EYE_1[i]
+        edf_code = subject_table$EDF_EYE[i]
         if(is.na(edf_code)){
           print("------------")
           SmartPrint(c("There is no edf file for participant", participant_code))
@@ -36,7 +39,7 @@ MultiParticipantUnityAnalysis <- R6Class("MultiParticipantUnityAnalysis",
             if(eye$valid()) self$Data[[participant_code]]$UnityEyetracker$eyetracker = eye
           }
         }
-        mri_code = subject_table$VR_MRI_1[i]
+        mri_code = subject_table$VR_MRI[i]
         if(is.na(mri_code)){
           print("------------")
           SmartPrint(c("There is no MRI log for participant", participant_code))
