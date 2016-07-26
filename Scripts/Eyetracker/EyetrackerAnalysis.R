@@ -4,7 +4,7 @@ EyetrackerAnalysis = R6Class('EyetrackerAnalysis',
     fixations = NULL,
     events = NULL,
     file = NULL,
-    initialize = function(dir, id, file, override = F, save = T){
+    initialize = function(dir, id, file, unity_class = NULL, override = F, save = T){
       super$initialize(dir, id)
       self$file = file
       private$read_data(override)
@@ -39,7 +39,7 @@ EyetrackerAnalysis = R6Class('EyetrackerAnalysis',
       self$events = ls$events
       return(T)
     },
-    preprocess_data = function(save){
+    preprocess_data = function(save, unity_class = NULL){
       # Event handeling
       if(is.null(self$events)){
         
@@ -61,7 +61,7 @@ EyetrackerAnalysis = R6Class('EyetrackerAnalysis',
       } else {
         #' this is different from event handeling because we need to remove rows and 
         #' data.table does not allow to remove rows by reference
-        ls = prep_eye_fixations(self$fixations)
+        ls = prep_eye_fixations(self$fixations, unity_class)
         if(ls$changed){
           self$fixations = ls$result
           if(save){
