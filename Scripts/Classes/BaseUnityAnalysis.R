@@ -41,6 +41,9 @@ BaseUnityAnalysis = R6Class("BaseUnityAnalysis",
     map_size = function(quest = NULL){
       map_size(self$quest_set, self$trial_sets, quest)
     },
+    screen_size = function(){
+      screen_size(self$trial_sets)
+    },
     quests_timewindows = function(include_teleport = T){
       return(quests_timewindows(quest_set = self$quest_set, trial_sets = self$trial_sets, include_teleport = include_teleport))
     },

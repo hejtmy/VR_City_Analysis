@@ -35,6 +35,13 @@ OpenExperimentLog = function(filepath){
   if (length(idxSceneTop) > 0 & length(idxSceneBottom) > 0){
     ls[["scenario"]]  <- into_list(text[(idxSceneTop+1):(idxSceneBottom-1)])
   }
+  #todo - so far it only reads one
+  idxSceneTop <- which(grepl('\\*\\*\\*Screen information\\*\\*\\*',text))
+  idxSceneBottom <- which(grepl('\\-\\-\\-Screen information\\-\\-\\-',text))
+  if (length(idxSceneTop) > 0 & length(idxSceneBottom) > 0){
+    ls[["screen"]]  <- into_list(text[(idxSceneTop+1):(idxSceneBottom-1)])
+  }
+  
   return(ls)     
 }
 OpenPlayerLog = function(experiment_log, override = F){
