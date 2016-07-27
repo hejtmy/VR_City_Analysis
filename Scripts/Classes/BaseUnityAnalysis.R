@@ -36,16 +36,16 @@ BaseUnityAnalysis = R6Class("BaseUnityAnalysis",
       return(quest_path(self$quest_set, self$trial_sets, quest))
     },
     event_times = function(event_name){
-      return(event_times(self$trial_sets, event_name))
+      return(get_event_times(self$trial_sets, event_name))
     },
     map_size = function(quest = NULL){
-      map_size(self$quest_set, self$trial_sets, quest)
+      get_map_size(self$quest_set, self$trial_sets, quest)
     },
     screen_size = function(){
-      screen_size(self$trial_sets)
+      get_screen_size(self$trial_sets)
     },
     quests_timewindows = function(include_teleport = T){
-      return(quests_timewindows(quest_set = self$quest_set, trial_sets = self$trial_sets, include_teleport = include_teleport))
+      return(get_quests_timewindows(quest_set = self$quest_set, trial_sets = self$trial_sets, include_teleport = include_teleport))
     },
     DrawQuestPath = function(quest_id, types = c("learn","trial"), img_path = "Maps/megamap5.png"){
       draw_quest_participant(self$quest_set, self$trial_sets, quest_id, img_path = img_path)

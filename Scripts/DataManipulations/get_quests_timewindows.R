@@ -1,4 +1,4 @@
-quests_timewindows = function(quest_set, trial_sets, include_teleport = T){
+get_quests_timewindows = function(quest_set, trial_sets, include_teleport = T){
   n_quests = nrow(quest_set)
   df_times = data.frame(starts = numeric(n_quests), ends = numeric(n_quests))
   for(i in 1:nrow(quest_set)){

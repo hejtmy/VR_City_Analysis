@@ -1,4 +1,4 @@
-map_size = function(quest_set, trial_sets, quest = NULL){
+get_map_size = function(quest_set, trial_sets, quest = NULL){
   ls = list()
   if (is.null(quest)) quest = quest(quest_set, trial_sets, 1)
   quest_line = filter(quest_set, name == quest$name)
