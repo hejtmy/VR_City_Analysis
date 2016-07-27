@@ -1,24 +1,17 @@
-prep_eye_events = function(tab){
+prep_eye_events = function(dt){
   #checks if it has already been preprocessed
   ls = list()
-  return_tab = tab
-  ls$changed = F
-  if(grepl("\\[", return_tab[1, type])){
-    rm_brackets = function(x) gsub("\\[|\\]", "", x)
-    return_tab = return_tab[, type := sapply(type, rm_brackets)]
-    ls$changed = T
-  }
+  return_dt = copy(dt) #needs to copy because of indices
+  rm_brackets = function(x) gsub("\\[|\\]", "", x)
+  return_dt = return_dt[, type := sapply(type, rm_brackets)]
   #removing key down
-  if(return_tab[name == "KEY_DOWN", .N] > 0){
-    return_tab = return_tab[name == "KEY_UP",]
-    ls$changed = T
-  }
+  return_dt = return_dt[name == "KEY_UP",]
   #removing walking keys
   walking_keys = c('w','a','s','d')
-  if(return_tab[type %in% walking_keys, .N] > 0){
-    return_tab = return_tab[!(type %in% walking_keys)]
-    ls$changed = T
-  }
-  ls$result = return_tab
+  return_dt = return_dt[!(type %in% walking_keys)]
+  #' all equal returns a list of differences or TRUE 
+  #' if the first element is tring, there is some difference  
+  ls$changed = is.character(all.equal(dt, return_dt)[1])  
+  ls$result = return_dt
   return(ls)
 }
