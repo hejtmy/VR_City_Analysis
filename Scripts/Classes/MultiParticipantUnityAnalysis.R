@@ -35,7 +35,9 @@ MultiParticipantUnityAnalysis <- R6Class("MultiParticipantUnityAnalysis",
         } else {
           SmartPrint(c("Code for edf log for participant", participant_code, "is", edf_code))
           if(!is.null(self$Data[[participant_code]]$UnityEyetracker)){
-            eye = EyetrackerAnalysis$new(dir, participant_code, edf_code, override, save)
+            eye = EyetrackerAnalysis$new(dir, participant_code, edf_code, 
+                                         unity_class = self$Data[[participant_code]]$UnityEyetracker, 
+                                         override, save)
             if(eye$valid()) self$Data[[participant_code]]$UnityEyetracker$eyetracker = eye
           }
         }
@@ -84,15 +86,15 @@ MultiParticipantUnityAnalysis <- R6Class("MultiParticipantUnityAnalysis",
       if (!force & !is.null(private$eyetracker_summary_tab)) return (private$eyetracker_summary_tab)
       final = data.frame()
       for(i in 1:length(self$Data)){
-        print(self$Data[[i]]$Eyetracker$data_directory)
-        eyetracker = self$Data[[i]]$Eyetracker
+        print(self$Data[[i]]$UnityEyetracker$eyetracker$data_directory)
+        eyetracker = self$Data[[i]]$UnityEyetracker$eyetracker
         if(is.null(eyetracker)) next
-        quest_times = self$Data[[i]]$UnityEyetracker$quests_timewindows(include_teleport = T)
+        unity_class = self$Data[[i]]$UnityEyetracker$quests_timewindows(include_teleport = T)
         if(is.null(quest_times)){
           SmartPrint(c("WARNING:MultiParticipantUnityAnalysis:EyetrackerSummary:NoQuestTimes", "ID:", eyetracker$id, "DESCRIPTION: You need to run EyetrackerQuestSummary first"))
           return(NULL)
         }
-        df = eyetracker$summary(force, quest_times)
+        df = eyetracker$summary(force, unity_class)
         if(is.null(df)) next
         df = mutate(df, participant_id = rep(eyetracker$id, nrow(df)))
         final = rbindlist(list(final, df))

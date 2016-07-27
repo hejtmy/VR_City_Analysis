@@ -8,7 +8,7 @@ EyetrackerAnalysis = R6Class('EyetrackerAnalysis',
       super$initialize(dir, id)
       self$file = file
       private$read_data(override)
-      private$preprocess_data(save)
+      private$preprocess_data(save, unity_class)
     },
     valid = function(){
       return(!(is.null(self$events) || is.null(self$fixations)))
