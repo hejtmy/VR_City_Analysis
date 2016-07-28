@@ -3,6 +3,8 @@ MultiParticipantUnityAnalysis <- R6Class("MultiParticipantUnityAnalysis",
   public = list(
     Data = NULL,
     session = NULL,
+    
+    #initialisation
     initialize = function(dir = NULL, subject_table = NULL, session = NULL, data=NULL, override = F, save = T){
       self$session = session
       #allows to preloade data
@@ -15,8 +17,12 @@ MultiParticipantUnityAnalysis <- R6Class("MultiParticipantUnityAnalysis",
       ptr = paste("_", session, sep = "", collapse = "")
       subject_table = select(subject_table, ID, contains(ptr))
       names(subject_table) = sapply(names(subject_table), function(x) gsub(x, pattern = ptr, replacement = "" ))
+      
+      #for each participant
       for(i in 1:nrow(subject_table)){
         participant_code = subject_table$ID[i]
+        
+        # ------- UNITY ---------
         unity_code = subject_table$VR_EYE[i]
         if(is.na(unity_code)){
           print("------------")
@@ -27,7 +33,8 @@ MultiParticipantUnityAnalysis <- R6Class("MultiParticipantUnityAnalysis",
           analysis = UnityEyetrackerAnalysis$new(dir, participant_code, session)
           if (!is.null(analysis)) self$Data[[participant_code]]$UnityEyetracker = analysis
         }
-        ##eyetracker loading
+        
+        # ------- EYETRACKER ---------
         edf_code = subject_table$EDF_EYE[i]
         if(is.na(edf_code)){
           print("------------")
@@ -41,6 +48,8 @@ MultiParticipantUnityAnalysis <- R6Class("MultiParticipantUnityAnalysis",
             if(eye$valid()) self$Data[[participant_code]]$UnityEyetracker$eyetracker = eye
           }
         }
+        
+        # ------- MRI ---------
         mri_code = subject_table$VR_MRI[i]
         if(is.na(mri_code)){
           print("------------")
