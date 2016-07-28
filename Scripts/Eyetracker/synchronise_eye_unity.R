@@ -101,11 +101,11 @@ find_appropriate_match = function(eye_durations, set_synchro_durations, allowed_
 }
 
 fixations_add_quest_info = function(fixations, quest_times){
-  fixations[, quest_session_id := as.numeric(rep(NA, .N))]
+  fixations[, quest_order_session := as.numeric(rep(NA, .N))]
   for(i in 1:nrow(quest_times)){
     quest = quest_times[i, ]
-    fixations[start > quest$eye_start & end < quest$eye_end, quest_session_id:=quest$session_id]
+    fixations[start > quest$eye_start & end < quest$eye_end, quest_order_session := quest$order_session]
   }
-  fixations = merge(fixations,quest_times[,1:6, with = FALSE],by.x = "quest_session_id", by.y = "session_id", all.x = T)
+  fixations = merge(fixations, quest_times[,1:6, with = FALSE], by.x = "quest_order_session", by.y = "order_session", all.x = T)
   return(fixations)
 }

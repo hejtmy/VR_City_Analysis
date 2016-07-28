@@ -22,7 +22,7 @@ draw_quest_participant = function(quest_set, trial_sets, quest_id, types = c("le
     if(is.null(ls)) next
     if (first){
       quest_start_and_stop = ls[["start_stop"]]
-      map_size = map_size(quest_set, trial_sets, quest)
+      map_size = get_map_size(quest_set, trial_sets, quest)
     }
     #TODO - checks for the log to be present
     quest_player_table = ls[["player_log"]]

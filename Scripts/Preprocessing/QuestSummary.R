@@ -1,7 +1,7 @@
-MakeQuestSummary = function(quest_set, trial_sets, quest_session_id = NULL, quest_id = NULL){
+MakeQuestSummary = function(quest_set, trial_sets, quest_order_session = NULL, quest_id = NULL){
   ls = list()
-  if (!is.null(quest_session_id)){
-    quest = QuestStep(quest_set, trial_sets, quest_session_id)
+  if (!is.null(quest_order_session)){
+    quest = QuestStep(quest_set, trial_sets, quest_order_session)
     if(is.null(quest)) return(NULL)
     quest_times = GetQuestTimewindow(quest, include_teleport = F) #can be null
     ls$Time = ifelse(is.null(quest_times), NA, diff(c(quest_times$start,quest_times$finish)))
@@ -25,8 +25,8 @@ MakeQuestSummary = function(quest_set, trial_sets, quest_session_id = NULL, ques
     #for each list member - checking if there are two
     for(type in quest_types){
       quest = quests[[type]]
-      quest_session_id = GetQuestSessionId(quest)
-      summary = MakeQuestSummary(quest_set, trial_sets, quest_session_id = quest_session_id)
+      quest_order_session = GetQuestSessionId(quest)
+      summary = MakeQuestSummary(quest_set, trial_sets, quest_order_session = quest_order_session)
       ls[[type]]$Time = summary$Time
       ls[[type]]$Distace = summary$Distance
       ls[[type]]$Finished = summary$Finished
@@ -36,9 +36,9 @@ MakeQuestSummary = function(quest_set, trial_sets, quest_session_id = NULL, ques
   return(ls)
 }
 GetQuestSessionId = function(quest_set, quest){
-  quest_session_id = (filter(quest_set, name == quest$name) %>% select(session_id))[[1]]
-  if (length(quest_session_id) > 1) stop("There are more quests with this id. Do you have correct logs in the directory?")
-  return(quest_session_id)
+  quest_order_session = (filter(quest_set, name == quest$name) %>% select(order_session))[[1]]
+  if (length(quest_order_session) > 1) stop("There are more quests with this id. Do you have correct logs in the directory?")
+  return(quest_order_session)
 }
 ###TODO - can be NULL/NA under some circumstances
 QuestFinished = function(quest){

@@ -16,7 +16,7 @@ MakeQuestsSummary = function(quest_set, trial_sets){
   trail_finished = logical(nrow(df))
   trailDistancesToEnd = numeric(nrow(df))
   for(i in 1:nrow(df)){
-    quest_summary = MakeQuestSummary(quest_set, trial_sets, quest_session_id = i) #possble to get NULL
+    quest_summary = MakeQuestSummary(quest_set, trial_sets, quest_order_session = i) #possble to get NULL
     trail_times[i] = ifelse(length(quest_summary$Time) < 1, NA, quest_summary$Time)
     trail_distances[i] = ifelse(length(quest_summary$Distance) < 1, NA, quest_summary$Distance)
     trail_finished[i] = quest_summary$Finished

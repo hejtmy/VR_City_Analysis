@@ -13,11 +13,11 @@ MultiParticipantUnityAnalysis <- R6Class("MultiParticipantUnityAnalysis",
       #if saved
       self$Data = list()
       ptr = paste("_", session, sep = "", collapse = "")
-      subject_table = select(subject_table, contains(ptr))
+      subject_table = select(subject_table, ID, contains(ptr))
       names(subject_table) = sapply(names(subject_table), function(x) gsub(x, pattern = ptr, replacement = "" ))
       for(i in 1:nrow(subject_table)){
         participant_code = subject_table$ID[i]
-        unity_code = sub_table$VR_EYE[i]
+        unity_code = subject_table$VR_EYE[i]
         if(is.na(unity_code)){
           print("------------")
           SmartPrint(c("There is no unity log for participant", participant_code))

@@ -24,9 +24,9 @@ BaseUnityAnalysis = R6Class("BaseUnityAnalysis",
       return(MakeQuestsSummary(self$quest_set, self$trial_sets))
     },
     #takes either quest_id or session id as a parameter
-    #session_id = 
-    QuestSummary = function(quest_idx = NULL, quest_session_id = NULL){
-      return(MakeQuestSummary(self$quest_set, self$trial_sets, quest_idx, quest_session_id))
+    #order_session = 
+    QuestSummary = function(quest_idx = NULL, quest_order_session = NULL){
+      return(MakeQuestSummary(self$quest_set, self$trial_sets, quest_idx, quest_order_session))
     },
     PublicQuestStep = function(quest_idx, quest_types = NULL){
       private$questStep(quest_idx, quest_types)
@@ -116,8 +116,8 @@ BaseUnityAnalysis = R6Class("BaseUnityAnalysis",
     wholePlayerLog = function(){
       return(wholePlayerLog(trial_sets))
     },
-    playerLogForQuest = function(quest = NULL, quest_session_id = NULL, include_teleport = T){
-      return(PlayerLogForQuest(quest, quest_session_id, include_teleport))
+    playerLogForQuest = function(quest = NULL, quest_order_session = NULL, include_teleport = T){
+      return(PlayerLogForQuest(quest, quest_order_session, include_teleport))
     },
     getStepTime = function(quest, step_name, step_action = "StepActivated", step_id = NULL){
       return(GetStepTime(quest, step_name, step_action, step_id))
