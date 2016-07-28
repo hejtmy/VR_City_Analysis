@@ -35,7 +35,10 @@ BaseUnityAnalysis = R6Class("BaseUnityAnalysis",
     quest_path = function(quest){
       return(quest_path(self$quest_set, self$trial_sets, quest))
     },
-    event_times = function(event_name){
+    entire_player_log = function(){
+      return(get_entire_player_log(trial_sets))
+    },
+    event_times = function(event_name = NULL){
       return(get_event_times(self$trial_sets, event_name))
     },
     map_size = function(quest = NULL){

@@ -1,11 +1,9 @@
-event_times = function(trial_sets, event_name){
-  event_t = data.table(time = numeric(), set_id = integer())
-  for(i in 1:length(trial_sets)){
-    times = trial_sets[[i]]$player_log[Input == event_name, Time]
-    if(length(times) == 0) next
-    events = data.table(time = times, set_id = i)
-    event_t = rbind(event_t, events)
+get_event_times = function(trial_sets, event_name = NULL){
+  dt_events = get_entire_player_log(trial_sets)
+  dt_events = dt_events[Input != "", .(Time, Input, set_id)]
+  if(nrow(dt_events) == 0) return(NULL)
+  if(!is.null(event_name)){
+    dt_events = dt_events[Input == event_name]
   }
-  if(nrow(event_t) == 0) return(NULL)
-  return(event_t)
+  return(dt_events)
 }
