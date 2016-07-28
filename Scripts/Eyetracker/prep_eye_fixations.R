@@ -8,9 +8,9 @@ prep_eye_fixations = function(dt, unity_class){
   } else {
     screen_size = list(width = 1920, height = 1080)
   }
-  if (result[pos_x < screen_size$width & pos_y < screen_size$height, .N] > 0){
+  if (result[pos_x > screen_size$width & pos_y > screen_size$height, .N] > 0){
     result = result[pos_x < screen_size$width & pos_y < screen_size$height, ]
-    result[, pos_y := abs(screen_size$height - pos_y)]
+    result[, pos_y := screen_size$height - pos_y]
     ls$changed = T
   }
   #reverting fixations in the Y axis

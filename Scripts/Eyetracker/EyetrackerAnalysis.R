@@ -24,7 +24,7 @@ EyetrackerAnalysis = R6Class('EyetrackerAnalysis',
         valid = F
       }
       if (!valid) return(NULL)
-      return(eyetracker_summary(self$events, self$fixations, unity_class$quests_timewindows(T), unity_class$event_times("EyetrackerSynchro")))
+      return(eyetracker_summary(self$events, self$fixations, unity_class$quests_timewindows(T), unity_class$event_times()))
     }
   ),
   private = list(
