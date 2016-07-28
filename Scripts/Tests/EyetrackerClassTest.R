@@ -5,7 +5,7 @@ participant_code = "HCE_K_20"
 edf_code = "HCE_1K20"
 
 unity = UnityEyetrackerAnalysis$new(data_dir, id = participant_code, session = 1)
-eye = EyetrackerAnalysis$new(data_dir, participant_code, edf_code, unity_class = unity, override = T, save = T)
+eye = EyetrackerAnalysis$new(data_dir, participant_code, edf_code, unity_class = unity, override = F, save = T)
 
 tm = eye$summary(unity_class)
 
