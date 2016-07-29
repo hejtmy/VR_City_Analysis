@@ -13,7 +13,7 @@ EyetrackerAnalysis = R6Class('EyetrackerAnalysis',
     valid = function(){
       return(!(is.null(self$events) || is.null(self$fixations)))
     },
-    summary = function(force = F, unity_class){
+    summary = function(unity_class, force = F){
       valid = T
       if(!self$valid()){
         SmartPrint(c("ERROR:EyetrackerAnalysis:summary:NotInitialised"))
