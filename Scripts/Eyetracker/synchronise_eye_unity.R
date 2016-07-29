@@ -1,23 +1,23 @@
 #' 
 #' @param events eye timestamps from the eyetracker log or key L being pressed
-#' @param synchro_times data froma with times of each EyetrackerSynchro event written in player_log
+#' @param unity_events data froma with times of each EyetrackerSynchro event written in player_log
 #' @param fixations 
 #' @param quest_times are times of start and end of quest to validate the result
 
-synchronise_eye_unity = function(events, synchro_times, quest_times, fixations){
+synchronise_eye_unity = function(eye_events, unity_events, quest_times, fixations){
   
   #VALIDATION
-  if (nrow(events) < 9){
-    SmartPrint(c("ERROR:synchronise_eye_unity:NonValidParameter", "TYPE:events", "DESC:events have ", nrow(events), "rows. Need at least 9"))
+  if (nrow(eye_events) < 9){
+    SmartPrint(c("ERROR:synchronise_eye_unity:NonValidParameter", "TYPE:eye_events", "DESC:eye_events have ", nrow(eye_events), "rows. Need at least 9"))
     return(NULL)
   }
-  if (nrow(synchro_times) < 9){
-    SmartPrint(c("ERROR:synchronise_eye_unity:NonValidParameter", "TYPE:synchro_times", "DESC:synchro_times have ", nrow(events), "rows. Need at least 9"))
+  if (nrow(unity_events) < 6){
+    SmartPrint(c("ERROR:synchronise_eye_unity:NonValidParameter", "TYPE:unity_events", "DESC:unity_events have ", nrow(unity_events), "rows. Need at least 9"))
     return(NULL)
   }
   
-  ALLOWED_DIFFERENCE = 25; #25ms of allowed difference between eye and unity log
-  events[, diff:= c(NA, diff(time))]
+  ALLOWED_DIFFERENCE = 50; #25ms of allowed difference between eye and unity log
+
   #' the logic is that two quest events in eyetracker should be separated similarly as two quests in the quest log
   #' if that is correct, we can accept the eyetracking logs and use them to extract fixations for each quest
   #' Even in correct table there are two events that are off, as those are differences between two different sets administered
@@ -27,21 +27,15 @@ synchronise_eye_unity = function(events, synchro_times, quest_times, fixations){
   quest_times[, eye_start:= as.numeric(rep(NA,.N))]
   quest_times[, eye_end := as.numeric(rep(NA,.N))]
   
-  #' we laways want at least two percise measurements per set_id - then for each set Id we calculate starting and ending synchro time
-  #if(nrow(events) != length(synchro_times)){
-    eye_durations = shift(events$diff, 1, type = "lead") #differences between two L times in the eyetracker log
-    synchro_durations = synchro_times[,.(duration_ms=diff(time)*1000), by = set_id] #time differences between two synchroTimes for each set
-    for (data_set_id in unique(synchro_times[,set_id])){
-      set_synchro_durations = synchro_durations[set_id == data_set_id, duration_ms]
-      eye_idx = find_appropriate_match(eye_durations, set_synchro_durations, ALLOWED_DIFFERENCE)
-      #if we found a match
-      if(!is.null(eye_idx)){
-        time_difference = events[,time][eye_idx] - synchro_times[set_id == data_set_id, time][1]
-        quest_times[id_of_set == data_set_id, eye_start:= starts * 1000 + time_difference]
-        quest_times[id_of_set == data_set_id, eye_end:= ends * 1000 + time_difference]
-      }
-    }
-  #}
+  #' Tries Escape
+  #' Should return a data frame set_id first_index
+  df_sync_times = try_fit_event("ESCAPE", "Pause", eye_events, unity_events, ALLOWED_DIFFERENCE)
+  if(sum(complete.cases(df_sync_times)) == 3){
+    synchronise_quest_times(quest_times, df_sync_times)
+  }
+  #if it fails, tries Eyetracker synchro
+  
+  
   fixations = fixations_add_quest_info(fixations, quest_times)
   return(fixations)
 }
@@ -54,6 +48,40 @@ can_compare = function(compare_table){
   return(T)
 }
 
+try_fit_event = function(eye_event, unity_event, eye_times, unity_times, allowed_difference){
+  eye_events = copy(eye_times)
+  eye_events = eye_events[type == eye_event, ]
+  eye_events[, diff:= c(NA, diff(time))]
+  
+  eye_durations = shift(eye_events$diff, 1, type = "lead") #differences between two L times in the eyetracker log
+  unity_durations = unity_times[Input == unity_event, .(Time, duration_ms = c(diff(Time) * 1000, NA)), by = set_id]
+  
+  n_sets = length(unique(unity_durations[, set_id]))
+  df = data.frame(set_id = unique(unity_durations[, set_id]), time_eye = rep(NA, n_sets), time_unity = rep(NA, n_sets))
+  
+  for (data_set_id in unique(unity_durations[, set_id])){
+    unity_set_durations = unity_durations[set_id == data_set_id]
+    ls_idx = find_single_match(eye_durations, unity_set_durations[, duration_ms], allowed_difference)
+    if(!is.null(ls_idx)){
+      df[df$set_id == data_set_id, ]$time_eye = eye_events[ls_idx$eye]$time
+      df[df$set_id == data_set_id, ]$time_unity = unity_set_durations[ls_idx$unity, Time]
+    }
+  }
+  return(df)
+}
+
+find_single_match = function(eye_durations, unity_durations, allowed_difference){
+  for (i in 1:length(unity_durations)){
+    dur = unity_durations[i]
+    if(is.na(dur)) next
+    id = which(abs(eye_durations - dur) < allowed_difference)
+    if (length(id) == 1){
+      return(list(unity = i, eye = id))
+    }
+  }
+  return(NULL)
+}
+
 #' tries to find a sequency of N elements in eye_durations that correspond to the synchro durations
 #' returns index of first matchin eye event
 #' 
@@ -61,7 +89,7 @@ can_compare = function(compare_table){
 #' @param set_synchro_durations 
 #' @param allowed_difference 
 #' 
-find_appropriate_match = function(eye_durations, set_synchro_durations, allowed_difference){
+find_group_match = function(eye_durations, set_synchro_durations, allowed_difference){
   idx_table = data.table(eye_idx = numeric(), synchro_idx = numeric())
   #finds the first closest idx after the last found index
   n_eye = length(eye_durations)
@@ -84,20 +112,16 @@ find_appropriate_match = function(eye_durations, set_synchro_durations, allowed_
   #if we found such a match, we note it as 
   #TODO - maybe check again
   return(best_start_idx)
-  
-#   for(synchro_id in 1:length(set_synchro_durations)){
-#     dur = set_synchro_durations[synchro_id]
-#     if(is.na(dur)) next
-#     #if there are any valued smalled than allowed difference
-#     #I reassign becase of NA handeling
-#     is_any = any(abs(eye_durations - dur) < allowed_difference)
-#     if (!is.na(is_any) & is_any){
-#       #we choose the least one
-#       idx = which.min(abs(eye_durations - dur))
-#       idx_table = rbind(idx_table, list(idx, synchro_id))
-#     }
-#   }
-#   return(idx_table)
+}
+
+synchronise_quest_times = function(quest_times, df_sync_times){
+  df_sync_times = mutate(df_sync_times, time_diff = time_eye - (time_unity * 1000))
+  for (i in 1:nrow(df_sync_times)){
+    row = df_sync_times[i,]
+    quest_times[set_id == row$set_id, eye_start:= starts * 1000 + row$time_diff]
+    quest_times[set_id == row$set_id, eye_end:= ends * 1000 + row$time_diff]
+  }
+  return(quest_times)
 }
 
 fixations_add_quest_info = function(fixations, quest_times){
