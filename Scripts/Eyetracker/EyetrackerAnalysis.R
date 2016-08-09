@@ -2,6 +2,7 @@ EyetrackerAnalysis = R6Class('EyetrackerAnalysis',
   inherit = BaseAnalysis,
   public = list(
     fixations = NULL,
+    fixations_synced = NULL,
     events = NULL,
     file = NULL,
     initialize = function(dir, id, file, unity_class = NULL, override = F, save = T){
@@ -13,18 +14,27 @@ EyetrackerAnalysis = R6Class('EyetrackerAnalysis',
     valid = function(){
       return(!(is.null(self$events) || is.null(self$fixations)))
     },
-    summary = function(unity_class, force = F){
+    synchronise = function(unity_class, force = F){
       valid = T
       if(!self$valid()){
-        SmartPrint(c("ERROR:EyetrackerAnalysis:summary:NotInitialised"))
+        SmartPrint(c("ERROR:EyetrackerAnalysis:synchronise:NotInitialised"))
         valid = F
       }
       if(is.null(unity_class)){
-        SmartPrint(c("ERROR:EyetrackerAnalysis:summary:NotInitialised", "TYPE:UnityAnalysis"))
+        SmartPrint(c("ERROR:EyetrackerAnalysis:synchronise:NotInitialised", "TYPE:UnityAnalysis"))
         valid = F
       }
       if (!valid) return(NULL)
-      return(eyetracker_summary(self$events, self$fixations, unity_class$quests_timewindows(T), unity_class$event_times()))
+      if (force || is.null(self$fixations_synced)){
+        self$fixations_synced = synchronise_eye_unity(self$events, unity_class$event_times(), unity_class$quests_timewindows(T), self$fixations)
+      }
+      return(self$fixations_synced)
+    },
+    summary = function(force){
+      if(is.null(self$fixations_synced)){
+        SmartPrint(c("ERROR:EyetrackerAnalysis:summary:NotInitialised", "TYPE:fixations_synced"))
+        valid = F
+      }
     }
   ),
   private = list(
@@ -47,12 +57,10 @@ EyetrackerAnalysis = R6Class('EyetrackerAnalysis',
         #' this is different from handeling of player log because we need to remove rows and 
         #' data.table does not allow to remove rows by reference
         ls = prep_eye_events(self$events)
-        if(ls$changed){
-          self$events = ls$result
-          if(save){
-            filepath = paste(self$data_directory,  self$file, "_events.txt", sep = "")
-            save_table(filepath, self$events)
-          }
+        self$events = ls$result
+        if(ls$changed && save){
+          filepath = paste(self$data_directory,  self$file, "_events.txt", sep = "")
+          save_table(filepath, self$events)
         }
       }
       # Fixations handeling
@@ -62,12 +70,10 @@ EyetrackerAnalysis = R6Class('EyetrackerAnalysis',
         #' this is different from event handeling because we need to remove rows and 
         #' data.table does not allow to remove rows by reference
         ls = prep_eye_fixations(self$fixations, unity_class)
-        if(ls$changed){
-          self$fixations = ls$result
-          if(save){
-            filepath = paste(self$data_directory, self$file, "_fixations.txt", sep = "")
-            save_table(filepath, self$fixations)
-          }
+        self$fixations = ls$result
+        if(ls$changed && save){
+          filepath = paste(self$data_directory, self$file, "_fixations.txt", sep = "")
+          save_table(filepath, self$fixations)
         }
       }
     }

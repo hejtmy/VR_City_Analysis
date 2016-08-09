@@ -4,7 +4,7 @@ BaseUnityAnalysis = R6Class("BaseUnityAnalysis",
   public = list(
     trial_sets = NULL,
     quest_set = NULL,
-    initialize = function(dir, id = "", session = NULL){
+    initialize = function(dir, id = "", session = NULL, override = F, save = T){
       self$dir = dir
       self$SetParticipant(id)
       self$SetSession(session)

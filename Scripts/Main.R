@@ -9,7 +9,7 @@ subject_table = read.table(paste(data_dir, "ListOfSubjects.csv",sep=""), sep = "
 
 #instantiates VR_analysis class with the name and project directory 
 #it loads appropriate log files and allows for immediate analysis
-Analysis = UnityEyetrackerAnalysis$new(data_dir, id="HCE_K_10", session=1)
+Analysis = UnityEyetrackerAnalysis$new(data_dir, id="HCE_E_12", session=1)
 Analysis$QuestSummary(7)
 Analysis$QuestsSummary()
 Analysis$DrawQuestPath(2)
@@ -21,7 +21,7 @@ Analysis$QuestsSummary()
 Analysis$DrawQuestPath(1)
 
 #loads from the subjectList table
-Analyses = MultiParticipantUnityAnalysis$new(data_dir, subject_table, 1, override = T)
+Analyses = MultiParticipantUnityAnalysis$new(data_dir, subject_table, 1, override = F)
 tabEyeQuests = Analyses$EyetrackerQuestsSummary()
 tabMRIQuests = Analyses$MRIQuestSummary()
 tabMRIPulses = Analyses$SynchropulsesTable()
