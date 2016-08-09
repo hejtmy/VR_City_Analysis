@@ -16,7 +16,7 @@ synchronise_eye_unity = function(eye_events, unity_events, quest_times, fixation
     return(NULL)
   }
   
-  ALLOWED_DIFFERENCE = 50; #25ms of allowed difference between eye and unity log
+  ALLOWED_DIFFERENCE = 100; #ms of allowed difference between eye and unity log
 
   #' the logic is that two quest events in eyetracker should be separated similarly as two quests in the quest log
   #' if that is correct, we can accept the eyetracking logs and use them to extract fixations for each quest
@@ -37,14 +37,6 @@ synchronise_eye_unity = function(eye_events, unity_events, quest_times, fixation
   
   fixations = fixations_add_quest_info(fixations, quest_times)
   return(fixations)
-}
-
-can_compare = function(compare_table){
-  false_values = which(compare_table$close_enough == F)
-  for (id in false_values){
-    if(!(compare_table$close_enough[id - 1] & compare_table$close_enough[id + 1])) return(F)
-  }
-  return(T)
 }
 
 try_fit_event = function(eye_event, unity_event, eye_times, unity_times, allowed_difference){
@@ -70,8 +62,60 @@ try_fit_event = function(eye_event, unity_event, eye_times, unity_times, allowed
   return(df)
 }
 
-# Extremely problematic function
+find_better_match = function(eye_durations, unity_durations, allowed_difference){
+  n_matches = 0
+  matching = list(unity = NA, eye = NA, diff =NA)
+  for (i in 1:length(unity_durations)){
+    dur = unity_durations[i]
+    if(is.na(dur)) next
+    id = which(abs(eye_durations - dur) < allowed_difference)
+    if (length(id) == 1){
+      n_matches = n_matches + 1
+      if (is.na(matching$diff) || matching$diff < dur){
+        matching$unity = i
+        matching$eye = id
+        matching$diff = dur
+      }
+    }
+  }
+  matching$n_matches = n_matches;
+  return(matching)
+}
 
+#' This function decides whether the list is acceptable
+accepting = function(ls){
+  MINUTE_MS = 60 * 1000
+  MIN_MATCHES = 2
+  if (ls$diff < MINUTE_MS) return(FALSE)
+  if (ls$n_matches < MIN_MATCHES){
+    #raising wargning
+    return(TRUE)
+  }
+  # tell it went alright
+  return(TRUE)
+}
+
+synchronise_quest_times = function(quest_times, df_sync_times){
+  df_sync_times = mutate(df_sync_times, time_diff = time_eye - (time_unity * 1000))
+  for (i in 1:nrow(df_sync_times)){
+    row = df_sync_times[i,]
+    quest_times[set_id == row$set_id, eye_start:= starts * 1000 + row$time_diff]
+    quest_times[set_id == row$set_id, eye_end:= ends * 1000 + row$time_diff]
+  }
+  return(quest_times)
+}
+
+fixations_add_quest_info = function(fixations, quest_times){
+  fixations[, quest_order_session := as.numeric(rep(NA, .N))]
+  for(i in 1:nrow(quest_times)){
+    quest = quest_times[i, ]
+    fixations[start > quest$eye_start & end < quest$eye_end, quest_order_session := quest$order_session]
+  }
+  fixations = merge(fixations, quest_times[, 1:6, with = FALSE], by.x = "quest_order_session", by.y = "order_session", all.x = T)
+  return(fixations)
+}
+
+# Extremely problematic function
 find_single_match = function(eye_durations, unity_durations, allowed_difference){
   for (i in 1:length(unity_durations)){
     dur = unity_durations[i]
@@ -82,35 +126,6 @@ find_single_match = function(eye_durations, unity_durations, allowed_difference)
     }
   }
   return(NULL)
-}
-
-find_better_match = function(eye_durations, unity_durations, allowed_difference){
-  n_maches = 0;
-  matching = list(unity =NA, eye = NA, diff =NA)
-  for (i in 1:length(unity_durations)){
-    dur = unity_durations[i]
-    if(is.na(dur)) next
-    id = which(abs(eye_durations - dur) < allowed_difference)
-    if (length(id) == 1){
-      n_matches = n_maches + 1
-      if (is.na(matching$diff) || matching$diff < dur){
-        matching$unity = i
-        matching$eye = id
-        matching$diff = dur
-      }
-    }
-  }
-  matching$number = n_matches;
-  return()
-}
-
-#' This function decides whether the list is acceptable
-accepting = function(ls){
-  minute = 60 * 1000
-  min_matches = 2
-  if (ls$diff < minute) return(FALSE)
-  if (ls$n_match < min_matches) return(FALSE)
-  return(TRUE)
 }
 
 #' tries to find a sequency of N elements in eye_durations that correspond to the synchro durations
@@ -143,24 +158,4 @@ find_group_match = function(eye_durations, set_synchro_durations, allowed_differ
   #if we found such a match, we note it as 
   #TODO - maybe check again
   return(best_start_idx)
-}
-
-synchronise_quest_times = function(quest_times, df_sync_times){
-  df_sync_times = mutate(df_sync_times, time_diff = time_eye - (time_unity * 1000))
-  for (i in 1:nrow(df_sync_times)){
-    row = df_sync_times[i,]
-    quest_times[set_id == row$set_id, eye_start:= starts * 1000 + row$time_diff]
-    quest_times[set_id == row$set_id, eye_end:= ends * 1000 + row$time_diff]
-  }
-  return(quest_times)
-}
-
-fixations_add_quest_info = function(fixations, quest_times){
-  fixations[, quest_order_session := as.numeric(rep(NA, .N))]
-  for(i in 1:nrow(quest_times)){
-    quest = quest_times[i, ]
-    fixations[start > quest$eye_start & end < quest$eye_end, quest_order_session := quest$order_session]
-  }
-  fixations = merge(fixations, quest_times[, 1:6, with = FALSE], by.x = "quest_order_session", by.y = "order_session", all.x = T)
-  return(fixations)
 }
