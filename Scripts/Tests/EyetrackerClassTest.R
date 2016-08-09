@@ -1,7 +1,7 @@
 source("Scripts/LoadingScript.R")
 
 data_dir = "U:/OneDrive/NUDZ/HCENAT/Data/"
-participant_code = "HCE_E_19"
+participant_code = "HCE_K_19"
 edf_code = "HCE_1E19"
 
 unity = UnityEyetrackerAnalysis$new(data_dir, id = participant_code, session = 1)
@@ -9,7 +9,7 @@ eye = EyetrackerAnalysis$new(data_dir, participant_code, edf_code, unity_class =
 
 tm = eye$summary(unity)
 
-events = eye$events
+tevents = eye$events
 fixations = eye$fixations
 quest_times = unity_class$quests_timewindows(T)
 

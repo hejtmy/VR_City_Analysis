@@ -35,7 +35,6 @@ synchronise_eye_unity = function(eye_events, unity_events, quest_times, fixation
   }
   #if it fails, tries Eyetracker synchro
   
-  
   fixations = fixations_add_quest_info(fixations, quest_times)
   return(fixations)
 }
@@ -53,6 +52,7 @@ try_fit_event = function(eye_event, unity_event, eye_times, unity_times, allowed
   eye_events = eye_events[type == eye_event, ]
   eye_events[, diff:= c(NA, diff(time))]
   
+  ## NEEDS CHECKING becasue of index number
   eye_durations = shift(eye_events$diff, 1, type = "lead") #differences between two L times in the eyetracker log
   unity_durations = unity_times[Input == unity_event, .(Time, duration_ms = c(diff(Time) * 1000, NA)), by = set_id]
   
@@ -61,14 +61,16 @@ try_fit_event = function(eye_event, unity_event, eye_times, unity_times, allowed
   
   for (data_set_id in unique(unity_durations[, set_id])){
     unity_set_durations = unity_durations[set_id == data_set_id]
-    ls_idx = find_single_match(eye_durations, unity_set_durations[, duration_ms], allowed_difference)
-    if(!is.null(ls_idx)){
+    ls_idx = find_better_match(eye_durations, unity_set_durations[, duration_ms], allowed_difference)
+    if(!is.null(ls_idx) && accepting(ls_idx)){
       df[df$set_id == data_set_id, ]$time_eye = eye_events[ls_idx$eye]$time
       df[df$set_id == data_set_id, ]$time_unity = unity_set_durations[ls_idx$unity, Time]
     }
   }
   return(df)
 }
+
+# Extremely problematic function
 
 find_single_match = function(eye_durations, unity_durations, allowed_difference){
   for (i in 1:length(unity_durations)){
@@ -80,6 +82,35 @@ find_single_match = function(eye_durations, unity_durations, allowed_difference)
     }
   }
   return(NULL)
+}
+
+find_better_match = function(eye_durations, unity_durations, allowed_difference){
+  n_maches = 0;
+  matching = list(unity =NA, eye = NA, diff =NA)
+  for (i in 1:length(unity_durations)){
+    dur = unity_durations[i]
+    if(is.na(dur)) next
+    id = which(abs(eye_durations - dur) < allowed_difference)
+    if (length(id) == 1){
+      n_matches = n_maches + 1
+      if (is.na(matching$diff) || matching$diff < dur){
+        matching$unity = i
+        matching$eye = id
+        matching$diff = dur
+      }
+    }
+  }
+  matching$number = n_matches;
+  return()
+}
+
+#' This function decides whether the list is acceptable
+accepting = function(ls){
+  minute = 60 * 1000
+  min_matches = 2
+  if (ls$diff < minute) return(FALSE)
+  if (ls$n_match < min_matches) return(FALSE)
+  return(TRUE)
 }
 
 #' tries to find a sequency of N elements in eye_durations that correspond to the synchro durations
@@ -130,6 +161,6 @@ fixations_add_quest_info = function(fixations, quest_times){
     quest = quest_times[i, ]
     fixations[start > quest$eye_start & end < quest$eye_end, quest_order_session := quest$order_session]
   }
-  fixations = merge(fixations, quest_times[,1:6, with = FALSE], by.x = "quest_order_session", by.y = "order_session", all.x = T)
+  fixations = merge(fixations, quest_times[, 1:6, with = FALSE], by.x = "quest_order_session", by.y = "order_session", all.x = T)
   return(fixations)
 }
