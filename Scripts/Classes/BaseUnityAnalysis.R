@@ -13,6 +13,9 @@ BaseUnityAnalysis = R6Class("BaseUnityAnalysis",
         self$ReadData()
       }
     },
+    valid = function(){
+      return(!is.null(self$trial_sets))
+    },
     ReadData = function(override = F, save = T){
       private$readDataPrivate(override, save)
     },
@@ -83,7 +86,6 @@ BaseUnityAnalysis = R6Class("BaseUnityAnalysis",
         self$trial_sets[[i]] = UnityTrialSet$new(experiment_log, player_log, scenario_log, quests_logs)
       }
       self$quest_set = MakeQuestTable(self$trial_sets)
-      private$isValid()
     },
     questStep = function(quest_idx, quest_types = NULL){
       return(QuestStep(self$quest_set, self$trial_sets, quest_idx, quest_types))

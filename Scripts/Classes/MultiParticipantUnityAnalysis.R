@@ -31,7 +31,9 @@ MultiParticipantUnityAnalysis <- R6Class("MultiParticipantUnityAnalysis",
           SmartPrint(c("------------ Loading", participant_code,"------------"))
           SmartPrint(c("Code for Eyetracker log for participant", participant_code, "is", unity_code))
           analysis = UnityEyetrackerAnalysis$new(dir, participant_code, session)
-          if (!is.null(analysis)) self$Data[[participant_code]]$UnityEyetracker = analysis
+          if (!is.null(analysis) && analysis$valid()){
+            self$Data[[participant_code]]$UnityEyetracker = analysis
+          }
         }
         
         # ------- EYETRACKER ---------
@@ -101,10 +103,10 @@ MultiParticipantUnityAnalysis <- R6Class("MultiParticipantUnityAnalysis",
         unity_class = self$Data[[i]]$UnityEyetracker
         if(is.null(unity_class)){
           SmartPrint(c("WARNING:MultiParticipantUnityAnalysis:EyetrackerSummary:NoQuestTimes", "ID:", eyetracker$id, "DESCRIPTION: You need to run EyetrackerQuestSummary first"))
-          return(NULL)
+          next
         }
         dt = eyetracker$synchronise(unity_class, force)
-        if(is.null(df)) next
+        if(is.null(dt)) next
         dt[, participant_id := eyetracker$id]
         final = rbindlist(list(final, dt))
       }
