@@ -25,9 +25,11 @@ Analyses = MultiParticipantUnityAnalysis$new(data_dir, subject_table, 1, overrid
 tabEyeQuests = Analyses$EyetrackerQuestsSummary()
 tabMRIQuests = Analyses$MRIQuestSummary()
 tabMRIPulses = Analyses$SynchropulsesTable()
+synced_fixations = Analyses$synchro
 
 write.table(tabEyeQuests,"tabEyeQuests.csv", sep=";", row.names = F, quote = F)
 write.table(tabMRIQuests,"tabMRIQuests.csv", sep=";", row.names = F, quote = F)
+write.table(synced_fixations,"synced_fixations", sep=";", row.names = F, quote = F)
 
 MRIInformation(tabMRIPulses)
 

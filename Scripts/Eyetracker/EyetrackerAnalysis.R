@@ -14,7 +14,7 @@ EyetrackerAnalysis = R6Class('EyetrackerAnalysis',
     valid = function(){
       return(!(is.null(self$events) || is.null(self$fixations)))
     },
-    synchronise = function(unity_class, force = F){
+    synchronise = function(unity_class, override = F){
       valid = T
       if(!self$valid()){
         SmartPrint(c("ERROR:EyetrackerAnalysis:synchronise:NotInitialised"))
@@ -25,7 +25,7 @@ EyetrackerAnalysis = R6Class('EyetrackerAnalysis',
         valid = F
       }
       if (!valid) return(NULL)
-      if (force || is.null(self$fixations_synced)){
+      if (override || is.null(self$fixations_synced)){
         self$fixations_synced = synchronise_eye_unity(self$events, unity_class$event_times(), unity_class$quests_timewindows(T), self$fixations)
       }
       return(self$fixations_synced)

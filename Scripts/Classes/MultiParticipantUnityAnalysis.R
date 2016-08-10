@@ -93,19 +93,21 @@ MultiParticipantUnityAnalysis <- R6Class("MultiParticipantUnityAnalysis",
       private$mri_quest_summary_tab = final
       return(final)
     },
-    synchronise_eyetracker = function(force = F){
-      if (!force & !is.null(private$fixations_synchronised)) return (private$fixations_synchronised)
-      final = data.frame()
+    synchronise_eyetracker = function(override = F){
+      #should possibly save?
+      if (!override & !is.null(private$fixations_synchronised)) return (private$fixations_synchronised)
+      final = data.table()
       for(i in 1:length(self$Data)){
         print(self$Data[[i]]$UnityEyetracker$eyetracker$data_directory)
         eyetracker = self$Data[[i]]$UnityEyetracker$eyetracker
         if(is.null(eyetracker)) next
+        
         unity_class = self$Data[[i]]$UnityEyetracker
         if(is.null(unity_class)){
           SmartPrint(c("WARNING:MultiParticipantUnityAnalysis:EyetrackerSummary:NoQuestTimes", "ID:", eyetracker$id, "DESCRIPTION: You need to run EyetrackerQuestSummary first"))
           next
         }
-        dt = eyetracker$synchronise(unity_class, force)
+        dt = eyetracker$synchronise(unity_class, override)
         if(is.null(dt)) next
         dt[, participant_id := eyetracker$id]
         final = rbindlist(list(final, dt))
