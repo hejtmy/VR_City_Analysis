@@ -15,7 +15,7 @@ Analysis$QuestsSummary()
 Analysis$DrawQuestPath(2)
 
 #MRI analysis
-Analysis =  UnityMRIAnalysis$new(data_dir, id="HCE_K_10", session=1)
+Analysis = UnityMRIAnalysis$new(data_dir, id="HCE_K_10", session=1)
 Analysis$QuestSummary(2)
 Analysis$QuestsSummary()
 Analysis$DrawQuestPath(1)
@@ -25,7 +25,7 @@ Analyses = MultiParticipantUnityAnalysis$new(data_dir, subject_table, 1, overrid
 tabEyeQuests = Analyses$EyetrackerQuestsSummary()
 tabMRIQuests = Analyses$MRIQuestSummary()
 tabMRIPulses = Analyses$SynchropulsesTable()
-synced_fixations = Analyses$synchro
+synced_fixations = Analyses$synchronise_eyetracker()
 
 write.table(tabEyeQuests,"tabEyeQuests.csv", sep=";", row.names = F, quote = F)
 write.table(tabMRIQuests,"tabMRIQuests.csv", sep=";", row.names = F, quote = F)

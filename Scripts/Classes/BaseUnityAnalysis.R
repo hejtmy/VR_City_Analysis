@@ -26,6 +26,12 @@ BaseUnityAnalysis = R6Class("BaseUnityAnalysis",
     QuestsSummary = function(force = F){
       return(MakeQuestsSummary(self$quest_set, self$trial_sets))
     },
+    pointing_summary = function(override = F){
+      if(override || is.null(private$pointing_summary)){
+        point = make_pointing_summary(self$quest_set, self$trial_sets)
+      }
+      return(private$pointing_summary)
+    },
     #takes either quest_id or session id as a parameter
     #order_session = 
     QuestSummary = function(quest_idx = NULL, quest_order_session = NULL){
@@ -59,6 +65,7 @@ BaseUnityAnalysis = R6Class("BaseUnityAnalysis",
   ),
   private = list(
     quests_summary = NULL,
+    pointing_summary = NULL,
     #uses a lot of functions from ImportinUnityLogs.R in helperFunctions
     readDataPrivate = function(override, save){
       #session folder
