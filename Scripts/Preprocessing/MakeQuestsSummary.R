@@ -39,6 +39,7 @@ AddPulsesToSummary = function(df, quest_set, trial_sets){
   df = mutate(df, firstPulse = firstPulses, numberOfPulses = numberOfPulses)
   return(df)
 }
+
 #calculates order and number of fMRI pulses
 CalculateMRIPulses = function(trial_sets, quest){
   ls = list()
