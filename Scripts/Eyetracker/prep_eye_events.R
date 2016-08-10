@@ -7,8 +7,14 @@ prep_eye_events = function(dt){
   #removing key down
   return_dt = return_dt[name == "KEY_UP",]
   #removing walking keys
+  
   walking_keys = c('w','a','s','d')
   return_dt = return_dt[!(type %in% walking_keys)]
+  
+  #removing problematic keys
+  problematic_keys = c(';')
+  return_dt = return_dt[!(type %in% problematic_keys)]
+  
   #' all equal returns a list of differences or TRUE 
   #' if the first element is tring, there is some difference  
   ls$changed = is.character(all.equal(dt, return_dt)[1])  

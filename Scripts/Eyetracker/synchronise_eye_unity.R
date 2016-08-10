@@ -78,7 +78,11 @@ find_better_match = function(eye_durations, unity_durations, allowed_difference)
       }
     }
   }
-  matching$n_matches = n_matches;
+  if (n_matches == 0){
+    SmartPrint(c("WARNING:synchronise_eye_unity:NoEventsFound", "DESCRIPTION: Synchronising could not be finished"))
+    return(NULL)
+  } 
+  matching$n_matches = n_matches
   return(matching)
 }
 
@@ -89,6 +93,7 @@ accepting = function(ls){
   if (ls$diff < MINUTE_MS) return(FALSE)
   if (ls$n_matches < MIN_MATCHES){
     #raising wargning
+    SmartPrint(c("WARNING:synchronise_eye_unity:NotEnoughData", "DESCRIPTION: Synchronising only based on a single event"))
     return(TRUE)
   }
   # tell it went alright
