@@ -63,6 +63,7 @@ try_fit_event = function(eye_event, unity_event, eye_times, unity_times, allowed
   for (data_set_id in set_ids){
     
     unity_set_durations = unity_durations[set_id == data_set_id]
+    
     # this passes the set durations from unity and all durations from eyetracker to the function that shoudl find best match
     # find_better_match returns a list with the best synchronising event
     ls_idx = find_better_match(eye_durations, unity_set_durations[, duration_ms], allowed_difference)
@@ -98,7 +99,7 @@ find_better_match = function(eye_durations, unity_durations, allowed_difference)
     }
   }
   if (n_matches == 0){
-    SmartPrint(c("WARNING:synchronise_eye_unity:NoEventsFound", "DESCRIPTION: Synchronising could not be finished"))
+    SmartPrint(c("WARNING:synchronise_eye_unity:NoMatch", "DESCRIPTION: No matching events found. Synchronising could not be finished"))
     return(NULL)
   } 
   matching$n_matches = n_matches
@@ -113,7 +114,6 @@ accepting = function(ls){
   MIN_MATCHES = 2
   if (ls$diff < MINUTE_MS) return(FALSE)
   if (ls$n_matches < MIN_MATCHES){
-    #raising wargning
     SmartPrint(c("WARNING:synchronise_eye_unity:NotEnoughData", "DESCRIPTION: Synchronising only based on a single event"))
     return(TRUE)
   }
@@ -126,7 +126,11 @@ accepting = function(ls){
 #' @param quest_times
 #' @param df_sync_times
 synchronise_quest_times = function(quest_times, df_sync_times){
-  # if(sum(complete.cases(df_sync_times)) == max(quest_times$set_id))
+  
+  if(sum(complete.cases(df_sync_times)) != max(quest_times$set_id)){
+    complete_ids = df_sync_times[complete.cases(df_sync_times), "set_id"]
+    SmartPrint(c("WARNING:synchronise_eye_unity:MissingSetSynchro", "DESCRIPTION: Synchronising only sets ", complete_ids))
+  }
   df_sync_times = mutate(df_sync_times, time_diff = time_eye - (time_unity * 1000))
   for (i in 1:nrow(df_sync_times)){
     row = df_sync_times[i,]
