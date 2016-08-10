@@ -16,13 +16,13 @@ draw_quest_participant = function(quest_set, trial_sets, quest_id, types = c("le
   first = TRUE
   for(i in 1:length(types)){
     type = types[i]
-    quest = quest(quest_set, trial_sets, quest_id, quest_types = type)
+    quest = get_quest(quest_set, trial_sets, quest_id, quest_types = type)
     if(is.null(quest)) next
     ls = quest_path(quest_set, trial_sets, quest)
     if(is.null(ls)) next
     if (first){
       quest_start_and_stop = ls[["start_stop"]]
-      map_size = map_size(quest_set, trial_sets, quest)
+      map_size = get_map_size(quest_set, trial_sets, quest)
     }
     #TODO - checks for the log to be present
     quest_player_table = ls[["player_log"]]

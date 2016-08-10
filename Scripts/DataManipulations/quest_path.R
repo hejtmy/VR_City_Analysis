@@ -1,15 +1,15 @@
 # returns information about quest so that it can be drawn
 # returns start and stop times, positions and player log for the duration
-quest_path = function(quest_set, trial_sets, quest = NULL, quest_session_id = NULL){
+quest_path = function(quest_set, trial_sets, quest = NULL, quest_order_session = NULL){
   ls = list()
   if(is.null(quest)){
-    if(is.null(quest_session_id)) {
-      SmartPrint(c("ERROR:quest_path:MissingParameter", "TYPE:quest_session_id ", "DESCRIPTION:", "Missing parameters"))
+    if(is.null(quest_order_session)) {
+      SmartPrint(c("ERROR:quest_path:MissingParameter", "TYPE:quest_order_session ", "DESCRIPTION:", "Missing parameters"))
       return()
     }
-    quest = quest(quest_set, trial_sets, quest_session_id)
-    if(is.null(quest_session_id)) {
-      SmartPrint(c("ERROR:quest_path:NoQUest", "ID: ", quest_session_id, "DESCRIPTION:", "There is no quest of such id in the quest set"))
+    quest = get_quest(quest_set, trial_sets, quest_order_session)
+    if(is.null(quest_order_session)) {
+      SmartPrint(c("ERROR:quest_path:NoQUest", "ID: ", quest_order_session, "DESCRIPTION:", "There is no quest of such id in the quest set"))
       return()
     }
   }

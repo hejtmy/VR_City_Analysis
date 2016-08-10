@@ -2,7 +2,7 @@
 #' 
 #' @param data Data extracted using select_data from MultiAnalysis
 #' @param quest_id ID of the quest - not session id, but the order of a quest, type of the quest is then recommended
-#' @param quest_session_id Session ID of the quest
+#' @param quest_order_session Session order of the quest
 #' @param map_img_path path to the image that will be overwrote
 #' @return graph of the learned and trial path
 draw_quest_participants = function(data, quest_id, types = c("trial"), map_img_path = NULL){

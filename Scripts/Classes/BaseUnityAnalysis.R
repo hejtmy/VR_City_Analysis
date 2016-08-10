@@ -4,9 +4,7 @@ BaseUnityAnalysis = R6Class("BaseUnityAnalysis",
   public = list(
     trial_sets = NULL,
     quest_set = NULL,
-    data_directory = NULL,
-    session = NULL,
-    initialize = function(dir=data_path, id="", session=NULL){
+    initialize = function(dir, id = "", session = NULL, override = F, save = T){
       self$dir = dir
       self$SetParticipant(id)
       self$SetSession(session)
@@ -15,53 +13,48 @@ BaseUnityAnalysis = R6Class("BaseUnityAnalysis",
         self$ReadData()
       }
     },
+    valid = function(){
+      return(!is.null(self$trial_sets))
+    },
     ReadData = function(override = F, save = T){
       private$readDataPrivate(override, save)
     },
     #define what is valid in the current context
-    SetSession = function(number=1){
+    SetSession = function(number = 1){
       self$session = paste("Session", number, sep="")
     },
     QuestsSummary = function(force = F){
       return(MakeQuestsSummary(self$quest_set, self$trial_sets))
     },
     #takes either quest_id or session id as a parameter
-    #session_id = 
-    QuestSummary = function(quest_idx = NULL, quest_session_id = NULL){
-      return(MakeQuestSummary(self$quest_set, self$trial_sets, quest_idx, quest_session_id))
+    #order_session = 
+    QuestSummary = function(quest_idx = NULL, quest_order_session = NULL){
+      return(MakeQuestSummary(self$quest_set, self$trial_sets, quest_idx, quest_order_session))
     },
     PublicQuestStep = function(quest_idx, quest_types = NULL){
       private$questStep(quest_idx, quest_types)
     },
     # Makes a graph with a path from start to finish
-    MakePathImage = function(quest_session_id = NULL, img_path = "Maps/megamap5.png"){
-      #Hmakes the path for the entire thing
-      if (is.null(quest_session_id)){
-        path_table = private$wholePlayerLog()
-        map_size = self$map_size()
-        return(make_path_image(img_location = img_path, position_table = path_table, map_size = map_size))
-      } else {
-        quest = private$questStep(quest_session_id)
-        time_window = private$getQuestTimewindow(quest)
-        if(!is.null(time_window)){
-          path_table = private$selectQuestPositionData(quest,time_window)
-        }
-        special_paths = list()
-        special_paths[["teleport"]]= private$getTeleportTimes(quest)
-        quest_start_and_stop = private$getQuestStartAndFinishPositions(quest)
-        map_size = self$map_size(quest)
-        if (!is.null(special_paths)){
-          make_path_image(img_location = img_path, position_table = path_table, map_size = map_size, special_paths = special_paths, special_points = quest_start_and_stop)
-        } else {
-          make_path_image(img_location = img_path, position_table = path_table, map_size = map_size)
-        }
-      }
-    },
     quest_path = function(quest){
       return(quest_path(self$quest_set, self$trial_sets, quest))
     },
+    entire_player_log = function(){
+      return(get_entire_player_log(trial_sets))
+    },
+    event_times = function(event_name = NULL){
+      return(get_event_times(self$trial_sets, event_name))
+    },
     map_size = function(quest = NULL){
-      map_size(self$quest_set, self$trial_sets, quest)
+      get_map_size(self$quest_set, self$trial_sets, quest)
+    },
+    screen_size = function(){
+      get_screen_size(self$trial_sets)
+    },
+    quests_timewindows = function(include_teleport = T){
+      return(get_quests_timewindows(quest_set = self$quest_set, trial_sets = self$trial_sets, include_teleport = include_teleport))
+    },
+    DrawQuestPath = function(quest_id, types = c("learn","trial"), img_path = "Maps/megamap5.png"){
+      draw_quest_participant(self$quest_set, self$trial_sets, quest_id, img_path = img_path)
     }
   ),
   private = list(
@@ -93,7 +86,6 @@ BaseUnityAnalysis = R6Class("BaseUnityAnalysis",
         self$trial_sets[[i]] = UnityTrialSet$new(experiment_log, player_log, scenario_log, quests_logs)
       }
       self$quest_set = MakeQuestTable(self$trial_sets)
-      private$isValid()
     },
     questStep = function(quest_idx, quest_types = NULL){
       return(QuestStep(self$quest_set, self$trial_sets, quest_idx, quest_types))
@@ -126,8 +118,8 @@ BaseUnityAnalysis = R6Class("BaseUnityAnalysis",
     wholePlayerLog = function(){
       return(wholePlayerLog(trial_sets))
     },
-    playerLogForQuest = function(quest = NULL, quest_session_id = NULL, include_teleport = T){
-      return(PlayerLogForQuest(quest, quest_session_id, include_teleport))
+    playerLogForQuest = function(quest = NULL, quest_order_session = NULL, include_teleport = T){
+      return(PlayerLogForQuest(quest, quest_order_session, include_teleport))
     },
     getStepTime = function(quest, step_name, step_action = "StepActivated", step_id = NULL){
       return(GetStepTime(quest, step_name, step_action, step_id))

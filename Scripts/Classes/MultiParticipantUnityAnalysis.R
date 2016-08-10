@@ -2,7 +2,11 @@ MultiParticipantUnityAnalysis <- R6Class("MultiParticipantUnityAnalysis",
   #define variables
   public = list(
     Data = NULL,
-    initialize = function(dir = NULL, subject_table = NULL, session = NULL, data=NULL){
+    session = NULL,
+    
+    #initialisation
+    initialize = function(dir = NULL, subject_table = NULL, session = NULL, data=NULL, override = F, save = T){
+      self$session = session
       #allows to preloade data
       if(!is.null(data)){
         self$Data = data
@@ -10,9 +14,16 @@ MultiParticipantUnityAnalysis <- R6Class("MultiParticipantUnityAnalysis",
       }
       #if saved
       self$Data = list()
+      ptr = paste("_", session, sep = "", collapse = "")
+      subject_table = select(subject_table, ID, contains(ptr))
+      names(subject_table) = sapply(names(subject_table), function(x) gsub(x, pattern = ptr, replacement = "" ))
+      
+      #for each participant
       for(i in 1:nrow(subject_table)){
         participant_code = subject_table$ID[i]
-        unity_code = subject_table$VR_EYE_1[i]
+        
+        # ------- UNITY ---------
+        unity_code = subject_table$VR_EYE[i]
         if(is.na(unity_code)){
           print("------------")
           SmartPrint(c("There is no unity log for participant", participant_code))
@@ -20,9 +31,28 @@ MultiParticipantUnityAnalysis <- R6Class("MultiParticipantUnityAnalysis",
           SmartPrint(c("------------ Loading", participant_code,"------------"))
           SmartPrint(c("Code for Eyetracker log for participant", participant_code, "is", unity_code))
           analysis = UnityEyetrackerAnalysis$new(dir, participant_code, session)
-          if (!is.null(analysis)) self$Data[[participant_code]]$UnityEyetracker = analysis
+          if (!is.null(analysis) && analysis$valid()){
+            self$Data[[participant_code]]$UnityEyetracker = analysis
+          }
         }
-        mri_code = subject_table$VR_MRI_1[i]
+        
+        # ------- EYETRACKER ---------
+        edf_code = subject_table$EDF_EYE[i]
+        if(is.na(edf_code)){
+          print("------------")
+          SmartPrint(c("There is no edf file for participant", participant_code))
+        } else {
+          SmartPrint(c("Code for edf log for participant", participant_code, "is", edf_code))
+          if(!is.null(self$Data[[participant_code]]$UnityEyetracker)){
+            eye = EyetrackerAnalysis$new(dir, participant_code, edf_code, 
+                                         unity_class = self$Data[[participant_code]]$UnityEyetracker, 
+                                         override, save)
+            if(eye$valid()) self$Data[[participant_code]]$UnityEyetracker$eyetracker = eye
+          }
+        }
+        
+        # ------- MRI ---------
+        mri_code = subject_table$VR_MRI[i]
         if(is.na(mri_code)){
           print("------------")
           SmartPrint(c("There is no MRI log for participant", participant_code))
@@ -31,23 +61,22 @@ MultiParticipantUnityAnalysis <- R6Class("MultiParticipantUnityAnalysis",
           analysis = UnityMRIAnalysis$new(dir,participant_code, session)
           self$Data[[participant_code]]$MRI = analysis
         }
-        ##eyetracker loading
       }
     },
     EyetrackerQuestsSummary = function(force = F){
-     if (!force & !is.null(private$eyetracker_quest_summary_tab)) return (private$eyetracker_quest_summary_tab)
-     final = data.frame()
-     for(i in 1:length(self$Data)){
-       print(self$Data[[i]]$UnityEyetracker$data_directory)
-       analysis = self$Data[[i]]$UnityEyetracker
-       if(is.null(analysis)) next
-       df = analysis$QuestsSummary(force)
-       if(is.null(df)) next
-       df = mutate(df, participant_id = rep(analysis$id,nrow(df)))
-       final = rbindlist(list(final,df))
-     }
-     private$eyetracker_quest_summary_tab = final
-     return(final)
+      if (!force & !is.null(private$eyetracker_quest_summary_tab)) return (private$eyetracker_quest_summary_tab)
+      final = data.frame()
+      for(i in 1:length(self$Data)){
+        print(self$Data[[i]]$UnityEyetracker$data_directory)
+        analysis = self$Data[[i]]$UnityEyetracker
+        if(is.null(analysis)) next
+        df = analysis$QuestsSummary(force)
+        if(is.null(df)) next
+        df = mutate(df, participant_id = rep(analysis$id,nrow(df)))
+        final = rbindlist(list(final,df))
+      }
+      private$eyetracker_quest_summary_tab = final
+      return(final)
     },
     MRIQuestSummary = function(force = F){
       if (!force & !is.null(private$mri_quest_summary_tab)) return (private$mri_quest_summary_tab)
@@ -62,6 +91,26 @@ MultiParticipantUnityAnalysis <- R6Class("MultiParticipantUnityAnalysis",
         final = rbindlist(list(final,df))
       }
       private$mri_quest_summary_tab = final
+      return(final)
+    },
+    synchronise_eyetracker = function(force = F){
+      if (!force & !is.null(private$fixations_synchronised)) return (private$fixations_synchronised)
+      final = data.frame()
+      for(i in 1:length(self$Data)){
+        print(self$Data[[i]]$UnityEyetracker$eyetracker$data_directory)
+        eyetracker = self$Data[[i]]$UnityEyetracker$eyetracker
+        if(is.null(eyetracker)) next
+        unity_class = self$Data[[i]]$UnityEyetracker
+        if(is.null(unity_class)){
+          SmartPrint(c("WARNING:MultiParticipantUnityAnalysis:EyetrackerSummary:NoQuestTimes", "ID:", eyetracker$id, "DESCRIPTION: You need to run EyetrackerQuestSummary first"))
+          next
+        }
+        dt = eyetracker$synchronise(unity_class, force)
+        if(is.null(dt)) next
+        dt[, participant_id := eyetracker$id]
+        final = rbindlist(list(final, dt))
+      }
+      private$fixations_synchronised = final
       return(final)
     },
     SynchropulsesTable = function(force = F){
@@ -83,6 +132,7 @@ MultiParticipantUnityAnalysis <- R6Class("MultiParticipantUnityAnalysis",
   ),
   private = list(
     eyetracker_quest_summary_tab = NULL,
+    fixations_synchronised = NULL,
     mri_quest_summary_tab = NULL,
     synchro_table =NULL
   )
