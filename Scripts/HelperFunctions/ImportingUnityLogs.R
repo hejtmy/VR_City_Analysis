@@ -4,7 +4,7 @@ OpenExperimentLogs = function(directory = ""){
   #needs to check if we got only one file out
   logs = list.files(directory, pattern = "_experiment_",full.names = T)
   if(length(logs) < 1){
-    print("Could not find the file for experiment log")
+    print("!!!Could not find the file for experiment log!!!")
     return(NULL)
   }
   for(i in 1:length(logs)){
@@ -35,6 +35,13 @@ OpenExperimentLog = function(filepath){
   if (length(idxSceneTop) > 0 & length(idxSceneBottom) > 0){
     ls[["scenario"]]  <- into_list(text[(idxSceneTop+1):(idxSceneBottom-1)])
   }
+  #todo - so far it only reads one
+  idxSceneTop <- which(grepl('\\*\\*\\*Screen information\\*\\*\\*',text))
+  idxSceneBottom <- which(grepl('\\-\\-\\-Screen information\\-\\-\\-',text))
+  if (length(idxSceneTop) > 0 & length(idxSceneBottom) > 0){
+    ls[["screen"]]  <- into_list(text[(idxSceneTop+1):(idxSceneBottom-1)])
+  }
+  
   return(ls)     
 }
 OpenPlayerLog = function(experiment_log, override = F){
@@ -44,13 +51,13 @@ OpenPlayerLog = function(experiment_log, override = F){
   log_columns_types = c(Time="numeric",Position="numeric",Rotation.X="numeric",Rotation.Y="numeric", Focus = "character", FPS = "numeric", Input="character")
   preprocessed_log_column_types = c(log_columns_types, Position.x="numeric", Position.y="numeric", Position.z="numeric",distance="numeric",cumulative_distance="numeric")
   if(length(logs) < 1){
-    SmartPrint(c("Could not find the file for player log", ptr))
+    SmartPrint(c("!!!Could not find the file for player log!!!", ptr))
     return(NULL)
   }
   if (length(logs)>1){
     #check if there is a preprocessed player file
     preprocessed_index = grep("*_preprocessed",logs)
-    if(length(preprocessed_index) >0){
+    if(length(preprocessed_index) > 0){
       if(override){
         SmartPrint(c("Removing preprocessed log", ptr))
         log = logs[1]
@@ -87,8 +94,10 @@ OpenPlayerLog = function(experiment_log, override = F){
   
   return(pos_tab)
 }
+#' This can only be done with data table as it doesn't copy itself but modifies by reference
+#' it would break data.frame which by default copies itself 
+#' https://stackoverflow.com/questions/11207497/r-passing-a-data-frame-by-reference
 PreprocessPlayerLog = function(pos_tab){
-  
   #check_stuff
   #check columns
   changed = F
@@ -115,12 +124,12 @@ SavePreprocessedPlayer = function(experiment_log, pos_tab){
 OpenScenarioLog = function(experiment_log){
   if(is.null(experiment_log$scenario$Name)) return (NULL)
   directory = dirname(experiment_log$filename)
-  ptr <- paste("_", escapeRegex(experiment_log$scenario$Name), "_", experiment_log$scenario$Timestamp, "*.txt$", sep="")
+  ptr <- paste("_", escapeRegex(experiment_log$scenario$Name), "_", experiment_log$scenario$Timestamp, sep="")
   #needs to check if we got only one file out
   log = list.files(directory, pattern = ptr, full.names = T)[1]
   #if the file does not exists returning NULL and exiting
   if(!file.exists(log)){
-    print(paste("Could not find the file for scenario log", ptr, sep = " "))
+    print(paste("!!!Could not find the file for scenario log!!!", ptr, sep = " "))
     print(ptr)
     return(NULL)
   }
@@ -160,7 +169,7 @@ OpenQuestLogs = function(experiment_log, scenario_log = NULL){
       #needs to check if we got only one file out
       log = list.files(directory, pattern = ptr, full.names = T)[1]
       if(!file.exists(log)){
-        print(paste("Could not find the file for given quest log", ptr, sep = " "))
+        print(paste("!!!Could not find the file for given quest log!!!", ptr, sep = " "))
         print(ptr)
         next
       }
@@ -204,20 +213,25 @@ GetActivatedQuestName <- function(string =""){
   return(name)
 }
 MakeQuestTable = function(trial_sets){
-  dt = data.table(id = numeric(0), session_id = numeric(0), name = character(0), type=character(0), id_of_set = numeric(0), set_id = numeric(0))
+  dt = data.table(id = numeric(0), order_session = numeric(0), name = character(0), type = character(0), set_id = numeric(0), order_set = numeric(0))
   #to keep track of the number of quests
-  session_id = 1
+  order_session = 1
   for (n in 1:length(trial_sets)){
     quest_logs = trial_sets[[n]]$quest_logs
     num_rows = length(quest_logs)
-    dt_trial = data.table(id = numeric(num_rows), session_id = numeric(num_rows), name = character(num_rows), type=character(num_rows), id_of_set = numeric(num_rows),set_id = numeric(num_rows))
+    dt_trial = data.table(id = numeric(num_rows), 
+                          order_session = numeric(num_rows), 
+                          name = character(num_rows), 
+                          type = character(num_rows), 
+                          set_id = numeric(num_rows),
+                          ordeer_set = numeric(num_rows))
     #if we pass an empty list
     if (length(quest_logs) == 0) next
     for(i in 1:length(quest_logs)){
       #needs to pass the whole thing
       quest_info = GetQuestInfo(quest_logs[i])
-      dt_trial[i,] = list(as.numeric(quest_info$id), session_id, quest_info$name, quest_info$type, n, i)
-      session_id = session_id + 1
+      dt_trial[i,] = list(as.numeric(quest_info$id), order_session, quest_info$name, quest_info$type, n, i)
+      order_session = order_session + 1
     }
     dt = rbindlist(list(dt,dt_trial))
   }
