@@ -30,9 +30,8 @@ synchronise_eye_unity = function(eye_events, unity_events, quest_times, fixation
   #' Tries Escape
   #' Should return a data frame set_id first_index
   df_sync_times = try_fit_event("ESCAPE", "Pause", eye_events, unity_events, ALLOWED_DIFFERENCE)
-  if(sum(complete.cases(df_sync_times)) == max(quest_times$set_id)){
-    synchronise_quest_times(quest_times, df_sync_times)
-  }
+
+  synchronise_quest_times(quest_times, df_sync_times)
   #if it fails, tries Eyetracker synchro
   
   fixations = fixations_add_quest_info(fixations, quest_times)
@@ -101,6 +100,7 @@ accepting = function(ls){
 }
 
 synchronise_quest_times = function(quest_times, df_sync_times){
+  # if(sum(complete.cases(df_sync_times)) == max(quest_times$set_id))
   df_sync_times = mutate(df_sync_times, time_diff = time_eye - (time_unity * 1000))
   for (i in 1:nrow(df_sync_times)){
     row = df_sync_times[i,]
