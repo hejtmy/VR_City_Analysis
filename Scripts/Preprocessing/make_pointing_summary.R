@@ -14,13 +14,15 @@ make_pointing_summary = function(quest_set, trial_sets){
   decision_time = numeric(nrow(quest_set))
   
   # extract times from quests whenre pointing is required
-  df = data.frame(quest_order_session = numeric(), target_angle = numeric(), chosen_angle = numeric(), decision_time = numeric())
+  dt = data.table(quest_order_session = numeric(), target_angle = numeric(), chosen_angle = numeric(), decision_time = numeric())
   
   for(quest_order_session in quest_set$order_session){
     quest = get_quest(quest_set, trial_sets, quest_order_session)
     choosings = get_event_times(trial_sets, "ChooseDirection")
+    # VALIDATIONS
     if(is.null(choosings)){
       #report no choose directions were found
+      SmartPrint(c("ERROR:make_pointing_summary:MissingEvent", "TYPE:ChooseDirection", "DESCRIPTION: No choose direction events were found"))
       return(NULL)
     }
     pointing_times = get_step_timespans(quest, "Point in Direction")
@@ -30,13 +32,14 @@ make_pointing_summary = function(quest_set, trial_sets){
       SmartPrint(c("WARNING:make_pointing_summary:UnequalPointing", "QUEST:", quest$name, "DESCRIPTION: Quest has", nrow(pointing_times), "pointing steps - skipping"))
       next
     }
+    
     quest_pointing = pointing_accuracy(quest_set, trial_sets, choosings, quest, pointing_times) #possble to get NAS in the data frame
     quest_pointing = quest_pointing %>% mutate(quest_order_session = quest_order_session)
     #adds info about the quest
-    df = bind_rows(df, quest_pointing)
+    dt = bind_rows(dt, quest_pointing)
   }
-  return_df = left_join(df, quest_set, by = c("quest_order_session" = "order_session"))
-  return(return_df)
+  return_dt = merge(dt, quest_set, by.x = "quest_order_session", by.y = "order_session")
+  return(return_dt)
 }
 
 #' Returns small data table

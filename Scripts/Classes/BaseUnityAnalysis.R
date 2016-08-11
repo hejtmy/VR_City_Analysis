@@ -28,7 +28,8 @@ BaseUnityAnalysis = R6Class("BaseUnityAnalysis",
     },
     pointing_summary = function(override = F){
       if(override || is.null(private$dt_pointing_summary)){
-        point = make_pointing_summary(self$quest_set, self$trial_sets)
+        dt_point = make_pointing_summary(self$quest_set, self$trial_sets)
+        private$dt_pointing_summary = dt_point
       }
       return(private$dt_pointing_summary)
     },
