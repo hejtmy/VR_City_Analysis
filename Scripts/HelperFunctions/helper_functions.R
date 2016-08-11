@@ -4,7 +4,12 @@ source_folder = function(path){
 is_between = function(numbers, between_low, between_high){
   return(sapply(numbers, function(x) (x > between_low && x < between_high)))
 }
-#X_value are in a format
+#' This is a mess. Basically there are two ways you can send parameters inside.
+#' Either as two lists, in which case X-values are X vaues and Y are Y
+#' Or as two points, in which case X-value is actually [x, y] point and Y-values alse [x, y]
+#' 
+#' Use distance between points instead
+
 EuclidDistanceColumns = function(x_values,y_values){
   if(is.list(x_values)){
     x = c(x_values[[1]][1], y_values[[1]][1])

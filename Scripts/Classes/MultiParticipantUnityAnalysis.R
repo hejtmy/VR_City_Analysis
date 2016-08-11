@@ -113,7 +113,45 @@ MultiParticipantUnityAnalysis <- R6Class("MultiParticipantUnityAnalysis",
         final = rbindlist(list(final, dt))
       }
       private$fixations_synchronised = final
-      return(final)
+      return(private$fixations_synchronised)
+    },
+    
+    pointing_summary = function(override = F){
+      if (!override & !is.null(private$dt_pointing_summary)) return (private$dt_pointing_summary)
+      dt_final = data.table()
+      
+      #unity pointing
+      for(i in 1:length(self$Data)){
+        analysis = self$Data[[i]]$UnityEyetracker
+        print(self$Data[[i]]$UnityEyetracker$data_directory)
+        if(is.null(analysis)){
+          SmartPrint(c("WARNING:pointing_summary:MissingData","TYPE:UnityClass", "ACTION:Skipping"))
+          next
+        }
+        dt = analysis$pointing_summary(override)
+        if(is.null(dt)) next
+        dt[, participant_id := analysis$id]
+        dt[, experiment := "Eyetracker"]
+        dt_final = rbindlist(list(dt_final, dt))
+      }
+      
+      # MRI POINTING
+      for(i in 1:length(self$Data)){
+        analysis = self$Data[[i]]$MRI
+        print(self$Data[[i]]$MRI$data_directory)
+        if(is.null(analysis)){
+          SmartPrint(c("WARNING:pointing_summary:MissingData","TYPE:MRI", "ACTION:Skipping"))
+          next
+        }
+        dt = analysis$pointing_summary(override)
+        if(is.null(dt)) next
+        dt[, participant_id := analysis$id]
+        dt[, experiment := "MRI"]
+        dt_final = rbindlist(list(dt_final, dt))
+      }
+      
+      private$dt_pointing_summary = dt_final
+      return(private$dt_pointing_summary)
     },
     SynchropulsesTable = function(force = F){
       if (!force & !is.null(private$synchro_table)) return (private$synchro_table)
@@ -136,7 +174,8 @@ MultiParticipantUnityAnalysis <- R6Class("MultiParticipantUnityAnalysis",
     eyetracker_quest_summary_tab = NULL,
     fixations_synchronised = NULL,
     mri_quest_summary_tab = NULL,
-    synchro_table =NULL
+    synchro_table = NULL,
+    dt_pointing_summary = NULL
   )
 )
 WorstPeopleEyetracker = function(MultiParticipantUnityAnalysis){

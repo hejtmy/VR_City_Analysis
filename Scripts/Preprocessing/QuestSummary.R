@@ -7,6 +7,12 @@ MakeQuestSummary = function(quest_set, trial_sets, quest_order_session = NULL, q
     ls$Time = ifelse(is.null(quest_times), NA, diff(c(quest_times$start,quest_times$finish)))
     
     player_log = PlayerLogForQuest(quest_set, quest, trial_sets)
+    
+    #calculating sky distance from start to goal
+    start_stop = quest_start_finish_positions(quest_set, trial_sets, quest)
+    if(!is.null(start_stop)) ls$sky_distance = quest_sky_distance(start_stop)
+    
+    #calculating time and distance covered
     if(is.null(player_log)){
       ls$Distance = NA
       ls$Finished = NA
@@ -19,7 +25,7 @@ MakeQuestSummary = function(quest_set, trial_sets, quest_order_session = NULL, q
     }
   }
   if (!is.null(quest_id)){
-    quest_types = c("learn","trial")
+    quest_types = c("learn", "trial")
     quests = QuestStep(quest_set, trial_sets, quest_id, quest_types)
     if(!length(quests) > 0) stop("no quests were found")
     #for each list member - checking if there are two
