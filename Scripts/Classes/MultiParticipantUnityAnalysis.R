@@ -131,6 +131,7 @@ MultiParticipantUnityAnalysis <- R6Class("MultiParticipantUnityAnalysis",
         dt = analysis$pointing_summary(override)
         if(is.null(dt)) next
         dt[, participant_id := analysis$id]
+        dt[, experiment := "Eyetracker"]
         dt_final = rbindlist(list(dt_final, dt))
       }
       
@@ -145,6 +146,7 @@ MultiParticipantUnityAnalysis <- R6Class("MultiParticipantUnityAnalysis",
         dt = analysis$pointing_summary(override)
         if(is.null(dt)) next
         dt[, participant_id := analysis$id]
+        dt[, experiment := "MRI"]
         dt_final = rbindlist(list(dt_final, dt))
       }
       
