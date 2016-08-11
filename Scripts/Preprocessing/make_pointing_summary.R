@@ -56,7 +56,7 @@ pointing_accuracy = function(quest_set, trial_sets, choosings, quest, pointing_t
   quest_start_finish = quest_start_finish_positions(quest_set, trial_sets, quest, include_teleport = F)
   
   quest_trial_set_id = get_quest_trial_set_id(quest_set, quest)
-  if (is.null(quest_trial_set_id)) return(NULL)
+  if (is.null(quest_trial_set_id)) return(df)
   
   #' splitting to the first and second part
   #' First shoudl be occuring on the start and second on the end
