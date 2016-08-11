@@ -2,38 +2,81 @@
 #' 
 #' @param quest_set quest set as defined and preprocessed in BaseUnityAnalysis
 #' @param trial_sets all trial sets holding information about particular quests and player positions
-make_pointing_summary = function(quest_set, trial_sets){
-  # extract times from quests whenre pointing is required
-  df = quest_set
-  if(is.null(df)) return(NULL)
-  target_angle = numeric(nrow(df))
-  chosen_angle = numeric(nrow(df))
-  decision_time = numeric(nrow(df))
-  for(quest_order_session in df$order_session){
-    quest = get_quest(quest_set, trial_sets, quest_order_session)
-    accuracy = pointing_accuracy(quest_set, trial_sets, quest) #possble to get NULL
-    speed = pointing_speed(quest_set, quest_order_session)
-    #trail_times[i] = ifelse(length(quest_summary$Time) < 1, NA, quest_summary$Time)
-    #trail_distances[i] = ifelse(length(quest_summary$Distance) < 1, NA, quest_summary$Distance)
-    #trail_finished[i] = quest_summary$Finished
-    #trailDistancesToEnd[i] = ifelse(length(quest_summary$DistanceToLastStep) < 1, NA, quest_summary$DistanceToLastStep)
-  }
-  df = mutate(df, target_angle = target_angle, chosen_angle = chosen_angle, decision_time = decision_time)
-  return(df)
-  # extract closest event after this time and before the next phase starts
-  # extract poistion of the player and his rotation
-  # extract position of the point at which to point
-  # return table
-}
-
-#' id  | order_session| name  | type  | set_id | order_set  | target_angle | chosen_angle  | decision_time
-#' -------------------------------------------------------------------------------------------------------
 #' 
-
-pointing_accuracy = function(quest_set, trial_sets, quest){
-  player_log = player_log_quest(quest_set, trial_sets, quest = quest)
-  start_stop = quest_start_finish_positions(quest_set, trial_sets, quest)
+#' id  | order_session| name  | type  | set_id | order_set  | target_distance | target_angle | chosen_angle  | decision_time
+#' -------------------------------------------------------------------------------------------------------------------------
+#' 
+make_pointing_summary = function(quest_set, trial_sets){
+  
+  if(is.null(quest_set)) return(NULL)
+  target_angle = numeric(nrow(quest_set))
+  chosen_angle = numeric(nrow(quest_set))
+  decision_time = numeric(nrow(quest_set))
+  
+  # extract times from quests whenre pointing is required
+  df = data.frame(quest_order_session = numeric(), target_angle = numeric(), chosen_angle = numeric(), decision_time = numeric())
+  
+  for(quest_order_session in quest_set$order_session){
+    quest = get_quest(quest_set, trial_sets, quest_order_session)
+    choosings = get_event_times(trial_sets, "ChooseDirection")
+    if(is.null(choosings)){
+      #report no choose directions were found
+      return(NULL)
+    }
+    pointing_times = get_step_timespans(quest, "Point in Direction")
+    if (is.null(pointing_times)) next #skipping trials without pointing
+    if (nrow(pointing_times) != 2){
+      #print there is an error
+      SmartPrint(c("WARNING:make_pointing_summary:UnequalPointing", "QUEST:", quest$name, "DESCRIPTION: Quest has", nrow(pointing_times), "pointing steps - skipping"))
+      next
+    }
+    quest_pointing = pointing_accuracy(quest_set, trial_sets, choosings, quest, pointing_times) #possble to get NAS in the data frame
+    quest_pointing = quest_pointing %>% mutate(quest_order_session = quest_order_session)
+    #adds info about the quest
+    df = bind_rows(df, quest_pointing)
+  }
+  return_df = left_join(df, quest_set, by = c("quest_order_session" = "order_session"))
+  return(return_df)
 }
 
-pointing_speed = function(quest){
+#' Returns small data table
+
+pointing_accuracy = function(quest_set, trial_sets, choosings, quest, pointing_times){
+  ALLOWED_DIFFERENCE = 0.1
+  
+  n_pointing = nrow(pointing_times)
+  
+  df = data.frame(order = as.numeric(rep(NA, n_pointing)), target_angle = as.numeric(rep(NA, n_pointing)), chosen_angle = as.numeric(rep(NA, n_pointing)), decision_time = as.numeric(rep(NA, n_pointing)))
+  
+  # assumes that pointing times are in order
+  player_log = player_log_quest_trial(quest_set, trial_sets, quest = quest)
+  quest_start_finish = quest_start_finish_positions(quest_set, trial_sets, quest, include_teleport = F)
+  
+  quest_trial_set_id = get_quest_trial_set_id(quest_set, quest)
+  if (is.null(quest_trial_set_id)) return(NULL)
+  
+  #' splitting to the first and second part
+  #' First shoudl be occuring on the start and second on the end
+  for (i in 1:n_pointing){
+    if(i == 1){target_pos = quest_start_finish$finish} else {target_pos = quest_start_finish$start}
+    # time is the tiem between
+    dt_time = pointing_times[i, ]
+    
+    # This should be more accurate than StepFinished
+    player_point_time = choosings %>% filter(set_id == quest_trial_set_id) %>% 
+      filter(Time > dt_time$StepActivated) %>%
+      filter((Time - dt_time$StepFinished) < ALLOWED_DIFFERENCE) %>%
+      select(Time) %>% first
+    
+    if(length(player_point_time) != 1) next
+    
+    pointing_moment = player_log[Time > player_point_time, .SD[1]]
+    player_pos = pointing_moment[,  c(Position.x, Position.z)]
+
+    target_angle = angle_from_positions(player_pos, target_pos)
+    chosen_angle = pointing_moment$Rotation.X
+    decision_time = player_point_time - dt_time$StepActivated
+    df[i,] = c(i, target_angle, chosen_angle, decision_time)
+  }
+  return(df)
 }
