@@ -14,7 +14,7 @@ LastPlayerPositionInQuest = function(quest_set, quest, trial_sets){
   time = GetQuestEndTime(quest)
   if (is.null(time)) return(NULL)
   playerLog = WholeTrialPlayerLogForQuest(quest_set, quest, trial_sets)
-  lastPosition = GetPositionAtTime(playerLog, time)
+  lastPosition = get_position_at_time(playerLog, time)
   return(c(lastPosition$Position.x,lastPosition$Position.z))
 }
 LastQuestPosition = function(quest){
