@@ -6,7 +6,7 @@
 # quest_set: quest set table from the log object
 # - trial_sets: sets of data from the original object, player log will be extracted from here
 
-trial_player_log_quest = function(quest_set, quest = NULL, trial_sets = NULL, quest_order_session = NULL){
+player_log_quest_trial = function(quest_set, quest = NULL, trial_sets = NULL, quest_order_session = NULL){
   return(WholeTrialPlayerLogForQuest(quest_set, quest, trial_sets, quest_order_session))
 }
 WholeTrialPlayerLogForQuest = function(quest_set, quest = NULL, trial_sets = NULL, quest_order_session = NULL){
