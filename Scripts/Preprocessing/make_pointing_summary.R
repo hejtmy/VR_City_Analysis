@@ -27,9 +27,9 @@ make_pointing_summary = function(quest_set, trial_sets){
     }
     pointing_times = get_step_timespans(quest, "Point in Direction")
     if (is.null(pointing_times)) next #skipping trials without pointing
-    if (nrow(pointing_times) != 2){
+    if (nrow(pointing_times) > 2){
       #print there is an error
-      SmartPrint(c("WARNING:make_pointing_summary:UnequalPointing", "QUEST:", quest$name, "DESCRIPTION: Quest has", nrow(pointing_times), "pointing steps - skipping"))
+      SmartPrint(c("WARNING:make_pointing_summary:TooManyPoints", "QUEST:", quest$name, "ACTION:Skipping", "DESCRIPTION: Quest has", nrow(pointing_times), "pointing steps"))
       next
     }
     
