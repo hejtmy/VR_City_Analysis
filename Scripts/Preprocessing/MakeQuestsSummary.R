@@ -43,7 +43,7 @@ AddPulsesToSummary = function(df, quest_set, trial_sets){
 #calculates order and number of fMRI pulses
 CalculateMRIPulses = function(trial_sets, quest){
   ls = list()
-  player_log = WholePlayerLog(trial_sets)
+  player_log = get_entire_player_log(trial_sets)
   timeWindow = GetQuestTimewindow(quest, include_teleport = T)
   #gets the index numbers of the rows in the quest time range
   #indexes are not from the entire log, but only from the fMRI sychnro line
