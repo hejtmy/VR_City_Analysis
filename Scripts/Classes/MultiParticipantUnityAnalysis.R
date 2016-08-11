@@ -119,11 +119,13 @@ MultiParticipantUnityAnalysis <- R6Class("MultiParticipantUnityAnalysis",
     pointing_summary = function(override = F){
       if (!override & !is.null(private$dt_pointing_summary)) return (private$dt_pointing_summary)
       dt_final = data.table()
+      
+      #unity pointing
       for(i in 1:length(self$Data)){
         analysis = self$Data[[i]]$UnityEyetracker
         print(self$Data[[i]]$UnityEyetracker$data_directory)
         if(is.null(analysis)){
-          SmartPrint(c("WARNING:pointing_summary:MissingUnityClass", "ACTION:Skipping"))
+          SmartPrint(c("WARNING:pointing_summary:MissingData","TYPE:UnityClass", "ACTION:Skipping"))
           next
         }
         dt = analysis$pointing_summary(override)
@@ -131,6 +133,21 @@ MultiParticipantUnityAnalysis <- R6Class("MultiParticipantUnityAnalysis",
         dt[, participant_id := analysis$id]
         dt_final = rbindlist(list(dt_final, dt))
       }
+      
+      # MRI POINTING
+      for(i in 1:length(self$Data)){
+        analysis = self$Data[[i]]$MRI
+        print(self$Data[[i]]$MRI$data_directory)
+        if(is.null(analysis)){
+          SmartPrint(c("WARNING:pointing_summary:MissingData","TYPE:MRI", "ACTION:Skipping"))
+          next
+        }
+        dt = analysis$pointing_summary(override)
+        if(is.null(dt)) next
+        dt[, participant_id := analysis$id]
+        dt_final = rbindlist(list(dt_final, dt))
+      }
+      
       private$dt_pointing_summary = dt_final
       return(private$dt_pointing_summary)
     },
