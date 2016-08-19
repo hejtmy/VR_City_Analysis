@@ -36,7 +36,7 @@ make_pointing_summary = function(quest_set, trial_sets){
     quest_pointing = pointing_accuracy(quest_set, trial_sets, choosings, quest, pointing_times) #possble to get NAS in the data frame
     quest_pointing = quest_pointing %>% mutate(quest_order_session = quest_order_session)
     #adds info about the quest
-    dt = bind_rows(dt, quest_pointing)
+    dt = rbindlist(list(dt, quest_pointing), fill =T)
   }
   return_dt = merge(dt, quest_set, by.x = "quest_order_session", by.y = "order_session")
   return(return_dt)
@@ -49,7 +49,7 @@ pointing_accuracy = function(quest_set, trial_sets, choosings, quest, pointing_t
   
   n_pointing = nrow(pointing_times)
   
-  df = data.frame(order = as.numeric(rep(NA, n_pointing)), target_angle = as.numeric(rep(NA, n_pointing)), chosen_angle = as.numeric(rep(NA, n_pointing)), decision_time = as.numeric(rep(NA, n_pointing)))
+  df = data.frame(pointing_order = as.numeric(rep(NA, n_pointing)), target_angle = as.numeric(rep(NA, n_pointing)), chosen_angle = as.numeric(rep(NA, n_pointing)), decision_time = as.numeric(rep(NA, n_pointing)))
   
   # assumes that pointing times are in order
   player_log = player_log_quest_trial(quest_set, trial_sets, quest = quest)
