@@ -2,7 +2,7 @@ source_folder = function(path){
   sapply(list.files(pattern="[.]R$", path=path, full.names=TRUE), source);
 }
 is_between = function(numbers, between_low, between_high){
-  return(sapply(numbers, function(x) (x > between_low && x < between_high)))
+  return(numbers >= between_low & numbers <= between_high)
 }
 #' This is a mess. Basically there are two ways you can send parameters inside.
 #' Either as two lists, in which case X-values are X vaues and Y are Y
