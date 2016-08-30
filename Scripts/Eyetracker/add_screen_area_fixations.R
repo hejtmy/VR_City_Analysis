@@ -21,8 +21,10 @@ create_areas = function(height, width){
   control_area = list(name = "control",x = c(0, quater(WIDTH)),
                       y = c(HEIGHT, HEIGHT - quater(HEIGHT)))
   
-  areas = list(map_area, center_area, control_area)
+  quest_area = list(name = "quest", x = c(WIDTH, WIDTH - quater(WIDTH)),
+                    y = c(HEIGHT, HEIGHT - quater(HEIGHT)/2))
   
+  areas = list(map_area, center_area, control_area)
 }
 
 add_screen_area_fixations = function(dt_fixations, areas){
