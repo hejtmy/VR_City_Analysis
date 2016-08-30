@@ -13,11 +13,18 @@ width = 1920
 quater = function(num){return(num/4)}
 third = function(num){return(num/3)}
 around = function(middle, deviation){return(c(middle - deviation, middle + deviation))}
-map_area = list(name = "map", x = c(0, quater(width)), y = c(0, quater(height)))
+
+map_area = list(name = "map", x = c(0, quater(width)), 
+                              y = c(0, quater(height)))
+
 center_area = list(name = "center", x = around(width/2, quater(width)/2), 
                                     y = around(height/2, quater(height)/2))
-control_area = list(name = "control",x = c(0, quater(width)),
-                                     y = c(height, height - quater(height)))
+
+control_area = list(name = "control", x = c(0, quater(width)),
+                                      y = c(height, height - quater(height)))
+
+quest_area = list(name = "quest", x = c(width, width - quater(width)),
+                                  y = c(height, height - quater(height)/2))
 
 areas = list(map_area, center_area, control_area)
 
