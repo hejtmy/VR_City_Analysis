@@ -3,14 +3,14 @@ MRIPulsesTable = function(MRIAnalysis){
   pulsesTable = player_log[Input == "fMRISynchro"]
   return(pulsesTable)
 }
-MultiMRIPulsesTable=function(MultiParticipantUnityAnalysis){
+MultiMRIPulsesTable = function(MultiParticipantUnityAnalysis){
   analysesNames = names(MultiParticipantUnityAnalysis$Data)
   ls = list()
   for(name in analysesNames){
     MRI = MultiParticipantUnityAnalysis$Data[[name]]$MRI
     if(is.null(MRI)) next
     pulsesTable = MRIPulsesTable(MRI)
-    pulsesTable[,id:=name]
+    pulsesTable[, id:=name]
     ls[[name]] = pulsesTable
   }
   table = rbindlist(ls)
