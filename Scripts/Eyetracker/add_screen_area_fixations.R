@@ -24,13 +24,13 @@ create_areas = function(height, width){
   quest_area = list(name = "quest", x = c(WIDTH, WIDTH - quater(WIDTH)),
                     y = c(HEIGHT, HEIGHT - quater(HEIGHT)/2))
   
-  areas = list(map_area, center_area, control_area)
+  areas = list(map_area, center_area, control_area, quest_area)
 }
 
 add_screen_area_fixations = function(dt_fixations, areas){
   dt_fixations[, area := ""]
-  for (ar in areas){
-    dt_fixations[is_between(pos_x, ar$x[1], ar$x[2]) & is_between(pos_y, ar$y[1], ar$y[2]), area:= ar$name]
+  for (area in areas){
+    dt_fixations[is_between(pos_x, area$x[1], area$x[2]) & is_between(pos_y, area$y[1], area$y[2]), area:= area$name]
   }
   return(dt_fixations)
 }
