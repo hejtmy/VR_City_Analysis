@@ -5,6 +5,8 @@
 prepare_quest_path = function(quest_set, trial_sets, quest_id, types){
   path_table = data.table()
   FIRST = T
+  quest_start_and_stop = NULL
+  map_size = NULL
   for(i in 1:length(types)){
     type = types[i]
     quest = get_quest(quest_set, trial_sets, quest_id, quest_types = type)
