@@ -93,6 +93,7 @@ MultiParticipantUnityAnalysis <- R6Class("MultiParticipantUnityAnalysis",
       private$mri_quest_summary_tab = final
       return(final)
     },
+    
     synchronise_eyetracker = function(override = F){
       #should possibly save?
       if (!override & !is.null(private$fixations_synchronised)) return (private$fixations_synchronised)
@@ -153,6 +154,7 @@ MultiParticipantUnityAnalysis <- R6Class("MultiParticipantUnityAnalysis",
       private$dt_pointing_summary = dt_final
       return(private$dt_pointing_summary)
     },
+    
     SynchropulsesTable = function(force = F){
       if (!force & !is.null(private$synchro_table)) return (private$synchro_table)
       private$synchro_table = MultiMRIPulsesTable(self)
