@@ -21,8 +21,6 @@ make_path_image = function (img_location, position_table, map_size, special_poin
   }
   return(plot)
 }
-
-
 AddPointsToPlot = function(plot, ls){
   list_names = names(ls)
   data_table = data.frame(point.x = numeric(0),point.y = numeric(0), point.name = character(), stringsAsFactors = F)
@@ -34,10 +32,4 @@ AddPointsToPlot = function(plot, ls){
   plot = plot + 
     geom_point(data = data_table, aes(point.x, point.y, color = point.name), size = 4)
   return(plot)
-}
-SavePlot = function(inputPlot,name){
-  mypath <- paste("../images/", name, sep = "")
-  file = png(mypath, width = 1200, height = 800, units = "px")
-  plot(inputPlot)
-  dev.off()
 }
