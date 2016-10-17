@@ -14,7 +14,7 @@ make_pointing_summary = function(quest_set, trial_sets){
   decision_time = numeric(nrow(quest_set))
   
   # extract times from quests whenre pointing is required
-  dt = data.table(quest_order_session = numeric(), target_angle = numeric(), chosen_angle = numeric(), decision_time = numeric())
+  dt = data.table()
   choosings = get_event_times(trial_sets, "ChooseDirection")
   # VALIDATION
   if(is.null(choosings)){
