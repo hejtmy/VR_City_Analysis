@@ -8,7 +8,7 @@ data_dir = "U:/OneDrive/NUDZ/HCENAT/Data/"
 subject_table = read.table(paste(data_dir, "ListOfSubjects.csv",sep = ""), sep = ",", 
                            header = T, stringsAsFactors = F, na.strings = c(""))
 
-SESSION = 1
+SESSION = 2
 
 #loads from the subjectList table
 Analyses = MultiParticipantUnityAnalysis$new(data_dir, subject_table, SESSION, override = F)
@@ -20,10 +20,10 @@ dt_pointing = Analyses$pointing_summary()
 
 write.table(tabEyeQuests,"tabEyeQuests_session2.csv", sep = ";", row.names = F, quote = F)
 write.table(tabMRIQuests,"tabMRIQuests_session2.csv", sep = ";", row.names = F, quote = F)
-write.table(synced_fixations,"synced_fixations_session2.csv", sep = ";", row.names = F, quote = F)
-write.table(dt_pointing,"pointing_session2.csv", sep = ";", row.names = F, quote = F)
+write.table(dt_pointing, "pointing_session2.csv", sep = ";", row.names = F, quote = F)
 
 areas = create_areas()
-dt = add_screen_area_fixations(synced_fixations, areas)
+synced_fixations = add_screen_area_fixations(synced_fixations, areas)
+write.table(synced_fixations, "synced_fixations_session2.csv", sep = ";", row.names = F, quote = F)
+
 fix_summary = make_fixations_summary(dt)
-write.table(fix_summary, "fixations_summary_session2.csv", sep = ";", row.names = F, quote = F)
