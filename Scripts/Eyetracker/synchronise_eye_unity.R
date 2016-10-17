@@ -32,7 +32,7 @@ synchronise_eye_unity = function(eye_events, unity_events, quest_times, fixation
 
   synchronise_quest_times(quest_times, df_sync_times)
   #if it fails, tries Eyetracker synchro
-  
+  eye_to_unity_times(fixations, df_sync_times)
   fixations = fixations_add_quest_info(fixations, quest_times)
   return(fixations)
 }
@@ -121,6 +121,25 @@ accepting = function(ls){
   return(TRUE)
 }
 
+#' replaces eyetracker_times for quest_times
+#' 
+#' @param df_sync_times
+#' @param fixations
+eye_to_unity_times = function(fixations, df_sync_times){
+  df_sync_times = mutate(df_sync_times, time_diff = (time_unity * 1000) - time_eye)
+  #' - this loop might seems weird, as it always modifies all the times regardless of the set
+  #' but it actually rewrites only portions of sequencial sets - rewrites 1st with 2nd and 1st and 2nd with 3rd
+  fixations[, `:=`(start_unity = as.numeric(NA),
+       end_unity = as.numeric(NA))]
+  for (i in 1:nrow(df_sync_times)){
+    row = df_sync_times[i, ]
+    fixations[start >  row$time_eye & end > row$time_eye, `:=`(start_unity = (start + row$time_diff)/1000,
+                                                               end_unity = (end + row$time_diff)/1000)]
+  }
+  return(fixations)
+}
+
+
 #' Returns quest_times table with added information about when those times are tied to eyetracker
 #' 
 #' @param quest_times
@@ -153,6 +172,7 @@ fixations_add_quest_info = function(fixations, quest_times){
   fixations = merge(fixations, quest_times[, 1:6, with = FALSE], by.x = "quest_order_session", by.y = "order_session", all.x = T)
   return(fixations)
 }
+
 
 #' tries to find a sequency of N elements in eye_durations that correspond to the synchro durations
 #' returns index of first matchin eye event
