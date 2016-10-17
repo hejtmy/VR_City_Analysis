@@ -8,6 +8,7 @@ library('png')
 library('grid')
 library('ggplot2')
 library('ggthemr')
+library('ggthemes')
 #custom items
 
 source(paste(getwd(),"Scripts/HelperFunctions/helper_functions.R",sep="/"))
