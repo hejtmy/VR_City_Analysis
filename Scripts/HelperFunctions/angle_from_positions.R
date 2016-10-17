@@ -10,11 +10,15 @@ angle_from_positions = function(pos_from, pos_to){
   
   ZERO_VECTOR =  c(0, 1)
   target_vector = pos_to - pos_from
-  theta = acos(sum(ZERO_VECTOR * target_vector) / (sqrt(sum(ZERO_VECTOR * ZERO_VECTOR)) * (sqrt(sum(target_vector * target_vector)))))
+  
+  # ATAN takes Y and X, but we want to scale it against Z axis, therefore Y in carthesian, so the input is reversed
+  theta = atan2(target_vector[1], target_vector[2])
   angle = radian_to_angle(theta)
   return(angle)
 }
 
 radian_to_angle = function(radian){
-  return(radian/pi * 180)
+  angle = radian/pi * 180
+  if(angle < 0) angle = 360 + angle
+  return(angle)
 }
