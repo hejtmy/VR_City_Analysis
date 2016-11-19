@@ -26,9 +26,9 @@ BaseUnityAnalysis = R6Class("BaseUnityAnalysis",
     QuestsSummary = function(force = F){
       return(MakeQuestsSummary(self$quest_set, self$trial_sets))
     },
-    pointing_summary = function(override = F){
+    pointing_summary = function(correct_angles = NULL, override = F){
       if(override || is.null(private$dt_pointing_summary)){
-        dt_point = make_pointing_summary(self$quest_set, self$trial_sets)
+        dt_point = make_pointing_summary(self$quest_set, self$trial_sets, correct_angles = correct_angles)
         private$dt_pointing_summary = dt_point
       }
       return(private$dt_pointing_summary)

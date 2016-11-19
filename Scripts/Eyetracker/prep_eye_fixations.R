@@ -18,6 +18,7 @@ prep_eye_fixations = function(dt, unity_class){
     result[, no_idea_1 := NULL]
     ls$changed = T
   }
+  
   #reverting fixations in the Y axis
   ls$result = result
   return(ls)

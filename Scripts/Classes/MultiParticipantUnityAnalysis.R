@@ -117,7 +117,7 @@ MultiParticipantUnityAnalysis <- R6Class("MultiParticipantUnityAnalysis",
       return(private$fixations_synchronised)
     },
     
-    pointing_summary = function(override = F){
+    pointing_summary = function(correct_angles = NULL, override = F){
       if (!override & !is.null(private$dt_pointing_summary)) return (private$dt_pointing_summary)
       dt_final = data.table()
       
@@ -129,7 +129,7 @@ MultiParticipantUnityAnalysis <- R6Class("MultiParticipantUnityAnalysis",
           SmartPrint(c("WARNING:pointing_summary:MissingData","TYPE:UnityClass", "ACTION:Skipping"))
           next
         }
-        dt = analysis$pointing_summary(override)
+        dt = analysis$pointing_summary(correct_angles, override)
         if(is.null(dt)) next
         dt[, participant_id := analysis$id]
         dt[, experiment := "Eyetracker"]
@@ -144,7 +144,7 @@ MultiParticipantUnityAnalysis <- R6Class("MultiParticipantUnityAnalysis",
           SmartPrint(c("WARNING:pointing_summary:MissingData","TYPE:MRI", "ACTION:Skipping"))
           next
         }
-        dt = analysis$pointing_summary(override)
+        dt = analysis$pointing_summary(correct_angles, override)
         if(is.null(dt)) next
         dt[, participant_id := analysis$id]
         dt[, experiment := "MRI"]

@@ -5,7 +5,7 @@
 #' @param choosings - evet times of ChooseDirections in Unity log - data.frame
 #' @param quest - as returend by get_quest
 #' @return data.frame 
-pointing_accuracy = function(quest_set, trial_sets, quest, choosings = NULL){
+pointing_accuracy = function(quest_set, trial_sets, quest, choosings = NULL, correct_angle = NULL){
   ALLOWED_DIFFERENCE = 0.1
   
   pointing_times = get_step_timespans(quest, "Point in Direction")
@@ -29,7 +29,7 @@ pointing_accuracy = function(quest_set, trial_sets, quest, choosings = NULL){
   #' splitting to the first and second part
   #' First shoudl be occuring on the start and second on the end
   for (i in 1:n_pointing){
-    if(i == 1){target_pos = quest_start_finish$finish} else {target_pos = quest_start_finish$start}
+
     # time is the tiem between
     dt_time = pointing_times[i, ]
     
@@ -46,7 +46,13 @@ pointing_accuracy = function(quest_set, trial_sets, quest, choosings = NULL){
     pointing_moment = player_log[Time > player_point_time, .SD[1]]
     player_pos = pointing_moment[, c(Position.x, Position.z)]
     
-    target_angle = angle_from_positions(player_pos, target_pos)
+    if(is.null(correct_angle)){
+      target_pos = ifelse(i == 1, quest_start_finish$finish, quest_start_finish$start)
+      target_angle = angle_from_positions(player_pos, target_pos)
+    } else {
+      target_angle = correct_angle
+    }
+
     chosen_angle = pointing_moment$Rotation.X
     point_start =  dt_time$StepActivated
     point_end = player_point_time
