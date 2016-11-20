@@ -5,11 +5,12 @@ data_dir = "../Data/"
 data_dir = "C:/Users/hejtmy/OneDrive/NUDZ/HCENAT/Data/"
 data_dir = "U:/OneDrive/NUDZ/HCENAT/Data/"
 
-subject_table = read.table(paste(data_dir, "ListOfSubjects.csv",sep = ""), sep = ",", 
+subject_table = read.table(paste(data_dir, "ListOfSubjects.csv", sep = ""), sep = ",", 
                            header = T, stringsAsFactors = F, na.strings = c(""))
 
 SESSION = 2
 
+subject_table = subject_table[c(1:4),]
 #loads from the subjectList table
 Analyses = MultiParticipantUnityAnalysis$new(data_dir, subject_table, SESSION, override = F)
 
@@ -22,7 +23,10 @@ tabMRIPulses = Analyses$SynchropulsesTable()
 
 Analyses$load_eyetracker()
 synced_fixations = Analyses$synchronise_eyetracker()
-dt_pointing = Analyses$pointing_summary()
+
+correct_angles = read.csv(paste(data_dir, "correct-angles.csv", sep = ""),
+                          header = T, stringsAsFactors = F, na.strings = c(""))
+dt_pointing = Analyses$pointing_summary(override = T)
 
 write.table(tabEyeQuests,"tabEyeQuests_session2.csv", sep = ";", row.names = F, quote = F)
 write.table(tabMRIQuests,"tabMRIQuests_session2.csv", sep = ";", row.names = F, quote = F)

@@ -6,7 +6,7 @@
 #' id  | order_session| name  | type  | set_id | order_set  | target_distance | target_angle | chosen_angle  | decision_time
 #' -------------------------------------------------------------------------------------------------------------------------
 #' 
-make_pointing_summary = function(quest_set, trial_sets){
+make_pointing_summary = function(quest_set, trial_sets, correct_angles = NULL){
   
   if(is.null(quest_set)) return(NULL)
   target_angle = numeric(nrow(quest_set))
@@ -24,7 +24,7 @@ make_pointing_summary = function(quest_set, trial_sets){
   }
   for(quest_order_session in quest_set$order_session){
     quest = get_quest(quest_set, trial_sets, quest_order_session)
-
+    
     pointing_times = get_step_timespans(quest, "Point in Direction")
     if (is.null(pointing_times)) next #skipping trials without pointing
     if (nrow(pointing_times) > 2){
@@ -32,7 +32,16 @@ make_pointing_summary = function(quest_set, trial_sets){
       SmartPrint(c("WARNING:make_pointing_summary:TooManyPoints", "QUEST:", quest$name, "ACTION:Skipping", "DESCRIPTION: Quest has", nrow(pointing_times), "pointing steps"))
       next
     }
-    quest_pointing = pointing_accuracy(quest_set, trial_sets, quest, choosings) #possble to get NAS in the data frame
+    if (!is.null(correct_angles)){
+      correct_angle = correct_angles %>% 
+        filter(name == quest$name) %>% 
+        select(target_angle)
+      correct_angle = if(nrow(correct_angle) == 1){correct_angle$target_angle} else {NULL}
+      if(!is.null(correct_angle)){
+        print("Success")
+      }
+    } else {correct_angle = NULL}
+    quest_pointing = pointing_accuracy(quest_set, trial_sets, quest, choosings, correct_angle) #possble to get NAS in the data frame
     quest_pointing = quest_pointing %>% mutate(quest_order_session = quest_order_session)
     #adds info about the quest
     dt = rbindlist(list(dt, quest_pointing), fill =T)
