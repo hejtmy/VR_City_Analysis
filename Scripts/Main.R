@@ -14,22 +14,25 @@ subject_table = subject_table[c(1:4),]
 #loads from the subjectList table
 Analyses = MultiParticipantUnityAnalysis$new(data_dir, subject_table, SESSION, override = F)
 
+# -------- UNITY EYE ---------
 Analyses$load_unity_eyetracker()
 tabEyeQuests = Analyses$EyetrackerQuestsSummary()
+write.table(tabEyeQuests,"tabEyeQuests_session2.csv", sep = ";", row.names = F, quote = F)
 
+# -------- UNITY MRI ---------
 Analyses$load_unity_mri()
 tabMRIQuests = Analyses$MRIQuestSummary()
 tabMRIPulses = Analyses$SynchropulsesTable()
+write.table(tabMRIQuests,"tabMRIQuests_session2.csv", sep = ";", row.names = F, quote = F)
 
-Analyses$load_eyetracker()
+# -------- EYETRACKER ---------
+Analyses$load_eyetracker(override = T)
 synced_fixations = Analyses$synchronise_eyetracker()
 
+# -------- POINTING ---------
 correct_angles = read.csv(paste(data_dir, "correct-angles.csv", sep = ""),
                           header = T, stringsAsFactors = F, na.strings = c(""))
 dt_pointing = Analyses$pointing_summary(override = T)
-
-write.table(tabEyeQuests,"tabEyeQuests_session2.csv", sep = ";", row.names = F, quote = F)
-write.table(tabMRIQuests,"tabMRIQuests_session2.csv", sep = ";", row.names = F, quote = F)
 write.table(dt_pointing, "pointing_session2.csv", sep = ";", row.names = F, quote = F)
 
 areas = create_areas()
