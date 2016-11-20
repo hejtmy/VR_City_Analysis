@@ -39,7 +39,7 @@ BaseUnityAnalysis = R6Class("BaseUnityAnalysis",
       return(MakeQuestSummary(self$quest_set, self$trial_sets, quest_idx, quest_order_session))
     },
     PublicQuestStep = function(quest_idx, quest_types = NULL){
-      private$questStep(quest_idx, quest_types)
+      return(private$questStep(quest_idx, quest_types))
     },
     # Makes a graph with a path from start to finish
     quest_path = function(quest){
@@ -52,10 +52,10 @@ BaseUnityAnalysis = R6Class("BaseUnityAnalysis",
       return(get_event_times(self$trial_sets, event_name))
     },
     map_size = function(quest = NULL){
-      get_map_size(self$quest_set, self$trial_sets, quest)
+      return(get_map_size(self$quest_set, self$trial_sets, quest))
     },
     screen_size = function(){
-      get_screen_size(self$trial_sets)
+      return(get_screen_size(self$trial_sets))
     },
     quests_timewindows = function(include_teleport = T){
       return(get_quests_timewindows(quest_set = self$quest_set, trial_sets = self$trial_sets, include_teleport = include_teleport))
