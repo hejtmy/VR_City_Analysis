@@ -31,7 +31,7 @@ MultiParticipantUnityAnalysis <- R6Class("MultiParticipantUnityAnalysis",
           edf_code = self$subject_table$EDF_EYE[i]
           if(is.na(edf_code)){
             print("------------")
-            SmartPrint(c("There is no edf file for participant", participant_code))
+            SmartPrint(c("There is no edf code for participant", participant_code))
           } else {
             SmartPrint(c("Code for edf log for participant", participant_code, "is", edf_code))
             if(!is.null(self$Data[[participant_code]]$UnityEyetracker)){
