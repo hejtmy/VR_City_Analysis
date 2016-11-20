@@ -12,9 +12,15 @@ SESSION = 2
 
 #loads from the subjectList table
 Analyses = MultiParticipantUnityAnalysis$new(data_dir, subject_table, SESSION, override = F)
+
+Analyses$load_unity_eyetracker()
 tabEyeQuests = Analyses$EyetrackerQuestsSummary()
+
+Analyses$load_unity_mri()
 tabMRIQuests = Analyses$MRIQuestSummary()
 tabMRIPulses = Analyses$SynchropulsesTable()
+
+Analyses$load_eyetracker()
 synced_fixations = Analyses$synchronise_eyetracker()
 dt_pointing = Analyses$pointing_summary()
 
