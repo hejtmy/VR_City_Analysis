@@ -8,9 +8,9 @@ data_dir = "U:/OneDrive/NUDZ/HCENAT/Data/"
 subject_table = read.table(paste(data_dir, "ListOfSubjects.csv", sep = ""), sep = ",", 
                            header = T, stringsAsFactors = F, na.strings = c(""))
 
-SESSION = 2
+SESSION = 1
 
-subject_table = subject_table[c(1:4),]
+subject_table = subject_table[c(16,18),]
 #loads from the subjectList table
 Analyses = MultiParticipantUnityAnalysis$new(data_dir, subject_table, SESSION, override = F)
 
@@ -27,16 +27,16 @@ write.table(tabMRIQuests,"tabMRIQuests_session2.csv", sep = ";", row.names = F, 
 
 # -------- EYETRACKER ---------
 Analyses$load_eyetracker(override = T)
-synced_fixations = Analyses$synchronise_eyetracker()
+synced_fixations = Analyses$synchronise_eyetracker(override = T)
+
+areas = create_areas()
+synced_fixations = add_screen_area_fixations(synced_fixations, areas)
+write.table(synced_fixations, "synced_fixations_session2.csv", sep = ";", row.names = F, quote = F)
 
 # -------- POINTING ---------
 correct_angles = read.csv(paste(data_dir, "correct-angles.csv", sep = ""),
                           header = T, stringsAsFactors = F, na.strings = c(""))
 dt_pointing = Analyses$pointing_summary(override = T)
 write.table(dt_pointing, "pointing_session2.csv", sep = ";", row.names = F, quote = F)
-
-areas = create_areas()
-synced_fixations = add_screen_area_fixations(synced_fixations, areas)
-write.table(synced_fixations, "synced_fixations_session2.csv", sep = ";", row.names = F, quote = F)
 
 fix_summary = make_fixations_summary(dt)
