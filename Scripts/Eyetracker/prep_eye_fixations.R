@@ -9,7 +9,10 @@ prep_eye_fixations = function(dt, disp_resolution, unity_class){
   result = copy(dt)
   if(is.null(disp_resolution)) disp_resolution = DEFAULT_RESOLUTION
   
-  if(check_if_preprocessed(dt))return(ls)
+  if(check_if_preprocessed(dt)){
+    ls$result = result
+    return(ls)
+  }
   
   # -------- Reversing Y fixations  -------
   result[, pos_y := disp_resolution$height - pos_y]
