@@ -27,5 +27,5 @@ ColumnPresent = function(names,name){
   return(name %in% names)
 }
 SmartPrint = function(characters){
-  print(paste(characters, sep="", collapse = " "))
+  print(paste(characters, sep = "", collapse = " "))
 }
