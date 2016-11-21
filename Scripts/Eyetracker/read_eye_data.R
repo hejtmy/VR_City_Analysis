@@ -23,9 +23,10 @@ read_eye_data = function(data_dir, file, override){
       events = fread(events_file, sep=";", header = T)
     }
   }
+  filepath = paste(data_dir, file, ".asc", sep = "")
   #if we are still missing some data we recompute it
   if (is.null(events) | is.null(fixations)){
-    filepath = paste(data_dir, file, ".asc", sep = "")
+   
     #check for log existance
     if(!file.exists(filepath)){
       SmartPrint(c("ERROR:read_eye_data:MissingLog,", "ID", filepath,"DESCRIPTION: THere is no log in destination"))
@@ -33,13 +34,12 @@ read_eye_data = function(data_dir, file, override){
     }
     SmartPrint(c("Loading eyetracker log", filepath))
     text = readLines(filepath)
-    if (is.null(events)){
-      events = read_eye_events(text)
-    }
-    if (is.null(fixations)){
-      fixations = read_eye_fixations(text)
-    }
+    if (is.null(events))events = read_eye_events(text)
+    if (is.null(fixations))fixations = read_eye_fixations(text)
   }
-  ls = list("events" = events, "fixations" = fixations)
+  
+  SmartPrint(c("Loading resolution info", filepath))
+  disp_resolution = read_eye_resolution(filepath)
+  ls = list("events" = events, "fixations" = fixations, "resolution" = disp_resolution)
   return(ls)
 }
