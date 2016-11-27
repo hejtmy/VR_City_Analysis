@@ -176,9 +176,11 @@ MultiParticipantUnityAnalysis <- R6Class("MultiParticipantUnityAnalysis",
       private$dt_pointing_summary = dt_final
       return(private$dt_pointing_summary)
     },
-    SynchropulsesTable = function(force = F){
+    synchropulses_table = function(force = F){
       if (!force & !is.null(private$synchro_table)) return (private$synchro_table)
-      private$synchro_table = MultiMRIPulsesTable(self)
+      private$synchro_table = multi_mri_pulses_table(self)
+      return (private$synchro_table)
+    },
     },
     draw_quest_participants = function(experiment = NULL, quest_id, types = c("trial"), map_img_path = NULL){
       data = select_experiment(self$Data, experiment)

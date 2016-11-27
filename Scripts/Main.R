@@ -22,7 +22,7 @@ write.table(tabEyeQuests,"tabEyeQuests_session2.csv", sep = ";", row.names = F, 
 # -------- UNITY MRI ---------
 Analyses$load_unity_mri()
 tabMRIQuests = Analyses$MRIQuestSummary()
-tabMRIPulses = Analyses$SynchropulsesTable()
+tabMRIPulses = Analyses$synchropulses_table()
 write.table(tabMRIQuests,"tabMRIQuests_session2.csv", sep = ";", row.names = F, quote = F)
 
 # -------- EYETRACKER ---------
