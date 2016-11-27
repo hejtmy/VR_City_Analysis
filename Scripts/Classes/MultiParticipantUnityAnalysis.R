@@ -181,7 +181,6 @@ MultiParticipantUnityAnalysis <- R6Class("MultiParticipantUnityAnalysis",
       private$synchro_table = multi_mri_pulses_table(self)
       return (private$synchro_table)
     },
-    },
     draw_quest_participants = function(experiment = NULL, quest_id, types = c("trial"), map_img_path = NULL){
       data = select_experiment(self$Data, experiment)
       draw_quest_participants(data, quest_id, types, map_img_path)
