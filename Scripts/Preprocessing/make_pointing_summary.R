@@ -37,9 +37,6 @@ make_pointing_summary = function(quest_set, trial_sets, correct_angles = NULL){
         filter(name == quest$name) %>% 
         select(target_angle)
       correct_angle = if(nrow(correct_angle) == 1){correct_angle$target_angle} else {NULL}
-      if(!is.null(correct_angle)){
-        print("Success")
-      }
     } else {correct_angle = NULL}
     quest_pointing = pointing_accuracy(quest_set, trial_sets, quest, choosings, correct_angle) #possble to get NAS in the data frame
     quest_pointing = quest_pointing %>% mutate(quest_order_session = quest_order_session)
