@@ -51,6 +51,7 @@ for (i in 1:length(Analyses$Data)){
       pointing_summary[n, last_pulse_time := pulses_times$Time[i_end]]
     }
   }
+  pointing_summary[, participant_id := Anal$id]
   ls[[Anal$id]] = pointing_summary
 }
 
