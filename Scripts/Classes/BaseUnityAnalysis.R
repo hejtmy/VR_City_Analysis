@@ -58,7 +58,9 @@ BaseUnityAnalysis = R6Class("BaseUnityAnalysis",
       return(get_screen_size(self$trial_sets))
     },
     quests_timewindows = function(include_teleport = T){
-      return(get_quests_timewindows(quest_set = self$quest_set, trial_sets = self$trial_sets, include_teleport = include_teleport))
+      return(get_quests_timewindows(quest_set = self$quest_set, 
+                                    trial_sets = self$trial_sets, 
+                                    include_teleport = include_teleport))
     },
     DrawQuestPath = function(quest_id, types = c("learn","trial"), img_path = "Maps/megamap5.png"){
       draw_quest_participant(self$quest_set, self$trial_sets, quest_id, img_path = img_path)
