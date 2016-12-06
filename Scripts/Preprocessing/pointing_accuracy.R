@@ -47,7 +47,7 @@ pointing_accuracy = function(quest_set, trial_sets, quest, choosings = NULL, cor
     player_pos = pointing_moment[, c(Position.x, Position.z)]
     
     if(is.null(correct_angle)){
-      target_pos = ifelse(i == 1, quest_start_finish$finish, quest_start_finish$start)
+      if(i == 1){target_pos = quest_start_finish$finish} else {target_pos = quest_start_finish$start}
       target_angle = angle_from_positions(player_pos, target_pos)
     } else {
       target_angle = correct_angle

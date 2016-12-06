@@ -11,6 +11,9 @@ angle_from_positions = function(pos_from, pos_to){
   ZERO_VECTOR =  c(0, 1)
   target_vector = pos_to - pos_from
   
+  if(length(pos_from) !=2 ){print("ERROR:angle_from_positions, DESCRIPTION:input does not have two 2d position")}
+  if(length(pos_to) != 2){print("ERROR:angle_from_positions, DESCRIPTION:input does not have two 2d position")}
+  
   # ATAN takes Y and X, but we want to scale it against Z axis, therefore Y in carthesian, so the input is reversed
   theta = atan2(target_vector[1], target_vector[2])
   angle = radian_to_angle(theta)
