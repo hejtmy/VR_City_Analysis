@@ -6,7 +6,7 @@ get_quests_timewindows = function(quest_set, trial_sets, include_teleport = T){
   for(i in 1:nrow(dt)){
     line = dt[i,]
     quest = get_quest(dt, trial_sets, line$order_session)
-    times = quest_timewindow(quest, include_teleport = include_teleport)
+    times = get_quest_timewindow(quest, include_teleport = include_teleport)
     df_times$starts[i] = times$start
     df_times$ends[i] = times$finish
   }

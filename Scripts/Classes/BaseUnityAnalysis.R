@@ -75,7 +75,7 @@ BaseUnityAnalysis = R6Class("BaseUnityAnalysis",
       private$setDataDirectory()
       
       #open experiment_logs to see how many do we have
-      experiment_logs = OpenExperimentLogs(self$data_directory)
+      experiment_logs = open_experiment_logs(self$data_directory)
       if(is.null(experiment_logs)){
         SmartPrint(c("Cannot find any experiment logs in ", self$data_directory))
         return(NULL)
@@ -84,14 +84,14 @@ BaseUnityAnalysis = R6Class("BaseUnityAnalysis",
       self$trial_sets = list()
       for (i in 1:length(experiment_logs)){
         experiment_log = experiment_logs[[i]]
-        player_log = OpenPlayerLog(experiment_log, override)
+        player_log = open_player_log(experiment_log, override)
         #preprocesses player log
         #checks if there is everything we need and if not, recomputes the stuff
         if(is.null(player_log)) next
-        changed = PreprocessPlayerLog(player_log)
+        changed = preprocess_player_log(player_log)
         if (changed & save) SavePreprocessedPlayer(experiment_log, player_log)
-        scenario_log = OpenScenarioLog(experiment_log)
-        quests_logs = OpenQuestLogs(experiment_log, scenario_log)
+        scenario_log = open_scenario_log(experiment_log)
+        quests_logs = open_quests_logs(experiment_log, scenario_log)
         
         self$trial_sets[[i]] = UnityTrialSet$new(experiment_log, player_log, scenario_log, quests_logs)
       }
@@ -107,7 +107,7 @@ BaseUnityAnalysis = R6Class("BaseUnityAnalysis",
     #include teleport = T, the starting point is calculate from the beginning of the quest
     #include teleport = F, the starting point is calculate from the end of the first teleport
     getQuestTimewindow = function(quest = NULL, include_teleport = T){
-      return(GetQuestTimewindow(quest, include_teleport))
+      return(get_quest_timewindow(quest, include_teleport))
     },
     questFinished = function(quest){
       return(nrow(quest$data[quest$data$Action == "Quest finished",]) > 0)
@@ -119,8 +119,8 @@ BaseUnityAnalysis = R6Class("BaseUnityAnalysis",
       position_table = self$trial_sets[[id_of_set]]$player_log
       return(position_table[Time > time_window$start & Time < time_window$finish])
     },
-    getTeleportTimes = function(quest = NULL, quest_idx=NULL){
-      return(GetQuestTimewindow(quest))
+    getTeleportTimes = function(quest = NULL, quest_idx = NULL){
+      return(get_quest_timewindow(quest))
     },
     getQuestStartAndFinishPositions = function(quest, include_teleport = T){
       return(quest_start_finish_positions(self$quest_set, self$trial_sets, quest, include_teleport))
@@ -129,10 +129,10 @@ BaseUnityAnalysis = R6Class("BaseUnityAnalysis",
       return(wholePlayerLog(trial_sets))
     },
     playerLogForQuest = function(quest = NULL, quest_order_session = NULL, include_teleport = T){
-      return(PlayerLogForQuest(quest, quest_order_session, include_teleport))
+      return(player_log_quest(quest, quest_order_session, include_teleport))
     },
     getStepTime = function(quest, step_name, step_action = "StepActivated", step_id = NULL){
-      return(GetStepTime(quest, step_name, step_action, step_id))
+      return(get_step_time(quest, step_name, step_action, step_id))
     }
   )
 )

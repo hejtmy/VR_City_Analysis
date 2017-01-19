@@ -21,7 +21,7 @@ MakeQuestsSummary = function(quest_set, trial_sets){
     trail_times[i] = ifelse(length(quest_summary$Time) < 1, NA, quest_summary$Time)
     trail_distances[i] = ifelse(length(quest_summary$Distance) < 1, NA, quest_summary$Distance)
     trail_finished[i] = quest_summary$Finished
-    trailDistancesToEnd[i] = ifelse(length(quest_summary$DistanceToLastStep) < 1, NA, quest_summary$DistanceToLastStep)
+    trailDistancesToEnd[i] = ifelse(length(quest_summary$distance_to_last_step) < 1, NA, quest_summary$distance_to_last_step)
     quest_sky_distance[i] = ifelse(is.null(quest_summary$sky_distance), NA, quest_summary$sky_distance)
   }
   df = mutate(df, time = trail_times, distance = trail_distances, finished = trail_finished, 
@@ -47,7 +47,7 @@ AddPulsesToSummary = function(df, quest_set, trial_sets){
 CalculateMRIPulses = function(trial_sets, quest){
   ls = list()
   player_log = get_entire_player_log(trial_sets)
-  timeWindow = GetQuestTimewindow(quest, include_teleport = T)
+  timeWindow = get_quest_timewindow(quest, include_teleport = T)
   #gets the index numbers of the rows in the quest time range
   #indexes are not from the entire log, but only from the fMRI sychnro line
   pulses = player_log[Input == "fMRISynchro",.I[Time > timeWindow$start & Time < timeWindow$finish]]

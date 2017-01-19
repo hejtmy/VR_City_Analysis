@@ -1,8 +1,6 @@
 require('R6')
-source(paste(getwd(),"Scripts","HelperFunctions/preprocess_functions.R",sep="/"))
-source(paste(getwd(),"scripts","HelperFunctions/analysis_functions.R",sep="/"))
 
-VUZIX_analysis <- R6Class(     "VUZIX_analysis",
+VUZIX_analysis <- R6Class("VUZIX_analysis",
      #define variables
       public = list(
         #basic definitions

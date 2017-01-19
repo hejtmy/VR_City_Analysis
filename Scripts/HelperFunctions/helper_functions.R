@@ -23,7 +23,7 @@ EuclidDistanceColumns = function(x_values,y_values){
   if(is.null(x) || is.null(y)) return(NA)
   return(sqrt(sum((x-y)^2)))
 }
-ColumnPresent = function(names,name){
+ColumnPresent = function(names, name){
   return(name %in% names)
 }
 SmartPrint = function(characters){
