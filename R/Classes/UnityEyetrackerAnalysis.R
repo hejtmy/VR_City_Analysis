@@ -5,7 +5,7 @@ UnityEyetrackerAnalysis <- R6Class("UnityEyetrackerAnalysis",
       eyetracker = NULL,
       QuestsSummary = function(force = F){
         if (!force & !is.null(private$quests_summary)) return (private$quests_summary)
-        df = MakeEyetrackerQuestsSummary(self$quest_set, self$trial_sets)
+        df = make_eyetracker_quests_summary(self$quest_set, self$trial_sets)
         private$quests_summary = df
         return(df)
       },

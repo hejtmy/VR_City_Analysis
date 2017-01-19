@@ -24,7 +24,7 @@ BaseUnityAnalysis = R6Class("BaseUnityAnalysis",
       self$session = paste("Session", number, sep="")
     },
     QuestsSummary = function(force = F){
-      return(MakeQuestsSummary(self$quest_set, self$trial_sets))
+      return(make_quests_summary(self$quest_set, self$trial_sets))
     },
     pointing_summary = function(correct_angles = NULL, override = F){
       if(override || is.null(private$dt_pointing_summary)){
