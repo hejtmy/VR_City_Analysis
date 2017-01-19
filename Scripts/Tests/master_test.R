@@ -1,6 +1,5 @@
 source("Scripts/LoadingScript.R")
 
-
 Analyses = MultiParticipantUnityAnalysis$new(data_dir, subject_table, SESSION, override = F)
 Analyses$load_unity_eyetracker()
 tabEyeQuests = Analyses$EyetrackerQuestsSummary()
@@ -25,3 +24,25 @@ correct_angles = read.csv(paste(data_dir, "correct-angles.csv", sep = ""),
                           header = T, stringsAsFactors = F, na.strings = c(""))
 dt_pointing = Analyses$pointing_summary(override = T, correct_angles = correct_angles)
 all.equal(test_dt_pointing, dt_pointing)
+
+### MASTER BRANCH
+
+source("Scripts/LoadingScript.R")
+
+Analyses = MultiParticipantUnityAnalysis$new(data_dir, subject_table, SESSION, override = F)
+Analyses$load_unity_eyetracker()
+test_tabEyeQuests = Analyses$EyetrackerQuestsSummary()
+
+# -------- UNITY MRI ---------
+Analyses$load_unity_mri()
+test_tabMRIQuests = Analyses$MRIQuestSummary()
+test_tabMRIPulses = Analyses$synchropulses_table()
+
+# -------- EYETRACKER ---------
+Analyses$load_eyetracker()
+test_synced_fixations = Analyses$synchronise_eyetracker()
+
+# -------- POINTING ---------
+correct_angles = read.csv(paste(data_dir, "correct-angles.csv", sep = ""),
+                          header = T, stringsAsFactors = F, na.strings = c(""))
+test_dt_pointing = Analyses$pointing_summary(override = T, correct_angles = correct_angles)
