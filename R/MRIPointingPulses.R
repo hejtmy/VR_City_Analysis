@@ -1,6 +1,6 @@
 # mri_pointing_pulses
 
-source("Scripts/LoadingScript.R")
+source("R/LoadingScript.R")
 
 data_dir = "../Data/"
 data_dir = "C:/Users/hejtmy/OneDrive/NUDZ/HCENAT/Data/"

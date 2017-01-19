@@ -1,4 +1,4 @@
-source("Scripts/LoadingScript.R")
+source("R/LoadingScript.R")
 
 #sets the working dirrectory where the logs are
 data_dir = "C:/Users/hejtmy/OneDrive/NUDZ/HCENAT/Data/"

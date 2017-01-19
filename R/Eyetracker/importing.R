@@ -1,5 +1,5 @@
 require(data.table)
-source("Scripts/Eyetracker/HelperEyetrackerFunctions.R")
+source("R/Eyetracker/HelperEyetrackerFunctions.R")
 
 #what is n.calibrations, limit, n.event?
 parse.asc.file <- function(filepath, n.event = 3000, limit_lines = NULL, 

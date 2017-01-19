@@ -1,4 +1,4 @@
-source("Scripts/LoadingScript.R")
+source("R/LoadingScript.R")
 
 data_dir = "U:/OneDrive/NUDZ/HCENAT/Data/"
 participant_code = "HCE_K_13"

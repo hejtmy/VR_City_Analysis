@@ -1,4 +1,4 @@
-source("Scripts/LoadingScript.R")
+source("R/LoadingScript.R")
 
 Analyses = MultiParticipantUnityAnalysis$new(data_dir, subject_table, SESSION, override = F)
 Analyses$load_unity_eyetracker()
@@ -27,7 +27,7 @@ all.equal(test_dt_pointing, dt_pointing)
 
 ### MASTER BRANCH
 
-source("Scripts/LoadingScript.R")
+source("R/LoadingScript.R")
 
 Analyses = MultiParticipantUnityAnalysis$new(data_dir, subject_table, SESSION, override = F)
 Analyses$load_unity_eyetracker()
