@@ -17,11 +17,11 @@ MakeQuestsSummary = function(quest_set, trial_sets){
   trailDistancesToEnd = numeric(nrow(df))
   quest_sky_distance = numeric(nrow(df))
   for(i in 1:nrow(df)){
-    quest_summary = MakeQuestSummary(quest_set, trial_sets, quest_order_session = i) #possble to get NULL
+    quest_summary = make_quest_summary(quest_set, trial_sets, quest_order_session = i) #possble to get NULL
     trail_times[i] = ifelse(length(quest_summary$Time) < 1, NA, quest_summary$Time)
     trail_distances[i] = ifelse(length(quest_summary$Distance) < 1, NA, quest_summary$Distance)
     trail_finished[i] = quest_summary$Finished
-    trailDistancesToEnd[i] = ifelse(length(quest_summary$distance_to_last_step) < 1, NA, quest_summary$distance_to_last_step)
+    trailDistancesToEnd[i] = ifelse(length(quest_summary$DistanceToLastStep) < 1, NA, quest_summary$DistanceToLastStep)
     quest_sky_distance[i] = ifelse(is.null(quest_summary$sky_distance), NA, quest_summary$sky_distance)
   }
   df = mutate(df, time = trail_times, distance = trail_distances, finished = trail_finished, 
@@ -34,7 +34,7 @@ AddPulsesToSummary = function(df, quest_set, trial_sets){
   firstPulses = integer(nrow(df))
   numberOfPulses = integer(nrow(df))
   for(i in 1:nrow(df)){
-    quest = QuestStep(quest_set, trial_sets, i)
+    quest = get_quest(quest_set, trial_sets, i)
     mri_summary = CalculateMRIPulses(trial_sets, quest)
     firstPulses[i] = ifelse(length(mri_summary$firstPulse)<1, NA, mri_summary$firstPulse)
     numberOfPulses[i] = ifelse(length(mri_summary$numberOfPulses)<1, NA, mri_summary$numberOfPulses)

@@ -1,4 +1,4 @@
-quest_start_finish_positions = function(quest_set, trial_sets, quest, include_teleport = F){
+get_quest_start_finish_positions = function(quest_set, trial_sets, quest, include_teleport = F){
   if(is.null(quest)){
     print("Quest log not reachable")
     return(NULL)

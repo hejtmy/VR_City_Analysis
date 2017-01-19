@@ -20,7 +20,7 @@ draw_quest_participant = function(quest_set, trial_sets, quest_id, types = c("le
   
   #this is TODO - make it clearer - getting too much of quest data in each function
   quest = get_quest(quest_set, trial_sets, quest_id, quest_types = "trial")
-  start_stop = quest_start_finish_positions(quest_set, trial_sets, quest, include_teleport = F)
+  start_stop = get_quest_start_finish_positions(quest_set, trial_sets, quest, include_teleport = F)
   
   pointing_df = prepare_pointing_quest(quest_set, trial_sets, quest, choosings)
   plt = add_pointing_arrows(plt, pointing = pointing_df, start_stop = start_stop)

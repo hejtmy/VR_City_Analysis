@@ -36,7 +36,7 @@ BaseUnityAnalysis = R6Class("BaseUnityAnalysis",
     #takes either quest_id or session id as a parameter
     #order_session = 
     QuestSummary = function(quest_idx = NULL, quest_order_session = NULL){
-      return(MakeQuestSummary(self$quest_set, self$trial_sets, quest_idx, quest_order_session))
+      return(make_quest_summary(self$quest_set, self$trial_sets, quest_idx, quest_order_session))
     },
     PublicQuestStep = function(quest_idx, quest_types = NULL){
       return(private$questStep(quest_idx, quest_types))
@@ -98,10 +98,10 @@ BaseUnityAnalysis = R6Class("BaseUnityAnalysis",
       self$quest_set = MakeQuestTable(self$trial_sets)
     },
     questStep = function(quest_idx, quest_types = NULL){
-      return(QuestStep(self$quest_set, self$trial_sets, quest_idx, quest_types))
+      return(get_quest(self$quest_set, self$trial_sets, quest_idx, quest_types))
     },      
     getQuestSessionId = function(quest){
-      return(GetQuestSessionId(quest))
+      return(get_quest_session_id(quest))
     },
     #returns list with start and finish fields
     #include teleport = T, the starting point is calculate from the beginning of the quest
@@ -110,7 +110,7 @@ BaseUnityAnalysis = R6Class("BaseUnityAnalysis",
       return(get_quest_timewindow(quest, include_teleport))
     },
     questFinished = function(quest){
-      return(nrow(quest$data[quest$data$Action == "Quest finished",]) > 0)
+      return(is_quest_finished)
     },
     selectQuestPositionData = function(quest, time_window){
       if(missing(time_window)) stop("Need to specify time window")
@@ -123,7 +123,7 @@ BaseUnityAnalysis = R6Class("BaseUnityAnalysis",
       return(get_quest_timewindow(quest))
     },
     getQuestStartAndFinishPositions = function(quest, include_teleport = T){
-      return(quest_start_finish_positions(self$quest_set, self$trial_sets, quest, include_teleport))
+      return(get_quest_start_finish_positions(self$quest_set, self$trial_sets, quest, include_teleport))
     },
     wholePlayerLog = function(){
       return(wholePlayerLog(trial_sets))

@@ -19,7 +19,7 @@ pointing_accuracy = function(quest_set, trial_sets, quest, choosings = NULL, cor
   
   # assumes that pointing times are in order
   player_log = player_log_quest_trial(quest_set, trial_sets, quest = quest)
-  quest_start_finish = quest_start_finish_positions(quest_set, trial_sets, quest, include_teleport = F)
+  quest_start_finish = get_quest_start_finish_positions(quest_set, trial_sets, quest, include_teleport = F)
   if(is.null(choosings)) choosings = get_event_times(trial_sets, "ChooseDirection")
   
   quest_trial_set_id = get_quest_trial_set_id(quest_set, quest)
