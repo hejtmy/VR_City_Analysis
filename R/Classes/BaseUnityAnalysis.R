@@ -95,7 +95,7 @@ BaseUnityAnalysis = R6Class("BaseUnityAnalysis",
         
         self$trial_sets[[i]] = UnityTrialSet$new(experiment_log, player_log, scenario_log, quests_logs)
       }
-      self$quest_set = MakeQuestTable(self$trial_sets)
+      self$quest_set = make_quest_set(self$trial_sets)
     },
     questStep = function(quest_idx, quest_types = NULL){
       return(get_quest(self$quest_set, self$trial_sets, quest_idx, quest_types))

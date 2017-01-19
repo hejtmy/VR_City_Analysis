@@ -10,7 +10,7 @@ make_quest_summary = function(quest_set, trial_sets, quest_order_session = NULL,
     
     #calculating sky distance from start to goal
     start_stop = get_quest_start_finish_positions(quest_set, trial_sets, quest)
-    if(!is.null(start_stop)) ls$sky_distance = quest_sky_distance(start_stop)
+    if(!is.null(start_stop)) ls$sky_distance = distance_between_points(start_stop$start, start_stop$finish)
     
     #calculating time and distance covered
     if(is.null(player_log)){
