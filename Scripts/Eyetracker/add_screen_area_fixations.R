@@ -15,11 +15,12 @@ create_areas = function(height, width){
   quater = function(num){return(num/4)}
   third = function(num){return(num/3)}
   around = function(middle, deviation){return(c(middle - deviation, middle + deviation))}
-  map_area = list(name = "map", x = c(0, quater(WIDTH)), y = c(0, quater(HEIGHT)))
-  center_area = list(name = "center", x = around(WIDTH/2, quater(WIDTH)/2), 
-                     y = around(HEIGHT/2, quater(HEIGHT)/2))
-  control_area = list(name = "control" ,x = c(0, quater(WIDTH)),
-                      y = c(HEIGHT, HEIGHT - quater(HEIGHT)))
+  map_area = list(name = "map", x = c(0, third(WIDTH)), y = c(0, third(HEIGHT)))
+  center_area = list(name = "center", x = around(WIDTH/2, third(WIDTH)/2), 
+                     y = around(HEIGHT/2, third(HEIGHT)/2))
+  # left upper corner
+  control_area = list(name = "control" , x = c(0, third(WIDTH)),
+                      y = c(HEIGHT, HEIGHT - third(HEIGHT)))
   
   quest_area = list(name = "quest", x = c(WIDTH - quater(WIDTH), WIDTH),
                     y = c(HEIGHT - quater(HEIGHT)/2, HEIGHT))
