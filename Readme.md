@@ -24,7 +24,7 @@ subject_table = read.table("../Data/ListOfSubjects.csv", sep = ";", header=T, st
 
 ```r
 #loading dependencies
-source("Scripts/LoadingScript.R")
+source("R/LoadingScript.R")
 ```
 
 ## Single participant analysis
