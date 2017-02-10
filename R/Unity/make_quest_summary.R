@@ -31,7 +31,7 @@ make_quest_summary = function(quest_set, trial_sets, quest_order_session = NULL,
     #for each list member - checking if there are two
     for(type in quest_types){
       quest = quests[[type]]
-      quest_order_session = get_quest_session_id(quest)
+      quest_order_session = quest$order_session
       summary = make_quest_summary(quest_set, trial_sets, quest_order_session = quest_order_session)
       ls[[type]]$Time = summary$Time
       ls[[type]]$Distace = summary$Distance
