@@ -4,10 +4,10 @@
 #' 
 player_log_quest = function(quest_set, trial_sets = NULL, quest = NULL, quest_order_session = NULL, include_teleport = T){
   if(is.null(trial_sets)) return(NULL)
-  if(!is.null(quest)) quest_line = filter(quest_set, name == quest$name)
+  if(!is.null(quest)) quest_line = filter(quest_set, order_session == quest$order_session)
   if(!is.null(quest_order_session)) quest_line = filter(quest_set, order_session == quest_order_session)
   if(nrow(quest_line) > 1){
-    print("Multiple quests have the same name")
+    print("player_log_quest:: Multiple quests have the same name")
     return(NULL)
   }
   if(is.null(quest)) quest = get_quest(quest_set, trial_sets, quest_order_session)
