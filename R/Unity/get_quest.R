@@ -20,7 +20,8 @@ get_quest = function(quest_set, trial_sets, quest_idx, quest_types = NULL){
       quest = trial_sets[[quest_line$set_id]]$quest_logs[quest_line$order_set]
       if(is.null(quest)) return(NULL)
       quest[[1]]$name = select(quest_line,name)[[1]]
-      ls = c(ls,quest)
+      quest[[1]]$order_session = select(quest_line, order_session)[[1]]
+      ls = c(ls, quest)
     }
     #$removes redundant header - we can resave it
     ls = ls[[1]]
@@ -31,7 +32,8 @@ get_quest = function(quest_set, trial_sets, quest_idx, quest_types = NULL){
     for(i in 1:nrow(quest_lines)){
       quest_line = quest_lines[i, ]
       ls[[quest_types[i]]] = trial_sets[[quest_line$set_id]]$quest_logs[quest_line$order_set][[1]]
-      ls[[quest_types[i]]]$name = select(quest_line,name)[[1]]
+      ls[[quest_types[i]]]$name = select(quest_line, name)[[1]]
+      ls[[quest_types[i]]]$order_session = select(quest_line, order_session)[[1]]
     }
     #if we only searched for a signle quest
     if(length(quest_types)==1) ls = ls[[1]]
