@@ -36,3 +36,10 @@ synchronise_eye_unity = function(eye_events, unity_events, quest_times, fixation
   fixations = fixations_add_quest_info(fixations, quest_times)
   return(fixations)
 }
+      if (sum_diff_eye < best_start_value) best_start_idx = eye_start_id
+    }
+  }
+  #if we found such a match, we note it as 
+  #TODO - maybe check again
+  return(best_start_idx)
+}
