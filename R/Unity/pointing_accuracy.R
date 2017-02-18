@@ -13,7 +13,8 @@ pointing_accuracy = function(quest_set, trial_sets, quest, choosings = NULL, cor
   n_pointing = nrow(pointing_times)
   df = data.frame(pointing_order = as.numeric(rep(NA, n_pointing)), 
                   target_angle = as.numeric(rep(NA, n_pointing)), 
-                  chosen_angle = as.numeric(rep(NA, n_pointing)), 
+                  chosen_angle = as.numeric(rep(NA, n_pointing)),
+                  quest_end_angle = as.numeric(rep(NA, n_pointing)),
                   point_start = as.numeric(rep(NA, n_pointing)),
                   point_end = as.numeric(rep(NA, n_pointing)))
   
@@ -52,11 +53,11 @@ pointing_accuracy = function(quest_set, trial_sets, quest, choosings = NULL, cor
     } else {
       target_angle = correct_angle
     }
-
-    chosen_angle = pointing_moment$Rotation.X
     point_start =  dt_time$StepActivated
     point_end = player_point_time
-    df[i, ] = c(i, target_angle, chosen_angle, point_start, point_end)
+    quest_end_angle = player_position_at_time(quest_set, trial_sets, quest, point_start)
+    chosen_angle = pointing_moment$Rotation.X
+    df[i, ] = c(i, target_angle, chosen_angle, quest_end_angle, point_start, point_end)
   }
   return(df)
 }

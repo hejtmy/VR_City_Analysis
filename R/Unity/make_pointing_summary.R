@@ -11,6 +11,7 @@ make_pointing_summary = function(quest_set, trial_sets, correct_angles = NULL){
   if(is.null(quest_set)) return(NULL)
   target_angle = numeric(nrow(quest_set))
   chosen_angle = numeric(nrow(quest_set))
+  quest_end_angle = numeric(nrow(quest_set))
   decision_time = numeric(nrow(quest_set))
   
   # extract times from quests whenre pointing is required
@@ -22,6 +23,7 @@ make_pointing_summary = function(quest_set, trial_sets, correct_angles = NULL){
     SmartPrint(c("ERROR:make_pointing_summary:MissingEvent", "TYPE:ChooseDirection", "DESCRIPTION: No choose direction events were found"))
     return(NULL)
   }
+  #FOR EACH QUEST
   for(quest_order_session in quest_set$order_session){
     quest = get_quest(quest_set, trial_sets, quest_order_session)
     
