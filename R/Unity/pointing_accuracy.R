@@ -55,7 +55,7 @@ pointing_accuracy = function(quest_set, trial_sets, quest, choosings = NULL, cor
     }
     point_start =  dt_time$StepActivated
     point_end = player_point_time
-    quest_end_angle = player_position_at_time(quest_set, trial_sets, quest, point_start)
+    quest_end_angle = get_rotation_at_time(quest_set, trial_sets, quest, point_start)
     chosen_angle = pointing_moment$Rotation.X
     df[i, ] = c(i, target_angle, chosen_angle, quest_end_angle, point_start, point_end)
   }
