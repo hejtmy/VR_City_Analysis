@@ -13,7 +13,7 @@ find_better_match = function(eye_durations, unity_durations, allowed_difference,
     if (length(id) == 1){
       #We try to figure out, if the consecutive synchro points also match
       if (has_consecutive(unity_durations[i:length(unity_durations)], eye_durations[id:length(eye_durations)], allowed_difference, consecutive)){
-        n_matches = consecutive
+        n_matches = consecutive + 1
         matching$unity = i
         matching$eye = id
         matching$diff = dur
