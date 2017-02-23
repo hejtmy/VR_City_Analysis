@@ -28,11 +28,11 @@ synchronise_eye_unity = function(eye_events, unity_events, quest_times, fixation
   
   #' Tries Escape
   #' Should return a data frame set_id first_index
-  df_sync_times = try_fit_event("l", "EyetrackerSynchro", eye_events, unity_events, ALLOWED_DIFFERENCE)
+  df_sync_times = try_fit_event("l", "EyetrackerSynchro", eye_events, unity_events, ALLOWED_DIFFERENCE, consecutive = 3)
   if (incomplete_df(df_sync_times)){
     #filling up missing values
     SmartPrint(c("WARNING:synchronise_eye_unity:NotEnoughSynchro", "TYPE:unity_events", "DESC:Using escapes to fill in data"))
-    df_sync_times_extra = try_fit_event("ESCAPE", "Pause", eye_events, unity_events, ALLOWED_DIFFERENCE)
+    df_sync_times_extra = try_fit_event("ESCAPE", "Pause", eye_events, unity_events, ALLOWED_DIFFERENCE, consecutive = 0)
     df_sync_times = fill_missing_df(df_sync_times, df_sync_times_extra) 
   }
   synchronise_quest_times(quest_times, df_sync_times)

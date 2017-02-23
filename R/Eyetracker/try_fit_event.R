@@ -6,7 +6,7 @@
 #' @param unity_times All unity event times
 #' @param allowed_difference How far can two events be separated to be still considered comming from the same source in milliseconds
 
-try_fit_event = function(eye_event, unity_event, eye_times, unity_times, allowed_difference){
+try_fit_event = function(eye_event, unity_event, eye_times, unity_times, allowed_difference, consecutive = 3){
   eye_events = copy(eye_times)
   eye_events = eye_events[type == eye_event, ]
   eye_events[, diff:= c(NA, diff(time))]
@@ -27,7 +27,7 @@ try_fit_event = function(eye_event, unity_event, eye_times, unity_times, allowed
     
     # this passes the set durations from unity and all durations from eyetracker to the function that shoudl find best match
     # find_better_match returns a list with the best synchronising event
-    ls_idx = find_better_match(eye_durations, unity_set_durations[, duration_ms], allowed_difference)
+    ls_idx = find_better_match(eye_durations, unity_set_durations[, duration_ms], allowed_difference, consecutive)
     
     #if the set is accepted and it is the accepted by the defined accepting function, we fill the return df with synchronising times
     if(!is.null(ls_idx) && eye_synchro_acceptable(ls_idx)){

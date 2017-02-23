@@ -4,7 +4,7 @@ source("R/LoadingScript.R")
 data_dir = "C:/Users/hejtmy/OneDrive/NUDZ/HCENAT/Data/"
 data_dir = "U:/OneDrive/NUDZ/HCENAT/Data/"
 
-SESSION = 2
+SESSION = 1
 
 subject_table = read.table(paste(data_dir, "ListOfSubjects.csv", sep = ""), sep = ",", header = T, stringsAsFactors = F, na.strings = c(""))
 
