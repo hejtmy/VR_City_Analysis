@@ -14,6 +14,9 @@ UnityEyetrackerAnalysis <- R6Class("UnityEyetrackerAnalysis",
         if(!is.null(self$eyetracker)){
           return(self$eyetracker$summary(force, self))
         }
+      },
+      eye_synchronise = function(override = T){
+        self$eyetracker$synchronise(self, override)
       }
     ),
     private = list(
