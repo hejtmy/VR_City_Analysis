@@ -22,7 +22,7 @@ find_better_match = function(eye_durations, unity_durations, allowed_difference,
     }
   }
   if (n_matches == 0){
-    SmartPrint(c("WARNING:synchronise_eye_unity:NoMatch", "DESCRIPTION: No matching events found. Synchronising could not be finished"))
+    SmartPrint(c("WARNING:find_better_match:NoMatch", "DESCRIPTION: No matching events found. Synchronising could not be finished"))
     return(NULL)
   } 
   matching$n_matches = n_matches

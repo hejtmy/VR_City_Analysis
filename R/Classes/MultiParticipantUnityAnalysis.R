@@ -122,10 +122,12 @@ MultiParticipantUnityAnalysis <- R6Class("MultiParticipantUnityAnalysis",
       if (!override & !is.null(private$fixations_synchronised)) return (private$fixations_synchronised)
       final = data.table()
       for(i in 1:length(self$Data)){
-        print(self$Data[[i]]$UnityEyetracker$eyetracker$data_directory)
         eyetracker = self$Data[[i]]$UnityEyetracker$eyetracker
-        if(is.null(eyetracker)) next
-        
+        if(is.null(eyetracker)){
+          SmartPrint(c("WARNING:MultiParticipantUnityAnalysis:EyetrackerSummary:NoEyetracker", "ID:", eyetracker$id, "DESCRIPTION: There is no eyetracker"))
+          next
+        }
+        print(self$Data[[i]]$UnityEyetracker$eyetracker$data_directory)
         unity_class = self$Data[[i]]$UnityEyetracker
         if(is.null(unity_class)){
           SmartPrint(c("WARNING:MultiParticipantUnityAnalysis:EyetrackerSummary:NoQuestTimes", "ID:", eyetracker$id, "DESCRIPTION: You need to run EyetrackerQuestSummary first"))
