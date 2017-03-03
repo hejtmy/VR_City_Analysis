@@ -18,10 +18,11 @@ make_quest_summary = function(quest_set, trial_sets, quest_order_session = NULL,
       ls$Finished = NA
     } else {
       #needs to find the first place after the teleport
-      positions = c(head(player_log,1)$cumulative_distance, tail(player_log,1)$cumulative_distance)
+      positions = c(head(player_log, 1)$cumulative_distance, tail(player_log,1)$cumulative_distance)
       ls$Distance = diff(positions)
       ls$Finished = is_quest_finished(quest)
-      ls$DistanceToLastStep = distance_to_last_step(quest_set, quest, trial_sets);
+      ls$DistanceToLastStep = distance_to_last_step(quest_set, quest, trial_sets)
+      ls$nDeliberationStops = nrow(get_deliberation_stops(player_log))
     }
   }
   if (!is.null(quest_id)){
@@ -36,7 +37,7 @@ make_quest_summary = function(quest_set, trial_sets, quest_order_session = NULL,
       ls[[type]]$Time = summary$Time
       ls[[type]]$Distace = summary$Distance
       ls[[type]]$Finished = summary$Finished
-      ls$DistanceToLastStep = distance_to_last_step(quest, trial_sets);
+      ls$DistanceToLastStep = distance_to_last_step(quest, trial_sets)
     }
   }
   return(ls)
