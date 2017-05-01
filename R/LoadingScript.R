@@ -7,7 +7,6 @@ library('stringr')
 library('png')
 library('grid')
 library('ggplot2')
-library('ggthemr')
 library('ggthemes')
 #custom items
 

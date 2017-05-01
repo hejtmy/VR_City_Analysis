@@ -6,7 +6,6 @@
 #' @param img_path path to the image that will be overwrote
 #' @return graph of the learned and trial path
 draw_quest_participant = function(quest_set, trial_sets, quest_id, types = c("learn", "trial"), img_path = NULL){
-  THEME = scale_colour_pander()
   if(is.null(img_path)){
     SmartPrint(c("ERROR:draw_quest_participant:MissingParameter", "TYPE:img_path ", "DESCRIPTION:", "Missing parameter"))
     stop()
@@ -24,8 +23,6 @@ draw_quest_participant = function(quest_set, trial_sets, quest_id, types = c("le
   
   pointing_df = prepare_pointing_quest(quest_set, trial_sets, quest, choosings)
   plt = add_pointing_arrows(plt, pointing = pointing_df, start_stop = start_stop)
-  
-  plt = plt + THEME
   
   return(plt)
 }

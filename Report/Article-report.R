@@ -1,6 +1,6 @@
 source("R/LoadingScript.R")
 library(ggthemes)
-
+library(wesanderson)
 data_dir = "U:/OneDrive/NUDZ/HCENAT/Data/"
 
 subject_table = read.table(paste(data_dir, "ListOfSubjects.csv", sep = ""), sep = ",", 
@@ -17,8 +17,8 @@ Analyses$load_unity_eyetracker()
 tabEyeQuests = Analyses$EyetrackerQuestsSummary()
 
 path_plt <- Analyses$Data$HCE_E_4$UnityEyetracker$DrawQuestPath(9)
-path_plt <- path_plt + theme_bw()
-path_plt + xlab("Postion X") + ylab("Position Z")
+path_plt <- path_plt + theme_bw() + theme(legend.position='none')
+path_plt + xlab("Postion X") + ylab("Position Z") + scale_color_brewer(palette="Set1")
 
 # -------- UNITY MRI ---------
 Analyses$load_unity_mri()
