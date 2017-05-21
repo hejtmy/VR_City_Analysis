@@ -2,8 +2,8 @@ make_path_image = function (img_location, position_table, map_size){
   
   img = readPNG(img_location)
   
-  g = rasterGrob(img, width=unit(1, "native"), height=unit(1, "native"))
-  g = rasterGrob(img, width=unit(1, "npc"), height=unit(1, "npc"))
+  g = rasterGrob(img, width = unit(1, "native"), height = unit(1, "native"))
+  g = rasterGrob(img, width = unit(1, "npc"), height = unit(1, "npc"))
   
   plot = ggplot(position_table, aes(Position.x, Position.z))  +
     annotation_custom(g, xmin = map_size$x[1], xmax = map_size$x[2], ymin = map_size$y[1], ymax = map_size$y[2])+

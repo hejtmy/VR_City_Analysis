@@ -17,5 +17,3 @@ draw_quest_participant = function(quest_set, trial_sets, quest_id, types = c("le
   plt = draw_pointing_participant(plt, quest_set, trial_sets, quest_id)
   return(plt)
 }
-
-
