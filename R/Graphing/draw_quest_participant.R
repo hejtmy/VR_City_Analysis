@@ -13,17 +13,8 @@ draw_quest_participant = function(quest_set, trial_sets, quest_id, types = c("le
   ls = prepare_quest_path(quest_set, trial_sets, quest_id, types)
   if(is.null(ls)) return(NULL)
   plt = make_path_image(img_location = img_path, position_table = ls$path_table, map_size = ls$map_size, special_points = ls$start_and_stop)
-  
-  #this is only for buffering purposes - could be done int he add_pointing function, but would be more intensive
-  choosings = get_event_times(trial_sets, "ChooseDirection")
-  
-  #this is TODO - make it clearer - getting too much of quest data in each function
-  quest = get_quest(quest_set, trial_sets, quest_id, quest_types = "trial")
-  start_stop = get_quest_start_finish_positions(quest_set, trial_sets, quest, include_teleport = F)
-  
-  pointing_df = prepare_pointing_quest(quest_set, trial_sets, quest, choosings)
-  plt = add_pointing_arrows(plt, pointing = pointing_df, start_stop = start_stop)
-  
+
+  #plt = draw_pointing_participant(plt, quest_set, trial_sets, quest_id)
   return(plt)
 }
 
