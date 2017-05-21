@@ -17,6 +17,6 @@ draw_pointing_participant = function(plt, quest_set, trial_sets, quest_id){
   
   pointing_df = prepare_pointing_quest(quest_set, trial_sets, quest, choosings)
   plt = add_pointing_arrows(plt, pointing = pointing_df, start_stop = start_stop)
-  
+
   return(plt)
 }

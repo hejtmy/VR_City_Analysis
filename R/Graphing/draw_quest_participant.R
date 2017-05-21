@@ -12,9 +12,9 @@ draw_quest_participant = function(quest_set, trial_sets, quest_id, types = c("le
   }
   ls = prepare_quest_path(quest_set, trial_sets, quest_id, types)
   if(is.null(ls)) return(NULL)
-  plt = make_path_image(img_location = img_path, position_table = ls$path_table, map_size = ls$map_size, special_points = ls$start_and_stop)
-
-  #plt = draw_pointing_participant(plt, quest_set, trial_sets, quest_id)
+  plt = make_path_image(img_location = img_path, position_table = ls$path_table, map_size = ls$map_size)
+  plt = add_points(plt, ls$start_and_stop)
+  plt = draw_pointing_participant(plt, quest_set, trial_sets, quest_id)
   return(plt)
 }
 
